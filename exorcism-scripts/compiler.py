@@ -21,6 +21,8 @@ class Token:
     def __init__(self, type_, value):
         self.type = type_
         self.value = value
+    def __repr__(self):
+        return f"Token({self.type.name}, '{self.value}')"
 
 class Lexer:
     def __init__(self, text):
@@ -66,9 +68,14 @@ class Lexer:
         return Token(TokenType.EOF, None)
 
 # =====================================================================
-# 2. AST DATA STRUCTURES & PARSER (Syntax Rules & Structures First!)
+# 2. AST DATA STRUCTURES & PARSER (Multi-Line Block Upgrade)
 # =====================================================================
 class ASTNode: pass
+
+# UPGRADE: A core node designed to wrap sequential instructions together
+class ProgramNode(ASTNode):
+    def __init__(self, statements):
+        self.statements = statements # List containing your sequential VarDeclNodes
 
 class LiteralNode(ASTNode):
     def __init__(self, value):
@@ -96,17 +103,16 @@ class Parser:
         if self.current_token.type == token_type:
             self.current_token = self.lexer.get_next_token()
         else:
-            raise Exception(f"Parser error: Expected token {token_type}")
+            raise Exception(f"Parser error: Expected token {token_type}, got {self.current_token.type}")
 
     def parse_primary(self):
         token = self.current_token
         if token.type == TokenType.INT_LITERAL:
             self.eat(TokenType.INT_LITERAL)
             return LiteralNode(token.value)
-        raise Exception("Parser Error: Expected integer literal")
+        raise Exception(f"Parser Error: Expected integer literal, got {token.type}")
 
     def parse_expression(self):
-        # Parses math operations structurally (e.g., 40 + 2)
         node = self.parse_primary()
         while self.current_token.type in [TokenType.PLUS, TokenType.MINUS]:
             op_token = self.current_token
@@ -116,7 +122,6 @@ class Parser:
         return node
 
     def parse_declaration(self):
-        # Maps strict type rules and catches your upcoming null-safety modifier (?)
         type_token = self.current_token
         self.eat(TokenType.TYPE)
         
@@ -134,24 +139,40 @@ class Parser:
         
         return VarDeclNode(type_token.value, is_nullable, id_token.value, expr_node)
 
+    # UPGRADE: Continuous parsing loop processing statements sequentially
+    def parse_program(self):
+        statements = []
+        while self.current_token.type != TokenType.EOF:
+            # Currently parses declarations sequentially; can be scaled to support loops or control flows later
+            stmt = self.parse_declaration()
+            statements.append(stmt)
+        return ProgramNode(statements)
+
 # =====================================================================
-# 3. TYPE CHECKER (Strict Typing Verification Pass)
+# 3. TYPE CHECKER (Multi-Line Variable Validation Pass)
 # =====================================================================
 class TypeChecker:
     def __init__(self):
         self.symbol_table = {}
 
     def check(self, node):
-        if isinstance(node, VarDeclNode):
+        # UPGRADE: Recurse through all program statements sequentially
+        if isinstance(node, ProgramNode):
+            for stmt in node.statements:
+                self.check(stmt)
+                
+        elif isinstance(node, VarDeclNode):
+            # Enforce strict compiler validation against declaring variables twice!
             if node.name in self.symbol_table:
-                raise Exception(f"Compile Error: Variable '{node.name}' is already defined.")
+                raise Exception(f"Strict Type Error: Variable '{node.name}' is already defined.")
                 
             expr_type = self.get_expr_type(node.expr_node)
             if node.var_type != expr_type:
                 raise Exception(f"Strict Type Mismatch: Cannot assign '{expr_type}' to '{node.var_type}'")
                 
+            # Cache layout tracking parameters
             self.symbol_table[node.name] = {"type": node.var_type, "nullable": node.is_nullable}
-            print(f"[Type Checker] Successfully verified strict variable '{node.name}' ({node.var_type})")
+            print(f"[Type Checker] Verified: {node.var_type} {node.name}")
 
     def get_expr_type(self, node):
         if isinstance(node, LiteralNode):
@@ -161,11 +182,11 @@ class TypeChecker:
             right_type = self.get_expr_type(node.right)
             if left_type == "int" and right_type == "int":
                 return "int"
-            raise Exception("Type Error: Math operators are currently restricted to integers.")
+            raise Exception("Type Error: Math operations only supported on integers.")
         return "unknown"
 
 # =====================================================================
-# 4. CODE GENERATOR (Cross-Platform WORM Target Emission)
+# 4. CODE GENERATOR (LLVM IR Sequential Output Block Engine)
 # =====================================================================
 class LLVMGenerator:
     def __init__(self):
@@ -189,20 +210,26 @@ class LLVMGenerator:
                 return self.builder.add(left_val, right_val, name="addtmp")
             if node.op == '-':
                 return self.builder.sub(left_val, right_val, name="subtmp")
-        raise Exception("Code Generation Error: Invalid expression node trace")
+        raise Exception("Code Generation Error: Invalid expression architecture")
 
-    def generate(self, ast_node):
-        if isinstance(ast_node, VarDeclNode):
-            llvm_type = ir.IntType(32)
-            ptr = self.builder.alloca(llvm_type, name=ast_node.name)
+    def generate(self, node):
+        # UPGRADE: Map each processed statement sequentially inside the LLVM builder environment
+        if isinstance(node, ProgramNode):
+            for stmt in node.statements:
+                self.generate(stmt)
+            # Safe final execution exit marker returning execution success status state code
+            self.builder.ret(ir.Constant(ir.IntType(32), 0))
             
-            evaluated_value = self.generate_expr(ast_node.expr_node)
+        elif isinstance(node, VarDeclNode):
+            llvm_type = ir.IntType(32)
+            ptr = self.builder.alloca(llvm_type, name=node.name)
+            
+            evaluated_value = self.generate_expr(node.expr_node)
             self.builder.store(evaluated_value, ptr)
             
+            # Read and print each declaration output as it resolves sequentially
             loaded_val = self.builder.load(ptr, name="loaded")
             self.builder.call(self.native_print, [loaded_val])
-            
-            self.builder.ret(ir.Constant(ir.IntType(32), 0))
 
     def get_ir_string(self):
         return str(self.module)
@@ -232,7 +259,7 @@ def compile_and_link_auto(llvm_ir_string):
     result = subprocess.run(link_command, capture_output=True, text=True)
     
     if result.returncode == 0:
-        print(f" SUCCESS! Universal core binary generated: {final_wasm}")
+        print(f"🎉 SUCCESS! Universal core binary generated: {final_wasm}")
         
         js_code = (
             "const fs = require('fs');\n"
@@ -248,20 +275,25 @@ def compile_and_link_auto(llvm_ir_string):
         with open(runner_js, "w") as f:
             f.write(js_code)
         print(f"[*] Created automated launcher script: {runner_js}")
-        print("\nExecute your program using: node run.js")
+        print("\nExecute your language program using: node run.js")
     else:
-        print("\n Build Pipeline Error:")
+        print("\n❌ Build Pipeline Error:")
         print(result.stderr)
 
+# ROOT LEVEL EXECUTION BLOCK WITH SYNCED IDENTATION
 if __name__ == "__main__":
-    # Test your strictly typed language layout processing arithmetic expressions!
-    source_code = "int myNumber = 40 + 2;"
+    # MILESTONE: Multi-line, continuous, strictly typed code input block!
+    source_code = "int firstVal = 10 + 5; int secondVal = 30 - 3;"
+    
+    print(f"Compiling Multi-Line Block:\n{source_code}\n")
     
     lexer = Lexer(source_code)
     parser = Parser(lexer)
-    ast = parser.parse_declaration()
     
-    # Run data layout analysis prior to emitting back-end code
+    # Trigger the new multi-statement layout parsing algorithm entry pointer loop
+    ast = parser.parse_program()
+    
+    # Process multi-statement type-checking verification passes
     type_checker = TypeChecker()
     type_checker.check(ast)
     

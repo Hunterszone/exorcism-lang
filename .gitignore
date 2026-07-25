@@ -1,4 +1,4 @@
 # Ignoring output files
-*.js
-*.wasm
-*.all
+**/*.js
+**/*.wasm
+**/*.all
