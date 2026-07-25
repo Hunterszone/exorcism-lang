@@ -5,6 +5,17 @@ The written code is compiled into a cross-platform WebAssembly binary (.wasm), w
 
 ## HOW TO COMPILE & RUN - COMMANDS
 
-1. del /f /q *.ll *.wasm run.js              # Clear the containing output dir
-2. py compiler.py 							 # Compile
-3. node run.js 								 # Run the executable program"# exorcism-lang" 
+### Clear the containing output dir
+```console
+del /f /q *.ll *.wasm run.js              
+```
+
+### Compile
+```console
+py compiler.py 							 
+```
+
+### Run the executable program"# exorcism-lang" 
+```console
+node run.js 								 
+```
