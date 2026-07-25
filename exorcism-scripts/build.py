@@ -222,33 +222,56 @@ class WasmBuilder:
         )
 
 
-        code = f"""
+        code = r'''
 const fs = require("fs");
+const path = require("path");
 
+const wasmFile = path.join(__dirname, "__WASM_FILE__");
 
-const wasm = fs.readFileSync(
-    "{os.path.basename(wasm_file)}"
-);
+const wasmBuffer = fs.readFileSync(wasmFile);
 
+let instance;
 
-WebAssembly.instantiate(
-    wasm,
-    {{
-        env: {{
-        }}
-    }}
-)
-.then(result => {{
+WebAssembly.instantiate(wasmBuffer, {
 
-    result.instance.exports.main();
+    env: {
 
-}})
-.catch(err => {{
+        print_string: (ptr) => {
+
+            const memory =
+                new Uint8Array(
+                    instance.exports.memory.buffer
+                );
+
+            let text = "";
+
+            while (memory[ptr] !== 0) {
+
+                text += String.fromCharCode(
+                    memory[ptr]
+                );
+
+                ptr++;
+            }
+
+            console.log(text);
+        }
+    }
+
+})
+.then(result => {
+
+    instance = result.instance;
+
+    instance.exports.main();
+
+})
+.catch(err => {
 
     console.error(err);
 
-}});
-"""
+});
+'''
 
 
         with open(
@@ -258,7 +281,10 @@ WebAssembly.instantiate(
         ) as file:
 
             file.write(
-                code
+                code.replace(
+                    "__WASM_FILE__",
+                    "hello.wasm"
+                )
             )
 
 
