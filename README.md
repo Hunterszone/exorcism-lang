@@ -1,4 +1,4 @@
-# README 
+# EXORCISM LANG 
 
 The written code is compiled into a cross-platform WebAssembly binary (.wasm), which runs natively via a tiny Node.js script.
 
