@@ -12,10 +12,10 @@ del /f /q *.ll *.wasm run.js
 
 ### Compile
 ```console
-py compiler.py 							 
+py compiler.py hello.lang 							 
 ```
 
-### Run the executable program"# exorcism-lang" 
+### Run the executable program 
 ```console
-node run.js 								 
+build/node run.js 								 
 ```
