@@ -1,0 +1,650 @@
+from __future__ import annotations
+
+from llvmlite import ir
+
+from compiler_ast import (
+    Program,
+    Block,
+    VariableDeclaration,
+    Assignment,
+    ExpressionStatement,
+    IfStatement,
+
+    BinaryExpression,
+    UnaryExpression,
+    VariableReference,
+
+    IntegerLiteral,
+    FloatLiteral,
+    BooleanLiteral,
+    StringLiteral,
+    NullLiteral,
+    StringLiteral,
+    PrintStatement,
+)
+
+from tokens import TokenType
+
+
+
+class CodeGenerationError(Exception):
+    pass
+
+
+
+class LLVMCodeGenerator:
+
+
+    def __init__(self):
+
+        self.module = ir.Module(
+            name="MiniCompilerModule"
+        )
+        
+        self.module.add_named_metadata(
+            "wasm.memory"
+        )
+        
+        self.print_string = ir.Function(
+            self.module,
+            ir.FunctionType(
+                ir.VoidType(),
+                [
+                    ir.IntType(8).as_pointer()
+                ]
+            ),
+            name="print_string"
+        )
+
+
+        self.function = None
+
+        self.builder = None
+
+
+        # variable -> llvm pointer
+
+        self.variables = {}
+
+
+
+    # ========================================================
+    # Entry point
+    # ========================================================
+
+    def generate(self, program: Program):
+
+
+        function_type = ir.FunctionType(
+            ir.IntType(32),
+            []
+        )
+
+
+        self.function = ir.Function(
+            self.module,
+            function_type,
+            name="main"
+        )
+
+
+        entry = self.function.append_basic_block(
+            name="entry"
+        )
+
+
+        self.builder = ir.IRBuilder(entry)
+
+
+        self.visit(program)
+
+
+        if not self.builder.block.is_terminated:
+
+            self.builder.ret(
+                ir.Constant(
+                    ir.IntType(32),
+                    0
+                )
+            )
+
+
+        return self.module
+
+
+
+    # ========================================================
+    # Dispatcher
+    # ========================================================
+
+    def visit(self, node):
+
+
+        if isinstance(node, Program):
+
+            for statement in node.statements:
+
+                self.visit(statement)
+
+
+
+        elif isinstance(node, Block):
+
+            for statement in node.statements:
+
+                self.visit(statement)
+
+
+
+        elif isinstance(node, VariableDeclaration):
+
+            self.visit_variable(node)
+
+
+
+        elif isinstance(node, Assignment):
+
+            self.visit_assignment(node)
+
+
+
+        elif isinstance(node, ExpressionStatement):
+
+            self.generate_expression(
+                node.expression
+            )
+
+
+        
+        elif isinstance(node, IfStatement):
+
+            self.visit_if(node)
+
+        
+        
+        elif isinstance(node, PrintStatement):
+
+            self.visit_print(node)
+            
+    
+    # ========================================================
+    # Print
+    # ========================================================
+    
+    def visit_print(self, node):
+
+        value = node.expression
+
+
+        if isinstance(value, StringLiteral):
+
+            text = value.value + "\0"
+
+
+            string_type = ir.ArrayType(
+                ir.IntType(8),
+                len(text)
+            )
+
+
+            string_constant = ir.GlobalVariable(
+                self.module,
+                string_type,
+                name="hello_string"
+            )
+
+
+            string_constant.global_constant = True
+
+
+            string_constant.initializer = ir.Constant(
+                string_type,
+                bytearray(
+                    text.encode("utf8")
+                )
+            )
+
+
+            pointer = self.builder.bitcast(
+                string_constant,
+                ir.IntType(8).as_pointer()
+            )
+
+
+            self.builder.call(
+                self.print_string,
+                [pointer]
+            )    
+
+    # ========================================================
+    # Variables
+    # ========================================================
+
+    def llvm_type(self, value):
+
+        if isinstance(value, IntegerLiteral):
+
+            return ir.IntType(32)
+
+
+        if isinstance(value, BooleanLiteral):
+
+            return ir.IntType(1)
+
+
+        if isinstance(value, FloatLiteral):
+
+            return ir.FloatType()
+
+
+        return ir.IntType(32)
+
+
+
+    def visit_variable(
+        self,
+        node
+    ):
+
+        value = self.generate_expression(
+            node.initializer
+        )
+
+
+        variable_type = value.type
+
+
+        ptr = self.builder.alloca(
+            variable_type,
+            name=node.identifier.value
+        )
+
+
+        self.builder.store(
+            value,
+            ptr
+        )
+
+
+        self.variables[
+            node.identifier.value
+        ] = ptr
+
+
+
+    def visit_assignment(
+        self,
+        node
+    ):
+
+        if node.identifier.value not in self.variables:
+
+            raise CodeGenerationError(
+                f"Unknown variable "
+                f"{node.identifier.value}"
+            )
+
+
+        ptr = self.variables[
+            node.identifier.value
+        ]
+
+
+        value = self.generate_expression(
+            node.value
+        )
+
+
+        self.builder.store(
+            value,
+            ptr
+        )
+
+
+
+    # ========================================================
+    # If / Else
+    # ========================================================
+
+    def visit_if(
+        self,
+        node
+    ):
+
+
+        condition = self.generate_expression(
+            node.condition
+        )
+
+
+        then_block = (
+            self.function.append_basic_block(
+                "then"
+            )
+        )
+
+
+        else_block = (
+            self.function.append_basic_block(
+                "else"
+            )
+        )
+
+
+        merge_block = (
+            self.function.append_basic_block(
+                "merge"
+            )
+        )
+
+
+        self.builder.cbranch(
+            condition,
+            then_block,
+            else_block
+        )
+
+
+        # --------------------
+        # THEN
+        # --------------------
+
+        self.builder.position_at_start(
+            then_block
+        )
+
+        self.visit(
+            node.then_block
+        )
+
+
+        if not self.builder.block.is_terminated:
+
+            self.builder.branch(
+                merge_block
+            )
+
+
+
+        # --------------------
+        # ELSE
+        # --------------------
+
+        self.builder.position_at_start(
+            else_block
+        )
+
+
+        if node.else_block:
+
+            self.visit(
+                node.else_block
+            )
+
+
+        if not self.builder.block.is_terminated:
+
+            self.builder.branch(
+                merge_block
+            )
+
+
+        self.builder.position_at_start(
+            merge_block
+        )
+
+
+
+    # ========================================================
+    # Expressions
+    # ========================================================
+
+    def generate_expression(
+        self,
+        node
+    ):
+
+
+        # integer
+
+        if isinstance(node, IntegerLiteral):
+
+            return ir.Constant(
+                ir.IntType(32),
+                node.value
+            )
+
+
+
+        # float
+
+        if isinstance(node, FloatLiteral):
+
+            return ir.Constant(
+                ir.FloatType(),
+                node.value
+            )
+
+
+
+        # bool
+
+        if isinstance(node, BooleanLiteral):
+
+            return ir.Constant(
+                ir.IntType(1),
+                1 if node.value else 0
+            )
+
+
+
+        # null
+
+        if isinstance(node, NullLiteral):
+
+            return ir.Constant(
+                ir.IntType(32),
+                0
+            )
+
+
+
+        # variable lookup
+
+        if isinstance(node, VariableReference):
+
+            ptr = self.variables.get(
+                node.identifier.value
+            )
+
+
+            if ptr is None:
+
+                raise CodeGenerationError(
+                    f"Unknown variable "
+                    f"{node.identifier.value}"
+                )
+
+
+            return self.builder.load(
+                ptr,
+                name="loadtmp"
+            )
+
+
+
+        # unary
+
+        if isinstance(node, UnaryExpression):
+
+            value = self.generate_expression(
+                node.operand
+            )
+
+
+            if node.operator.type == TokenType.NOT:
+
+                return self.builder.xor(
+                    value,
+                    ir.Constant(
+                        ir.IntType(1),
+                        1
+                    )
+                )
+
+
+            if node.operator.type == TokenType.MINUS:
+
+                return self.builder.neg(
+                    value
+                )
+
+
+
+        # binary
+
+        if isinstance(node, BinaryExpression):
+
+
+            left = self.generate_expression(
+                node.left
+            )
+
+
+            right = self.generate_expression(
+                node.right
+            )
+
+
+            op = node.operator.type
+
+
+
+            # arithmetic
+
+            if op == TokenType.PLUS:
+
+                return self.builder.add(
+                    left,
+                    right,
+                    "addtmp"
+                )
+
+
+            if op == TokenType.MINUS:
+
+                return self.builder.sub(
+                    left,
+                    right,
+                    "subtmp"
+                )
+
+
+            if op == TokenType.STAR:
+
+                return self.builder.mul(
+                    left,
+                    right,
+                    "multmp"
+                )
+
+
+            if op == TokenType.SLASH:
+
+                return self.builder.sdiv(
+                    left,
+                    right,
+                    "divtmp"
+                )
+
+
+
+            # comparisons
+
+            if op == TokenType.EQUAL:
+
+                return self.builder.icmp_signed(
+                    "==",
+                    left,
+                    right
+                )
+
+
+            if op == TokenType.NOT_EQUAL:
+
+                return self.builder.icmp_signed(
+                    "!=",
+                    left,
+                    right
+                )
+
+
+            if op == TokenType.LESS:
+
+                return self.builder.icmp_signed(
+                    "<",
+                    left,
+                    right
+                )
+
+
+            if op == TokenType.LESS_EQUAL:
+
+                return self.builder.icmp_signed(
+                    "<=",
+                    left,
+                    right
+                )
+
+
+            if op == TokenType.GREATER:
+
+                return self.builder.icmp_signed(
+                    ">",
+                    left,
+                    right
+                )
+
+
+            if op == TokenType.GREATER_EQUAL:
+
+                return self.builder.icmp_signed(
+                    ">=",
+                    left,
+                    right
+                )
+
+
+
+            # logical
+
+            if op == TokenType.AND:
+
+                return self.builder.and_(
+                    left,
+                    right
+                )
+
+
+            if op == TokenType.OR:
+
+                return self.builder.or_(
+                    left,
+                    right
+                )
+
+
+
+        raise CodeGenerationError(
+            "Unsupported AST node"
+        )
+
+
+
+    # ========================================================
+    # Output
+    # ========================================================
+
+    def get_ir(self):
+
+        return str(self.module)
