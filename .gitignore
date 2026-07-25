@@ -1,0 +1,4 @@
+# Ignoring output files
+*.js
+*.wasm
+*.all
