@@ -287,7 +287,7 @@ WebAssembly.instantiate(wasmBuffer, {
             file.write(
                 code.replace(
                     "__WASM_FILE__",
-                    "hello.wasm"
+                    os.path.basename(wasm_file)
                 )
             )
 
