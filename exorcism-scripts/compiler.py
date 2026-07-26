@@ -73,8 +73,8 @@ class Compiler:
 
 
             # FOR DEBUGGING
-            for token in tokens:
-                print(token)
+            #for token in tokens:
+            #    print(token)
 
             print("[2/5] Parsing...")
 
@@ -124,24 +124,6 @@ class Compiler:
                 output
             )
 
-
-            print()
-
-            print(
-                "SUCCESS!"
-            )
-
-            print(
-                "WASM:",
-                result["wasm"]
-            )
-
-            print(
-                "Runner:",
-                result["runner"]
-            )
-
-
             return result
 
 
@@ -178,7 +160,7 @@ class Compiler:
             )
 
         
-        if not filename.endswith(".exrc"):
+        if not filename.lower().endswith(".exrc"):
 
             raise Exception(
                 f"Invalid source file extension: '{filename}'. "
@@ -195,16 +177,14 @@ class Compiler:
             source = file.read()
 
 
-        if output is None:
-
-            output = os.path.splitext(
-                os.path.basename(filename)
-            )[0]
+        name = os.path.splitext(
+            os.path.basename(filename)
+        )[0]
 
 
         return self.compile_source(
             source,
-            output
+            output=output or name
         )
 
 
