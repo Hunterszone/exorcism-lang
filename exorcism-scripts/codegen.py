@@ -59,6 +59,17 @@ class LLVMCodeGenerator:
             ),
             name="print_string"
         )
+        
+        self.print_int = ir.Function(
+            self.module,
+            ir.FunctionType(
+                ir.VoidType(),
+                [
+                    ir.IntType(32)
+                ]
+            ),
+            name="print_int"
+        )
 
 
         self.function = None
@@ -322,49 +333,26 @@ class LLVMCodeGenerator:
     
     def visit_print(self, node):
 
-        value = node.expression
+        value = self.generate_expression(
+            node.expression
+        )
 
 
-        if isinstance(value, StringLiteral):
+        if isinstance(value.type, ir.IntType):
 
-            text = value.value + "\0"
-
-
-            string_type = ir.ArrayType(
-                ir.IntType(8),
-                len(text)
+            self.builder.call(
+                self.print_int,
+                [value]
             )
 
 
-            string_constant = ir.GlobalVariable(
-                self.module,
-                string_type,
-                name="hello_string"
-            )
-
-
-            string_constant.global_constant = True
-
-
-            string_constant.initializer = ir.Constant(
-                string_type,
-                bytearray(
-                    text.encode("utf8")
-                )
-            )
-
-
-            pointer = self.builder.bitcast(
-                string_constant,
-                ir.IntType(8).as_pointer()
-            )
-
+        elif isinstance(value.type, ir.PointerType):
 
             self.builder.call(
                 self.print_string,
-                [pointer]
-            )    
-
+                [value]
+            )
+        
     # ========================================================
     # Return
     # ========================================================

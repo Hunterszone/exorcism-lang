@@ -236,6 +236,10 @@ WebAssembly.instantiate(wasmBuffer, {
 
     env: {
 
+        print_int: (value) => {
+            console.log(value);
+        },
+        
         print_string: (ptr) => {
 
             const memory =

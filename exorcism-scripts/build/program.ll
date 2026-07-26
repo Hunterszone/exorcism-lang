@@ -4,9 +4,13 @@ target datalayout = ""
 
 declare void @"print_string"(i8* %".1")
 
+declare void @"print_int"(i32 %".1")
+
 define i32 @"main"()
 {
 entry:
+  %"add_call" = call i32 @"add"(i32 5, i32 6)
+  call void @"print_int"(i32 %"add_call")
   ret i32 0
 }
 
