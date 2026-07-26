@@ -365,7 +365,7 @@ A compiled Exorcism program is not tied to a single operating system or CPU arch
 
 ---
 
-### 4. A foundation for experimenting with programming language features
+## 4. A foundation for experimenting with programming language features
 
 Exorcism provides a platform for exploring advanced language concepts, including:
 
