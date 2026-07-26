@@ -4,6 +4,9 @@ import os
 from compiler import Compiler
 from build import WasmBuilder
 
+class CompilerError(Exception):
+    pass
+
 
 def build_command(source_file):
 
@@ -12,6 +15,8 @@ def build_command(source_file):
     result = compiler.compile_file(
         source_file
     )
+    
+    print()
     
     print(
         "BUILD SUCCEEDED! ✅"
@@ -24,10 +29,6 @@ def build_command(source_file):
     print(
         f"Runner: {result['runner']}"
     )
-    
-    print()
-    
-    print("Output:")
 
     return result
     
@@ -100,4 +101,18 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+
+    try:
+        main()
+
+    except Exception as e:
+
+        print(
+            "COMPILATION ERROR ❌"
+        )
+
+        print(
+            e
+        )
+
+        sys.exit(1)
