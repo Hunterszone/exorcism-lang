@@ -5,4 +5,4 @@ int add(int a, int b)
     return a + b;
 }
 
-print(add(5, 6));
+print(12 + add(10, 6));

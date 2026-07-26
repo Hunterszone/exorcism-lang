@@ -25,9 +25,14 @@ The written code is compiled into a cross-platform WebAssembly binary (.wasm), w
 del /f /q *.ll *.wasm run.js              
 ```
 
-### Compile
+### Build
 ```console
-py compiler.py hello.exrc						 
+exorcism build hello.exrc						 
+```
+
+### Build & Run
+```console
+exorcism run hello.exrc						 
 ```
 
 ### Run the executable program 
