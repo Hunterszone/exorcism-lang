@@ -18,12 +18,20 @@ from compiler_ast import (
     BooleanLiteral,
     NullLiteral,
     PrintStatement,
+    
+    FunctionDeclaration,
+    FunctionCall,
+    ReturnStatement,
 )
 
 from tokens import TokenType
 
-from symbols import SymbolTable, SymbolError
-
+from symbols import (
+    SymbolTable, 
+    SymbolError,
+    FunctionSymbol,
+    Symbol,
+)
 
 class SemanticError(Exception):
     pass
@@ -40,6 +48,8 @@ class SemanticAnalyzer:
     def __init__(self):
 
         self.symbols = SymbolTable()
+        
+        self.current_function = None
 
 
 
@@ -202,7 +212,128 @@ class SemanticAnalyzer:
         )
 
 
+    # ========================================================
+    # Functions
+    # ========================================================
+    
+    def visit_function_declaration(
+        self,
+        node
+    ):
 
+        symbol = FunctionSymbol(
+
+            name=node.name,
+
+            token=node.token,
+
+            type_name=node.return_type,
+
+            nullable=False,
+
+            initialized=True,
+
+            parameters=node.parameters
+        )
+
+
+        self.symbol_table.current_scope.define(
+            symbol
+        )
+
+
+        self.symbol_table.enter_scope()
+
+        self.current_function = node
+
+
+        # define parameters as normal Symbols
+
+        for parameter in node.parameters:
+
+            self.symbol_table.current_scope.define(
+
+                Symbol(
+
+                    name=parameter.name,
+
+                    token=node.token,
+
+                    type_name=parameter.parameter_type,
+
+                    nullable=False,
+
+                    initialized=True
+                )
+            )
+
+
+        # analyze function body
+        
+        for statement in node.body:
+
+            self.visit(statement)
+
+
+        self.current_function = None
+
+        self.symbol_table.exit_scope()
+
+
+    def visit_function_call(
+        self,
+        node
+    ):
+
+        symbol = self.symbol_table.current_scope.lookup(
+            node.name
+        )
+
+
+        if symbol is None:
+
+            raise SemanticError(
+                f"Unknown function '{node.name}'"
+            )
+
+
+        if not isinstance(
+            symbol,
+            FunctionSymbol
+        ):
+
+            raise SemanticError(
+                f"'{node.name}' is not a function"
+            )
+
+
+        if len(node.arguments) != len(
+            symbol.parameters
+        ):
+
+            raise SemanticError(
+                f"Function '{node.name}' expects "
+                f"{len(symbol.parameters)} arguments"
+            )
+
+
+        for argument, parameter in zip(
+            node.arguments,
+            symbol.parameters
+        ):
+
+            argument_type = self.get_type(argument)
+
+
+            if argument_type != parameter.parameter_type:
+
+                raise SemanticError(
+                    f"Argument type mismatch in '{node.name}'"
+                )
+
+
+        return symbol.return_type
+    
     # ========================================================
     # Assignment
     # ========================================================

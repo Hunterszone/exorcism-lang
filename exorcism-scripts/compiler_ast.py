@@ -140,7 +140,45 @@ class BooleanLiteral(ASTNode):
 class NullLiteral(ASTNode):
     pass
     
+    
 @dataclass
 class PrintStatement(ASTNode):
 
     expression: ASTNode
+
+# ============================================================
+# OOP Support
+# ============================================================
+    
+@dataclass
+class FunctionDeclaration(ASTNode):
+
+    return_type: str
+
+    name: str
+
+    parameters: list
+
+    body: list
+    
+    
+@dataclass
+class Parameter(ASTNode):
+
+    parameter_type: str
+
+    name: str
+    
+
+@dataclass
+class FunctionCall(ExpressionStatement):
+
+    name: str
+
+    arguments: list[ASTNode]
+    
+    
+@dataclass
+class ReturnStatement(ASTNode):
+
+    expression: ASTNode | None

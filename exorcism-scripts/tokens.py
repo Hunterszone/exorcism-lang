@@ -13,7 +13,6 @@ class TokenType(Enum):
     NULL = auto()
     TRUE = auto()
     FALSE = auto()
-    PRINT = auto()
 
     # ---------- Identifiers ----------
     IDENTIFIER = auto()
@@ -28,7 +27,9 @@ class TokenType(Enum):
     # ---------- Keywords ----------
     IF = auto()
     ELSE = auto()
-
+    PRINT = auto()
+    RETURN = auto()
+    
     # ---------- Operators ----------
     ASSIGN = auto()        # =
     PLUS = auto()          # +
@@ -90,10 +91,11 @@ KEYWORDS = {
     # keywords
     "if": TokenType.IF,
     "else": TokenType.ELSE,
-
+    "print": TokenType.PRINT,
+    "return": TokenType.RETURN,
+    
     # literals
     "true": TokenType.TRUE,
     "false": TokenType.FALSE,
     "null": TokenType.NULL,
-    "print": TokenType.PRINT,
 }

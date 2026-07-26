@@ -8,7 +8,7 @@ from base import ParserBase
 from expressions import ExpressionParserMixin
 from statements import StatementParserMixin
 from controlflow import ControlFlowParserMixin
-
+from functions import FunctionParserMixin
 
 
 class Parser(
@@ -16,6 +16,7 @@ class Parser(
     ExpressionParserMixin,
     StatementParserMixin,
     ControlFlowParserMixin,
+    FunctionParserMixin,
 ):
     """
     Complete language parser.
@@ -94,6 +95,83 @@ class Parser(
             return self.parse_if_statement()
 
 
+        # function declaration
+
+        if self.is_function_declaration():
+
+            return self.parse_function_declaration(
+                self.parse_type()
+            )
+
+
         # normal statement
 
         return self.parse_statement()
+        
+        
+    # ========================================================
+    # Helpers
+    # ========================================================
+    
+    def is_function_declaration(self):
+
+        saved_position = self.position
+
+
+        try:
+
+            if not self.check_type_start():
+
+                return False
+
+
+            self.parse_type()
+
+
+            result = (
+                self.check(TokenType.IDENTIFIER)
+                and self.peek().type == TokenType.LPAREN
+            )
+
+
+            return result
+
+
+        finally:
+
+            self.position = saved_position
+            
+    
+    def parse_type(self):
+
+        if self.check(TokenType.TYPE_INT):
+
+            token = self.advance()
+
+            return token.value
+
+
+        if self.check(TokenType.TYPE_FLOAT):
+
+            token = self.advance()
+
+            return token.value
+
+
+        if self.check(TokenType.TYPE_STRING):
+
+            token = self.advance()
+
+            return token.value
+            
+            
+        if self.check(TokenType.TYPE_BOOL):
+
+            token = self.advance()
+
+            return token.value
+
+
+        raise ParserError(
+            "Expected type"
+        )

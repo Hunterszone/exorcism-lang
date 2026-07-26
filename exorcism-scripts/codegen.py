@@ -21,6 +21,10 @@ from compiler_ast import (
     NullLiteral,
     StringLiteral,
     PrintStatement,
+    
+    FunctionDeclaration,
+    FunctionCall,
+    ReturnStatement,
 )
 
 from tokens import TokenType
@@ -62,18 +66,18 @@ class LLVMCodeGenerator:
         self.builder = None
 
 
-        # variable -> llvm pointer
+        # variables & functions -> llvm pointer
 
         self.variables = {}
+        self.functions = {}
 
-
-
-    # ========================================================
-    # Entry point
-    # ========================================================
 
     def generate(self, program: Program):
 
+
+        # ============================================================
+        # Create program entry point
+        # ============================================================
 
         function_type = ir.FunctionType(
             ir.IntType(32),
@@ -96,8 +100,16 @@ class LLVMCodeGenerator:
         self.builder = ir.IRBuilder(entry)
 
 
+        # ============================================================
+        # Generate program
+        # ============================================================
+
         self.visit(program)
 
+
+        # ============================================================
+        # Default main return
+        # ============================================================
 
         if not self.builder.block.is_terminated:
 
@@ -111,6 +123,113 @@ class LLVMCodeGenerator:
 
         return self.module
 
+    
+    def generate_function(self, node):
+
+        return_type = self.get_llvm_type(
+            node.return_type
+        )
+
+
+        arguments = []
+
+
+        for parameter in node.parameters:
+
+            arguments.append(
+                self.get_llvm_type(
+                    parameter.parameter_type
+                )
+            )
+
+
+        function_type = ir.FunctionType(
+            return_type,
+            arguments
+        )
+
+
+        function = self.functions.get(node.name)
+
+
+        function = ir.Function(
+                self.module,
+                function_type,
+                name=node.name
+            )
+
+
+        self.functions[node.name] = function
+
+
+        block = function.append_basic_block(
+            name="entry"
+        )
+
+
+        old_builder = self.builder
+
+
+        self.builder = ir.IRBuilder(
+            block
+        )
+
+        old_variables = self.variables
+
+        self.variables = {}
+
+        # create local parameters
+
+        for index, parameter in enumerate(node.parameters):
+
+            llvm_parameter = function.args[index]
+
+            llvm_parameter.name = parameter.name
+
+
+            pointer = self.builder.alloca(
+                llvm_parameter.type,
+                name=parameter.name
+            )
+
+
+            self.builder.store(
+                llvm_parameter,
+                pointer
+            )
+
+
+            self.variables[parameter.name] = pointer
+
+
+
+        for statement in node.body:
+
+            self.visit(statement)
+
+
+
+        # safety return
+
+        if not self.builder.block.is_terminated:
+
+            if node.return_type == "void":
+
+                self.builder.ret_void()
+
+            else:
+
+                self.builder.ret(
+                    ir.Constant(
+                        return_type,
+                        0
+                    )
+                )
+
+
+        self.builder = old_builder
+        
+        self.variables = old_variables
 
 
     # ========================================================
@@ -166,7 +285,17 @@ class LLVMCodeGenerator:
 
             self.visit_print(node)
             
-    
+         
+        elif isinstance(node, FunctionDeclaration):
+
+            self.generate_function(node)
+            
+        
+        elif isinstance(node, ReturnStatement):
+
+            self.visit_return(node)
+            
+            
     # ========================================================
     # Print
     # ========================================================
@@ -216,6 +345,34 @@ class LLVMCodeGenerator:
                 [pointer]
             )    
 
+    # ========================================================
+    # Return
+    # ========================================================
+    
+    def visit_return(self, node):
+
+
+        # return;
+
+        if node.expression is None:
+
+            raise Exception(
+                "Non-void function must return a value"
+            )
+
+
+        # return expression;
+
+        value = self.generate_expression(
+            node.expression
+        )
+
+
+        self.builder.ret(
+            value
+        )
+    
+    
     # ========================================================
     # Variables
     # ========================================================
@@ -633,8 +790,58 @@ class LLVMCodeGenerator:
                     right
                 )
 
+            
+        if isinstance(node, VariableReference):
+
+            if node.name not in self.variables:
+
+                raise Exception(
+                    f"Unknown variable '{node.name}'"
+                )
 
 
+            pointer = self.variables[node.name]
+
+
+            return self.builder.load(
+                pointer,
+                name=f"{node.name}_value"
+            )    
+
+        
+        if isinstance(node, FunctionCall):
+
+            function = self.functions.get(
+                node.name
+            )
+
+
+            if function is None:
+
+                raise Exception(
+                    f"Unknown function '{node.name}'"
+                )
+
+
+            arguments = []
+
+
+            for argument in node.arguments:
+
+                arguments.append(
+                    self.generate_expression(
+                        argument
+                    )
+                )
+
+
+            return self.builder.call(
+                function,
+                arguments,
+                name=f"{node.name}_call"
+            )
+            
+        
         raise CodeGenerationError(
             "Unsupported AST node"
         )

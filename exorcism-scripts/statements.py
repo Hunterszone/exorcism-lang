@@ -34,18 +34,24 @@ class StatementParserMixin:
             return self.parse_variable_declaration()
 
 
+        # print statements
+        if self.check(TokenType.PRINT):
+
+            return self.parse_print_statement()
+            
+            
+        # return statements
+        if self.check(TokenType.RETURN):
+
+            return self.parse_return_statement()
+
+        
         # assignment
         if self.check(TokenType.IDENTIFIER):
 
             if self.peek().type == TokenType.ASSIGN:
 
                 return self.parse_assignment()
-
-
-        # print statements
-        if self.check(TokenType.PRINT):
-
-            return self.parse_print_statement()
 
 
         # fallback: expression statement

@@ -29,6 +29,26 @@ class Symbol:
     initialized: bool = False
 
 
+@dataclass(slots=True)
+class FunctionSymbol(Symbol):
+
+    def __init__(
+        self,
+        name,
+        return_type,
+        parameters,
+        token
+    ):
+
+        super().__init__(
+            name,
+            token
+        )
+
+        self.return_type = return_type
+
+        self.parameters = parameters
+
 
 # ============================================================
 # Scope
