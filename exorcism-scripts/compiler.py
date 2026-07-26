@@ -216,7 +216,7 @@ def main():
         )
 
         print(
-            "python compiler.py <file.lang>"
+            "python compiler.py <file.exrc>"
         )
 
         sys.exit(1)
