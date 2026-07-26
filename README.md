@@ -309,12 +309,6 @@ calculator.exrc
 game.exrc
 ```
 
-Compile using:
-
-```bash
-py compiler.py hello.exrc
-```
-
 The compiler produces:
 
 ```text
@@ -323,3 +317,68 @@ build/
 ├── run.js
 └── program.ll
 ```
+
+# What problems does Exorcism solve ?
+
+## 1. A simple but powerful language design
+
+Many existing languages have accumulated decades of complexity, historical decisions, and compatibility requirements.
+
+Exorcism aims to provide a clean language design with:
+
+- strict typing
+- explicit syntax
+- predictable behavior
+- simple compilation rules
+- modern safety features
+
+The goal is not to replace established languages, but to provide a focused environment where the language rules are easy to understand and reason about.
+
+---
+
+## 2. Safer software development
+
+Exorcism is designed with safety in mind.
+
+Planned and implemented safety features include:
+
+- semantic type checking
+- null safety
+- controlled memory access through WebAssembly
+- explicit variable handling
+- compile-time error detection
+
+Errors should be discovered during compilation instead of causing unexpected runtime failures.
+
+---
+
+## 3. Portable execution
+
+By targeting WebAssembly, Exorcism programs can run in multiple environments:
+
+- browsers
+- Node.js
+- WebAssembly runtimes
+- embedded environments
+
+A compiled Exorcism program is not tied to a single operating system or CPU architecture.
+
+---
+
+### 4. A foundation for experimenting with programming language features
+
+Exorcism provides a platform for exploring advanced language concepts, including:
+
+- functions
+- recursion
+- control flow
+- arrays
+- structures
+- pattern matching
+- type inference
+- memory management
+- optimization techniques
+
+The compiler architecture is intentionally modular so new language features can be added without redesigning the entire system.
+
+---
