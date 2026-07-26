@@ -177,7 +177,15 @@ class Compiler:
                 f"File not found: {filename}"
             )
 
+        
+        if not filename.endswith(".exrc"):
 
+            raise Exception(
+                f"Invalid source file extension: '{filename}'. "
+                "Expected .exrc"
+            )
+
+        
         with open(
             filename,
             "r",
@@ -187,7 +195,6 @@ class Compiler:
             source = file.read()
 
 
-
         if output is None:
 
             output = os.path.splitext(
@@ -195,12 +202,10 @@ class Compiler:
             )[0]
 
 
-
         return self.compile_source(
             source,
             output
         )
-
 
 
 # ============================================================
