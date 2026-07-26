@@ -232,6 +232,27 @@ class LLVMCodeGenerator:
         self.variables = old_variables
 
 
+    def get_llvm_type(self, type_name):
+
+        if type_name == "int":
+            return ir.IntType(32)
+
+        if type_name == "float":
+            return ir.FloatType()
+
+        if type_name == "bool":
+            return ir.IntType(1)
+
+        if type_name == "String":
+            return ir.IntType(8).as_pointer()
+
+        if type_name == "void":
+            return ir.VoidType()
+
+        raise Exception(
+            f"Unknown type '{type_name}'"
+        )
+    
     # ========================================================
     # Dispatcher
     # ========================================================
@@ -272,7 +293,6 @@ class LLVMCodeGenerator:
             self.generate_expression(
                 node.expression
             )
-
 
         
         elif isinstance(node, IfStatement):

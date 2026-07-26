@@ -164,6 +164,17 @@ class ParserBase:
             f"Column {token.column}"
         )
 
+    
+    def save(self):
+
+        return self.position
+
+
+    def restore(self, position):
+    
+        self.position = position
+        self.current = self.tokens[position]
+
 
     def synchronize(self):
         """

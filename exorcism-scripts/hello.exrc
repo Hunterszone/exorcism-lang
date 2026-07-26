@@ -1,6 +1,6 @@
-print("Hello World!");
+int add(int a, int b)
+{
+    return a + b;
+}
 
-int a = 5;
-int b = 6;
-
-print(a+b);
+print(add(5, 6));

@@ -5,6 +5,7 @@ from compiler_ast import (
     ReturnStatement,
 )
 
+from tokens import TokenType
 
 class FunctionParserMixin:
 
@@ -18,12 +19,11 @@ class FunctionParserMixin:
         return_type
     ):
 
-        name_token = self.consume(
-            TokenType.IDENTIFIER,
-            "Expected function name"
-        )
+        token = self.current
+        
+        name_token = self.consume_identifier()
 
-        self.consume(
+        self.expect(
             TokenType.LPAREN,
             "Expected '(' after function name"
         )
@@ -32,13 +32,13 @@ class FunctionParserMixin:
         parameters = self.parse_parameters()
 
 
-        self.consume(
+        self.expect(
             TokenType.RPAREN,
             "Expected ')' after parameters"
         )
 
 
-        self.consume(
+        self.expect(
             TokenType.LBRACE,
             "Expected '{' before function body"
         )
@@ -54,13 +54,17 @@ class FunctionParserMixin:
             )
 
 
-        self.consume(
+        self.expect(
             TokenType.RBRACE,
             "Expected '}' after function body"
         )
 
 
         return FunctionDeclaration(
+        
+            line=token.line,
+
+            column=token.column,
 
             return_type=return_type,
 
@@ -68,7 +72,9 @@ class FunctionParserMixin:
 
             parameters=parameters,
 
-            body=body
+            body=body,
+            
+            token=name_token
         )
 
 
@@ -95,7 +101,7 @@ class FunctionParserMixin:
             )
 
 
-            name = self.consume(
+            name = self.expect(
                 TokenType.IDENTIFIER,
                 "Expected parameter name"
             )
@@ -104,12 +110,18 @@ class FunctionParserMixin:
             parameters.append(
 
                 Parameter(
+                
+                    line=name.line,
+
+                    column=name.column,
 
                     parameter_type=
                         parameter_type,
 
                     name=
                         name.value
+                        
+                    # token=name
                 )
             )
 
@@ -134,7 +146,7 @@ class FunctionParserMixin:
         name
     ):
 
-        self.consume(
+        self.expect(
             TokenType.LPAREN,
             "Expected '('"
         )
@@ -161,7 +173,7 @@ class FunctionParserMixin:
                     break
 
 
-        self.consume(
+        self.expect(
             TokenType.RPAREN,
             "Expected ')'"
         )
@@ -181,8 +193,10 @@ class FunctionParserMixin:
     # ============================================================
 
     def parse_return_statement(self):
+        
+        token = self.current
 
-        self.consume(
+        self.expect(
             TokenType.RETURN,
             "Expected return"
         )
@@ -200,12 +214,17 @@ class FunctionParserMixin:
             )
 
 
-        self.consume(
+        self.expect(
             TokenType.SEMICOLON,
             "Expected ';'"
         )
 
 
         return ReturnStatement(
+        
+            line=token.line,
+
+            column=token.column,
+            
             expression=expression
         )

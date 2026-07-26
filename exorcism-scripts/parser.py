@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from compiler_ast import Program
+from compiler_ast import Program, FunctionCall
 
 from tokens import TokenType
 
@@ -115,31 +115,23 @@ class Parser(
     
     def is_function_declaration(self):
 
-        saved_position = self.position
-
+        saved = self.save()
 
         try:
 
             if not self.check_type_start():
-
                 return False
-
 
             self.parse_type()
 
-
-            result = (
+            return (
                 self.check(TokenType.IDENTIFIER)
                 and self.peek().type == TokenType.LPAREN
             )
 
-
-            return result
-
-
         finally:
 
-            self.position = saved_position
+            self.restore(saved)
             
     
     def parse_type(self):

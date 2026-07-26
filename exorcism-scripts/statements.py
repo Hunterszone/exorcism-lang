@@ -27,7 +27,7 @@ class StatementParserMixin:
     # ========================================================
 
     def parse_statement(self):
-
+        
         # variable declarations
         if self.check_type_start():
 
@@ -79,7 +79,7 @@ class StatementParserMixin:
     # ========================================================
 
     def parse_variable_declaration(self):
-
+        
         type_token = None
 
         declared_type = None

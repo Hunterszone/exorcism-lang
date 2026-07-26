@@ -99,11 +99,27 @@ class SemanticAnalyzer:
 
             self.visit_if(node)
 
+
         elif isinstance(node, PrintStatement):
 
             self.evaluate_expression(
                 node.expression
             )
+            
+            
+        elif isinstance(node, ReturnStatement):
+
+            self.visit_return(node)
+            
+            
+        elif isinstance(node, FunctionDeclaration):
+
+            self.visit_function_declaration(node)
+
+
+        elif isinstance(node, FunctionCall):
+
+            self.visit_function_call(node)
 
 
         else:
@@ -111,6 +127,88 @@ class SemanticAnalyzer:
             self.evaluate_expression(node)
 
 
+    def visit_expression(self, node):
+
+        print(
+            "SEMANTIC NODE:",
+            type(node).__name__,
+            node
+        )
+        
+        if isinstance(node, IntegerLiteral):
+
+            return "int"
+
+
+        if isinstance(node, VariableReference):
+
+            symbol = self.symbols.lookup(
+                node.identifier.value
+            )
+
+            if symbol is None:
+
+                raise SemanticError(
+                    f"Undefined variable '{node.identifier.value}'"
+                )
+
+            return symbol.type_name
+
+
+        # binary operation
+        if isinstance(node, BinaryExpression):
+
+            left_type = self.visit_expression(
+                node.left
+            )
+
+            right_type = self.visit_expression(
+                node.right
+            )
+
+
+            if left_type != right_type:
+
+                raise SemanticError(
+                    "Binary operation type mismatch"
+                )
+
+
+            return left_type
+
+
+        raise SemanticError(
+            f"Unknown expression type: {type(node).__name__}"
+        )
+        
+    
+    def visit_return(self, node):
+
+        if self.current_function is None:
+
+            raise SemanticError(
+                "Return statement outside function"
+            )
+
+
+        # return expression;
+
+        if node.expression is not None:
+
+            return_type, nullable = (
+                self.evaluate_expression(
+                    node.expression
+                )
+            )
+
+
+            if return_type != self.current_function.return_type:
+
+                raise SemanticError(
+                    f"Return type mismatch: "
+                    f"expected {self.current_function.return_type}, "
+                    f"got {return_type}"
+                )
 
     # ========================================================
     # Blocks / scopes
@@ -224,11 +322,13 @@ class SemanticAnalyzer:
         symbol = FunctionSymbol(
 
             name=node.name,
-
+            
             token=node.token,
-
+            
             type_name=node.return_type,
 
+            return_type=node.return_type,
+            
             nullable=False,
 
             initialized=True,
@@ -237,12 +337,12 @@ class SemanticAnalyzer:
         )
 
 
-        self.symbol_table.current_scope.define(
+        self.symbols.current_scope.define(
             symbol
         )
 
 
-        self.symbol_table.enter_scope()
+        self.symbols.enter_scope()
 
         self.current_function = node
 
@@ -251,7 +351,7 @@ class SemanticAnalyzer:
 
         for parameter in node.parameters:
 
-            self.symbol_table.current_scope.define(
+            self.symbols.current_scope.define(
 
                 Symbol(
 
@@ -277,7 +377,7 @@ class SemanticAnalyzer:
 
         self.current_function = None
 
-        self.symbol_table.exit_scope()
+        self.symbols.exit_scope()
 
 
     def visit_function_call(
@@ -285,7 +385,7 @@ class SemanticAnalyzer:
         node
     ):
 
-        symbol = self.symbol_table.current_scope.lookup(
+        symbol = self.symbols.current_scope.lookup(
             node.name
         )
 
@@ -465,7 +565,66 @@ class SemanticAnalyzer:
                 symbol.nullable
             )
 
+        
+        # -----------------------------
+        # function call
+        # -----------------------------
 
+        if isinstance(node, FunctionCall):
+
+            symbol = self.symbols.lookup_name(
+                node.name
+            )
+
+
+            if symbol is None:
+
+                raise SemanticError(
+                    f"Unknown function '{node.name}'"
+                )
+
+
+            if not isinstance(
+                symbol,
+                FunctionSymbol
+            ):
+
+                raise SemanticError(
+                    f"'{node.name}' is not a function"
+                )
+
+
+            if len(node.arguments) != len(
+                symbol.parameters
+            ):
+
+                raise SemanticError(
+                    f"Function '{node.name}' expects "
+                    f"{len(symbol.parameters)} arguments"
+                )
+
+
+            for argument, parameter in zip(
+                node.arguments,
+                symbol.parameters
+            ):
+
+                argument_type, _ = (
+                    self.evaluate_expression(
+                        argument
+                    )
+                )
+
+
+                if argument_type != parameter.parameter_type:
+
+                    raise SemanticError(
+                        f"Argument type mismatch in "
+                        f"function '{node.name}'"
+                    )
+
+
+            return symbol.return_type, False
 
         # -----------------------------
         # unary

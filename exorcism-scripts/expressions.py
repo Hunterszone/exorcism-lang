@@ -9,6 +9,7 @@ from compiler_ast import (
     StringLiteral,
     BooleanLiteral,
     NullLiteral,
+    FunctionCall,
 )
 
 from tokens import TokenType
@@ -294,13 +295,59 @@ class ExpressionParserMixin:
             )
 
 
-        # identifier
+        # identifier / function call
 
-        if self.match(TokenType.IDENTIFIER):
+        if self.check(TokenType.IDENTIFIER):
+
+            token = self.advance()
+
+
+            # function call: name(...)
+            if self.match(TokenType.LPAREN):
+
+                arguments = []
+
+
+                if not self.check(TokenType.RPAREN):
+
+                    arguments.append(
+                        self.parse_expression()
+                    )
+
+
+                    while self.match(TokenType.COMMA):
+
+                        arguments.append(
+                            self.parse_expression()
+                        )
+
+
+                self.expect(
+                    TokenType.RPAREN,
+                    "Expected ')' after arguments"
+                )
+
+
+                return FunctionCall(
+
+                    line=token.line,
+
+                    column=token.column,
+
+                    name=token.value,
+
+                    arguments=arguments
+                )
+
+
+            # normal variable: name
 
             return VariableReference(
+
                 line=token.line,
+
                 column=token.column,
+
                 identifier=token,
             )
 

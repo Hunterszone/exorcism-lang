@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 from tokens import Token
@@ -31,23 +31,10 @@ class Symbol:
 
 @dataclass(slots=True)
 class FunctionSymbol(Symbol):
+    
+    parameters: list = field(default_factory=list)
 
-    def __init__(
-        self,
-        name,
-        return_type,
-        parameters,
-        token
-    ):
-
-        super().__init__(
-            name,
-            token
-        )
-
-        self.return_type = return_type
-
-        self.parameters = parameters
+    return_type: str = ""
 
 
 # ============================================================
@@ -212,7 +199,13 @@ class SymbolTable:
 
 
         return symbol
+        
+        
+    def lookup_name(self, name: str):
 
+        symbol = self.current_scope.lookup(name)
+
+        return symbol
 
 
     def exists(

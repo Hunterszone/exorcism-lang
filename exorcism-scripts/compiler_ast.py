@@ -5,7 +5,6 @@ from typing import List, Optional
 
 from tokens import Token
 
-
 # ============================================================
 # Base AST Node
 # ============================================================
@@ -16,6 +15,10 @@ class ASTNode:
     column: int
 
 
+@dataclass(slots=True)
+class Expression(ASTNode):
+    pass
+    
 # ============================================================
 # Program Structure
 # ============================================================
@@ -161,6 +164,8 @@ class FunctionDeclaration(ASTNode):
 
     body: list
     
+    token: Token
+    
     
 @dataclass
 class Parameter(ASTNode):
@@ -169,9 +174,11 @@ class Parameter(ASTNode):
 
     name: str
     
+    # token: Token
+    
 
 @dataclass
-class FunctionCall(ExpressionStatement):
+class FunctionCall(Expression):
 
     name: str
 
