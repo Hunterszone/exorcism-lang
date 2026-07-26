@@ -294,6 +294,8 @@ else
 - ✅ WebAssembly compilation
 - ✅ JavaScript runtime launcher generation
 - ✅ Cross-platform execution
+- ❌ Loops - WIP
+- ❌ OOP Features - WIP
 
 ---
 
