@@ -20,11 +20,6 @@ The written code is compiled into a cross-platform WebAssembly binary (.wasm), w
 
 ## HOW TO COMPILE & RUN - COMMANDS
 
-### Clear the containing output dir (optional)
-```console
-del /f /q *.ll *.wasm run.js              
-```
-
 ### Build
 ```console
 exorcism build hello.exrc						 
@@ -33,11 +28,6 @@ exorcism build hello.exrc
 ### Build & Run
 ```console
 exorcism run hello.exrc						 
-```
-
-### Run the executable program 
-```console
-build/node run.js 								 
 ```
 
 # Exorcism Language Syntax
