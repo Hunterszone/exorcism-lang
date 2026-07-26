@@ -1,4 +1,4 @@
-# EXORCISM LANG 
+# Exorcism Language Overview 
 
 The written code is compiled into a cross-platform WebAssembly binary (.wasm), which runs natively via a tiny Node.js script.
 
@@ -20,7 +20,7 @@ The written code is compiled into a cross-platform WebAssembly binary (.wasm), w
 
 ## HOW TO COMPILE & RUN - COMMANDS
 
-### Clear the containing output dir
+### Clear the containing output dir (optional)
 ```console
 del /f /q *.ll *.wasm run.js              
 ```
