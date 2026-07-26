@@ -352,6 +352,13 @@ class LLVMCodeGenerator:
                 self.print_string,
                 [value]
             )
+
+
+        else:
+
+            raise CodeGenerationError(
+                f"Cannot print type {value.type}"
+            )
         
     # ========================================================
     # Return
@@ -601,6 +608,42 @@ class LLVMCodeGenerator:
                 1 if node.value else 0
             )
 
+
+        # string literal
+
+        if isinstance(node, StringLiteral):
+
+            text = node.value + "\0"
+
+
+            string_type = ir.ArrayType(
+                ir.IntType(8),
+                len(text)
+            )
+
+
+            string_constant = ir.GlobalVariable(
+                self.module,
+                string_type,
+                name=f"str_{len(self.module.globals)}"
+            )
+
+
+            string_constant.global_constant = True
+
+
+            string_constant.initializer = ir.Constant(
+                string_type,
+                bytearray(
+                    text.encode("utf8")
+                )
+            )
+
+
+            return self.builder.bitcast(
+                string_constant,
+                ir.IntType(8).as_pointer()
+            )
 
 
         # null

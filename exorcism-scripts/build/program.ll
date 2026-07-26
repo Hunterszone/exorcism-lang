@@ -9,11 +9,14 @@ declare void @"print_int"(i32 %".1")
 define i32 @"main"()
 {
 entry:
+  %".2" = bitcast [12 x i8]* @"str_3" to i8*
+  call void @"print_string"(i8* %".2")
   %"add_call" = call i32 @"add"(i32 5, i32 6)
   call void @"print_int"(i32 %"add_call")
   ret i32 0
 }
 
+@"str_3" = constant [12 x i8] c"Hello World\00"
 define i32 @"add"(i32 %"a", i32 %"b")
 {
 entry:
