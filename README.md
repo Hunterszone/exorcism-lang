@@ -27,10 +27,304 @@ del /f /q *.ll *.wasm run.js
 
 ### Compile
 ```console
-py compiler.py hello.lang 							 
+py compiler.py hello.exrc						 
 ```
 
 ### Run the executable program 
 ```console
 build/node run.js 								 
+```
+
+# Exorcism Language Syntax
+
+Exorcism is a statically typed, compiled programming language targeting **WebAssembly** through **LLVM**. Its syntax is intentionally simple while providing modern language features such as strict typing, compile-time null safety, type inference, and structured control flow.
+
+---
+
+## Variable Declarations
+
+Variables can be declared using explicit types or automatic type inference.
+
+```exrc
+int age = 25;
+
+float price = 12.50;
+
+String name = "John";
+
+var score = 100;
+```
+
+---
+
+## Nullable Types
+
+Types followed by `?` may contain `null`.
+
+```exrc
+String? nickname = null;
+
+int? value = null;
+```
+
+Assigning `null` to a non-nullable variable results in a compile-time error.
+
+```exrc
+int number = null;     // Compile Error
+```
+
+---
+
+## Type Inference
+
+The `var` keyword automatically infers the variable type from its initializer.
+
+```exrc
+var count = 10;          // int
+
+var message = "Hello";   // String
+```
+
+Once inferred, the variable remains strongly typed.
+
+---
+
+## Primitive Types
+
+Current primitive types include:
+
+| Type | Description |
+|------|-------------|
+| `int` | 32-bit signed integer |
+| `float` | Floating-point number |
+| `String` | UTF-8 string |
+| `bool` | Boolean (`true` / `false`) |
+
+---
+
+## Arithmetic Expressions
+
+Operator precedence follows standard mathematical rules.
+
+```exrc
+int result = 2 + 5 * 8;
+```
+
+Equivalent to:
+
+```text
+2 + (5 * 8)
+```
+
+Supported operators:
+
+| Operator | Meaning |
+|----------|---------|
+| `+` | Addition |
+| `-` | Subtraction |
+| `*` | Multiplication |
+| `/` | Division |
+
+Expressions may be nested.
+
+```exrc
+int value = (10 + 5) * (8 - 2);
+```
+
+---
+
+## Assignments
+
+Variables may be reassigned after declaration.
+
+```exrc
+int count = 5;
+
+count = count + 1;
+```
+
+---
+
+## String Literals
+
+Strings are enclosed using double quotes.
+
+```exrc
+String text = "Hello World!";
+```
+
+---
+
+## Boolean Literals
+
+```exrc
+bool enabled = true;
+
+bool disabled = false;
+```
+
+---
+
+## Null Literal
+
+```exrc
+String? name = null;
+```
+
+---
+
+## If / Else Statements
+
+Conditional execution is supported.
+
+```exrc
+int age = 20;
+
+if (age >= 18)
+{
+    print("Adult");
+}
+else
+{
+    print("Minor");
+}
+```
+
+Nested conditionals are also supported.
+
+```exrc
+if (x > 10)
+{
+    if (y == 5)
+    {
+        print("Nested");
+    }
+}
+```
+
+---
+
+## Comparison Operators
+
+Supported comparison operators include:
+
+| Operator | Meaning |
+|----------|---------|
+| `==` | Equal |
+| `!=` | Not equal |
+| `>` | Greater than |
+| `<` | Less than |
+| `>=` | Greater than or equal |
+| `<=` | Less than or equal |
+
+Example:
+
+```exrc
+if (score >= 90)
+{
+    print("Excellent");
+}
+```
+
+---
+
+## Printing
+
+The standard library provides a built-in `print()` function.
+
+```exrc
+print("Hello World!");
+```
+
+Printing variables:
+
+```exrc
+int score = 100;
+
+print(score);
+```
+
+---
+
+## Comments
+
+Single-line comments:
+
+```exrc
+// This is a comment
+```
+
+Multi-line comments:
+
+```exrc
+/*
+   Multiple
+   line
+   comment
+*/
+```
+
+---
+
+## Example Program
+
+```exrc
+String message = "Hello World!";
+
+int a = 5;
+int b = 10;
+
+var result = a + b * 2;
+
+if (result > 20)
+{
+    print(message);
+}
+else
+{
+    print("Computation failed");
+}
+```
+
+---
+
+## Language Characteristics
+
+- ✅ Statically typed
+- ✅ Strong type checking
+- ✅ Compile-time null safety
+- ✅ Automatic type inference (`var`)
+- ✅ Mathematical operator precedence
+- ✅ LLVM Intermediate Representation (IR) generation
+- ✅ WebAssembly compilation
+- ✅ JavaScript runtime launcher generation
+- ✅ Cross-platform execution
+
+---
+
+## File Extension
+
+Exorcism source files use the `.exrc` extension.
+
+Example:
+
+```text
+hello.exrc
+calculator.exrc
+game.exrc
+```
+
+Compile using:
+
+```bash
+py compiler.py hello.exrc
+```
+
+The compiler produces:
+
+```text
+build/
+├── hello.wasm
+├── run.js
+└── program.ll
 ```
