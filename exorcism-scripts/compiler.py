@@ -73,8 +73,8 @@ class Compiler:
 
 
             # FOR DEBUGGING
-            for token in tokens:
-                print(token)
+            #for token in tokens:
+            #    print(token)
 
             print("[2/5] Parsing...")
 
