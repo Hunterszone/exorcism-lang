@@ -328,7 +328,7 @@ else
 
 ---
 
-## Language Characteristics
+## Language Characteristics & Features
 
 - ✅ Statically typed
 - ✅ Strong type checking
