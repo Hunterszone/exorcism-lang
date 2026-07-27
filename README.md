@@ -1,7 +1,5 @@
 # Exorcism Language Overview 
 
-The written code is compiled into a cross-platform WebAssembly binary (.wasm), which runs natively via a tiny Node.js script.
-
 ## Key Benefits of Exorcism's Compiler Architecture
 
 Exorcism uses a modern compiler architecture with a **Python-based compiler frontend**, an **LLVM-powered backend**, 
