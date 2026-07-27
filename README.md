@@ -199,6 +199,23 @@ if (x > 10)
 
 ---
 
+## Function call expressions
+
+Function call expressions are supported.
+
+```exrc
+print("Hello World");
+
+int add(int a, int b)
+{
+    return a + b;
+}
+
+var x = add(10, 6);
+
+print(12 + x);
+```
+
 ## Comparison Operators
 
 Supported comparison operators include:
@@ -295,7 +312,7 @@ else
 - ✅ JavaScript runtime launcher generation
 - ✅ Cross-platform execution
 - ✅ Function calls (`add(int a, int b)`)
-- ❌ Function call expressions (`var x = add(int a, int b)`)
+- ✅ Function call expressions (`var x = add(int a, int b)`)
 - ❌ Main entry point - WIP
 - ❌ Data structures / Collections - WIP
 - ❌ Loops - WIP
