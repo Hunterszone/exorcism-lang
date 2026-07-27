@@ -3,3 +3,5 @@
 **/*.wasm
 **/*.all
 **/*.exrc
+**/__pycache__/
+**/build/

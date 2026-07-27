@@ -294,10 +294,14 @@ else
 - ✅ WebAssembly compilation
 - ✅ JavaScript runtime launcher generation
 - ✅ Cross-platform execution
+- ✅ Function calls (`add(int a, int b)`)
+- ❌ Function call expressions (`var x = add(int a, int b)`)
 - ❌ Main entry point - WIP
 - ❌ Data structures / Collections - WIP
 - ❌ Loops - WIP
 - ❌ OOP Features - WIP
+- ❌ Standard library - WIP
+- ❌ String concatenation - WIP
 
 ---
 
