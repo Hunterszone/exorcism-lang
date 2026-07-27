@@ -342,11 +342,12 @@ else
 - ✅ Function calls (`add(int a, int b);`)
 - ✅ Function calls in expressions (`var x = add(int a, int b);`)
 - ❌ Main entry point - WIP
-- ❌ Data structures / Collections - WIP
-- ❌ Loops - WIP
-- ❌ OOP Features - WIP
-- ❌ Standard library - WIP
 - ❌ String concatenation - WIP
+- ❌ User input handling - WIP
+- ❌ Loops - WIP
+- ❌ Data structures / Collections - WIP
+- ❌ OOP features - WIP
+- ❌ Standard library - WIP
 
 ---
 
