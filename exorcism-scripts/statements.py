@@ -37,6 +37,12 @@ class StatementParserMixin:
         if self.check_type_start():
 
             return self.parse_variable_declaration()
+            
+            
+        # if statements    
+        if self.check(TokenType.IF):
+            
+            return self.parse_if_statement()
 
 
         # print statements
@@ -137,13 +143,6 @@ class StatementParserMixin:
             "Expected '=' after variable name"
         )
 
-        
-        print(
-            "INITIALIZER START:",
-            self.current.type,
-            self.current.value
-        )
-
         initializer = self.parse_expression()
 
 
@@ -152,7 +151,6 @@ class StatementParserMixin:
             "Expected ';' after variable declaration"
         )
 
-        print("VARIABLE DECLARATION OK")
 
         return VariableDeclaration(
 

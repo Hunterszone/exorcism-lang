@@ -41,6 +41,8 @@ def run_command(source_file):
 
     runner = result["runner"]
 
+    print("\nOutput: ")
+    
     os.system(
         f"node {runner}"
     )

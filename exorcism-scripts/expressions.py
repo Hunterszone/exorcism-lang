@@ -226,9 +226,8 @@ class ExpressionParserMixin:
     # ========================================================
 
     def parse_primary(self):
-
+        
         token = self.current
-
 
         # integer
 
@@ -364,9 +363,9 @@ class ExpressionParserMixin:
             )
 
             return expr
-
-
+            
+            
         self.error(
             "Expected expression",
-            token
+            self.current
         )
