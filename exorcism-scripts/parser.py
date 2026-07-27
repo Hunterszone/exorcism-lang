@@ -10,6 +10,11 @@ from statements import StatementParserMixin
 from controlflow import ControlFlowParserMixin
 from functions import FunctionParserMixin
 
+class ParserError(Exception):
+    """
+    Raised when the parser encounters invalid syntax.
+    """
+    pass
 
 class Parser(
     ParserBase,
@@ -87,6 +92,19 @@ class Parser(
 
     def parse_top_level_statement(self):
 
+        print(
+            "TOP LEVEL:",
+            self.current.type,
+            self.current.value
+        )
+
+        if self.is_function_declaration():
+            print("FOUND FUNCTION")
+            return self.parse_function_declaration(
+                self.parse_type()
+            )
+
+        return self.parse_statement()
 
         # if statement
 

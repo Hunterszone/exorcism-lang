@@ -9,15 +9,15 @@ declare void @"print_int"(i32 %".1")
 define i32 @"main"()
 {
 entry:
-  %".2" = bitcast [12 x i8]* @"str_3" to i8*
-  call void @"print_string"(i8* %".2")
   %"add_call" = call i32 @"add"(i32 10, i32 6)
-  %"addtmp" = add i32 12, %"add_call"
+  %"x" = alloca i32
+  store i32 %"add_call", i32* %"x"
+  %"loadtmp" = load i32, i32* %"x"
+  %"addtmp" = add i32 12, %"loadtmp"
   call void @"print_int"(i32 %"addtmp")
   ret i32 0
 }
 
-@"str_3" = constant [12 x i8] c"Hello World\00"
 define i32 @"add"(i32 %"a", i32 %"b")
 {
 entry:
