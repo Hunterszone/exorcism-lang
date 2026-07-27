@@ -1,9 +1,11 @@
-# Exorcism Language Overview 
-
-## Key Benefits of Exorcism's Compiler Architecture
+# Exorcism Language Architecture 
 
 Exorcism uses a modern compiler architecture with a **Python-based compiler frontend**, an **LLVM-powered backend**, 
 and multiple output targets including **WebAssembly (`.wasm`)** and **intermediate representation (`.ll`)** files.
+
+## The Compiler Structure
+
+### Python Frontend
 
 The Exorcism compiler frontend is implemented in Python, handling:
 
@@ -14,9 +16,7 @@ The Exorcism compiler frontend is implemented in Python, handling:
 - Type checking
 - Symbol management
 
-## The Compiler Structure
-
-### Python provides:
+Python provides:
 
 - Rapid iteration during language design
 - Simple and readable compiler components
@@ -25,7 +25,9 @@ The Exorcism compiler frontend is implemented in Python, handling:
 
 This allows Exorcism to evolve quickly while maintaining a clean compiler structure.
 
-### LLVM provides:
+### LLVM Backend
+
+The LLVM backend provides:
 
 - Mature optimization passes
 - Platform-independent code generation
