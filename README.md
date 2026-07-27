@@ -46,7 +46,7 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 - provide memory access
 - call exported functions
 
-## HOW TO COMPILE & RUN - COMMANDS
+## How To Compile & Run
 
 ### Build
 ```console
