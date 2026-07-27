@@ -91,6 +91,12 @@ class Parser(
     # ========================================================
 
     def parse_top_level_statement(self):
+        
+        if self.is_function_declaration():
+            
+            return self.parse_function_declaration(
+                self.parse_type()
+            )
 
         return self.parse_statement()
 
