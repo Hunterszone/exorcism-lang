@@ -332,15 +332,15 @@ else
 
 - ✅ Statically typed
 - ✅ Strong type checking
-- ✅ Compile-time null safety
+- ✅ Compile-time null safety (`String? name = null;`)
 - ✅ Automatic type inference (`var`)
 - ✅ Mathematical operator precedence
 - ✅ LLVM Intermediate Representation (IR) generation
 - ✅ WebAssembly compilation
 - ✅ JavaScript runtime launcher generation
 - ✅ Cross-platform execution
-- ✅ Function calls (`add(int a, int b)`)
-- ✅ Function call expressions (`var x = add(int a, int b)`)
+- ✅ Function calls (`add(int a, int b);`)
+- ✅ Function calls in expressions (`var x = add(int a, int b);`)
 - ❌ Main entry point - WIP
 - ❌ Data structures / Collections - WIP
 - ❌ Loops - WIP
