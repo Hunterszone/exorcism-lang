@@ -1,5 +1,7 @@
 # Exorcism Language Architecture 
 
+![alt text](https://github.com/Hunterszone/exorcism-lang/blob/main/exrc-mascot.png)
+
 Exorcism uses a modern compiler architecture with a **Python-based compiler frontend**, an **LLVM-powered backend**, 
 and multiple output targets including **WebAssembly (`.wasm`)** and **intermediate representation (`.ll`)** files.
 
