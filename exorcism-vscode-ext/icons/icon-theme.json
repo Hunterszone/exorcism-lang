@@ -9,10 +9,5 @@
   },
   "languageIds": {
     "exrc": "exrc_file_icon"
-  },
-  "light": {
-    "fileExtensions": {
-      "exrc": "exrc_file_icon"
-    }
   }
 }
