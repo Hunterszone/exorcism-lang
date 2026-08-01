@@ -6,6 +6,47 @@ import * as vscode from 'vscode';
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 
+	const keywords = [
+		"var",
+		"int",
+		"float",
+		"string",
+		"bool",
+		"void",
+		"if",
+		"else",
+		"while",
+		"for",
+		"return",
+		"break",
+		"continue",
+		"function",
+		"struct"
+	];
+
+
+	const provider =
+	vscode.languages.registerCompletionItemProvider(
+		"exorcism",
+
+		{
+
+			provideCompletionItems(document, position) {
+
+				return keywords.map(keyword => {
+
+					return new vscode.CompletionItem(
+						keyword,
+						vscode.CompletionItemKind.Keyword
+					);
+
+				});
+
+			}
+
+		}
+	);
+
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "exorcism" is now active!');
