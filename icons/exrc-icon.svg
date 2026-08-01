@@ -1,11 +1,9 @@
 <svg xmlns="http://w3.org" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Letter E -->
-  <path fill="none" stroke="#FFB600" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M6 6H12"></path>
-  <path fill="none" stroke="#FFB600" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M6 12H10"></path>
-  <path fill="none" stroke="#FFB600" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M6 18H12"></path>
-  <path fill="none" stroke="#FFB600" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M6 6V18"></path>
+  <rect x="4" y="4" width="3" height="16" fill="#FFA500"></rect>
+  <rect x="7" y="4" width="5" height="3" fill="#FFA500"></rect>
+  <rect x="7" y="10" width="4" height="3" fill="#FFA500"></rect>
+  <rect x="7" y="17" width="5" height="3" fill="#FFA500"></rect>
   
-  <!-- Letter X -->
-  <path fill="none" stroke="#FFB600" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M14 6L19 18"></path>
-  <path fill="none" stroke="#FFB600" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19 6L14 18"></path>
+  <path d="M14 4 H17 L21 20 H18 Z" fill="#FFA500"></path>
+  <path d="M21 4 H18 L14 20 H17 Z" fill="#FFA500"></path>
 </svg>
