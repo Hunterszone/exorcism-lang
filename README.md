@@ -438,3 +438,22 @@ Exorcism provides a platform for exploring advanced language concepts, including
 The compiler architecture is intentionally modular so new language features can be added without redesigning the entire system.
 
 ---
+
+## Visual Studio Code Extension
+
+Exorcism includes its own Visual Studio Code extension, providing a modern development experience with intelligent editing features for `.exrc` source files.
+
+### Features
+
+- 🎯 Syntax highlighting
+- 💡 IntelliSense support
+- ⚡ Code auto-completion
+- 🔍 Real-time syntax validation
+- 📝 Smart code suggestions
+- 🔧 Automatic code corrections for common mistakes
+- 📂 Native support for `.exrc` files
+- 🎨 Exorcism language icon and file association
+
+The extension significantly improves developer productivity by reducing typing, detecting errors while writing code, and providing contextual suggestions for language keywords, functions, variables, and types.
+
+---

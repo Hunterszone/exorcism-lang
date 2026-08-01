@@ -1,0 +1,18 @@
+{
+  "iconDefinitions": {
+    "exrc_file_icon": {
+      "iconPath": "./exrc-icon.svg"
+    }
+  },
+  "fileExtensions": {
+    "exrc": "exrc_file_icon"
+  },
+  "languageIds": {
+    "exrc": "exrc_file_icon"
+  },
+  "light": {
+    "fileExtensions": {
+      "exrc": "exrc_file_icon"
+    }
+  }
+}
