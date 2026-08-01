@@ -1,0 +1,64 @@
+{
+    "If Statement": {
+        "prefix": "if",
+        "body": [
+            "if (${1:condition}) {",
+            "\t$0",
+            "}"
+        ],
+        "description": "Exorcism if statement"
+    },
+
+
+    "If Else Statement": {
+        "prefix": "ife",
+        "body": [
+            "if (${1:condition}) {",
+            "\t$2",
+            "} else {",
+            "\t$0",
+            "}"
+        ],
+        "description": "Exorcism if else statement"
+    },
+
+
+    "Function Declaration": {
+        "prefix": "func",
+        "body": [
+            "${1:int} ${2:name}(${3:parameters}) {",
+            "\t$0",
+            "}"
+        ],
+        "description": "Create Exorcism function"
+    },
+
+
+    "While Loop": {
+        "prefix": "while",
+        "body": [
+            "while (${1:condition}) {",
+            "\t$0",
+            "}"
+        ],
+        "description": "Exorcism while loop"
+    },
+
+
+    "Variable Declaration": {
+        "prefix": "var",
+        "body": [
+            "var ${1:name} = ${2:value};"
+        ],
+        "description": "Exorcism variable"
+    },
+
+
+    "Print Statement": {
+        "prefix": "print",
+        "body": [
+            "print(${1:value});"
+        ],
+        "description": "Exorcism print"
+    }
+}

@@ -1,0 +1,107 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+
+  "name": "Exorcism",
+
+  "scopeName": "source.exorcism",
+
+  "patterns": [
+
+    {
+      "include": "#keywords"
+    },
+
+    {
+      "include": "#types"
+    },
+
+    {
+      "include": "#strings"
+    },
+
+    {
+      "include": "#numbers"
+    },
+
+    {
+      "include": "#comments"
+    }
+
+  ],
+
+
+  "repository": {
+
+
+    "keywords": {
+
+      "patterns": [
+
+        {
+          "match": "\\b(if|else|while|for|return|break|continue|function)\\b",
+          "name": "keyword.control.exorcism"
+        }
+
+      ]
+
+    },
+
+
+    "types": {
+
+      "patterns": [
+
+        {
+          "match": "\\b(int|float|string|bool|void|var)\\b",
+          "name": "storage.type.exorcism"
+        }
+
+      ]
+
+    },
+
+
+    "strings": {
+
+      "patterns": [
+
+        {
+          "match": "\"([^\"\\\\]|\\\\.)*\"",
+          "name": "string.quoted.double.exorcism"
+        }
+
+      ]
+
+    },
+
+
+    "numbers": {
+
+      "patterns": [
+
+        {
+          "match": "\\b[0-9]+\\b",
+          "name": "constant.numeric.exorcism"
+        }
+
+      ]
+
+    },
+
+
+    "comments": {
+
+      "patterns": [
+
+        {
+          "match": "//.*$",
+          "name": "comment.line.double-slash.exorcism"
+        }
+
+      ]
+
+    }
+
+  }
+
+}

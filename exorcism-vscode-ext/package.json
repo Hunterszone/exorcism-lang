@@ -17,6 +17,31 @@
         "command": "exorcism.helloWorld",
         "title": "Hello World"
       }
+    ],
+    "languages": [
+      {
+        "id": "exorcism",
+        "aliases": [
+          "Exorcism"
+        ],
+        "extensions": [
+          ".exrc"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "exorcism",
+        "scopeName": "source.exorcism",
+        "path": "./syntaxes/exorcism.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+        {
+            "language": "exorcism",
+            "path": "./snippets/exorcism.code-snippets"
+        }
     ]
   },
   "scripts": {
