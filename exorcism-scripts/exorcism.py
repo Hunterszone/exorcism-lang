@@ -4,9 +4,6 @@ import os
 from compiler import Compiler
 from build import WasmBuilder
 
-class CompilerError(Exception):
-    pass
-
 
 def build_command(source_file):
 
@@ -65,21 +62,6 @@ def main():
 
     filename = sys.argv[2]
 
-
-    if not filename.lower().endswith(".exrc"):
-
-        print(
-            "Error: Exorcism files must end with .exrc ❌"
-        )
-
-        return
-
-
-    if not os.path.exists(filename):
-
-        raise CompilerError(
-            f"File not found: {filename}"
-        )
 
     if command == "build":
 
