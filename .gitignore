@@ -1,5 +1,6 @@
 # Ignoring output files
 **/*.js
+**/*.txt
 **/*.wasm
 **/*.all
 **/*.exrc

@@ -1,7 +1,0 @@
-When you eventually package Exorcism, your installer should:
-
-Copy exorcism.exe
-Copy exorcism.ico
-Register the .exrc extension
-Register the icon
-Refresh the Windows icon cache
