@@ -448,9 +448,6 @@ Exorcism includes its own Visual Studio Code extension, providing a modern devel
 ### Extension URL: 
 https://marketplace.visualstudio.com/items?itemName=exorcism-dev.exorcism-lang
 
-### Hub URL: 
-https://marketplace.visualstudio.com/manage/publishers/exorcism-dev/extensions/exorcism-lang/hub
-
 ### Features
 
 - 🎯 Syntax highlighting
