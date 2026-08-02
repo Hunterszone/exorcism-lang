@@ -1,13 +1,14 @@
 {
+  "inherits": "vs-seti",
   "iconDefinitions": {
     "exrc_file_icon": {
-      "iconPath": "./exrc-icon.svg"
+      "iconPath": "./exrc-icon.png"
     }
   },
   "fileExtensions": {
     "exrc": "exrc_file_icon"
   },
   "languageIds": {
-    "exrc": "exrc_file_icon"
+    "exorcism": "exrc_file_icon"
   }
 }
