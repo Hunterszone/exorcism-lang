@@ -27,14 +27,11 @@
         "extensions": [
           ".exrc"
         ],
-        "configuration": "./language-configuration.json"
-      }
-    ],
-    "iconThemes": [
-      {
-        "id": "exrc-icons",
-        "label": "EXRC Icon Theme",
-        "path": "./icons/icon-theme.json"
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icons/exrc-icon.png",
+          "dark": "./icons/exrc-icon.png"
+        }
       }
     ],
     "grammars": [
