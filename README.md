@@ -350,6 +350,8 @@ else
 - ❌ Data structures / Collections - WIP
 - ❌ OOP features - WIP
 - ❌ Standard library - WIP
+- ❌ Getter/Setter API - WIP
+- ❌ Unit testing support - WIP
 
 ---
 
@@ -461,5 +463,15 @@ https://marketplace.visualstudio.com/manage/publishers/exorcism-dev/extensions/e
 - 🎨 Exorcism language icon and file association
 
 The extension significantly improves developer productivity by reducing typing, detecting errors while writing code, and providing contextual suggestions for language keywords, functions, variables, and types.
+
+### What comes next
+
+🛠️ VS Code extension
+🛠️ Formatter (`exorcism fmt`)
+🛠️ Linter (`exorcism lint`)
+🛠️ Documentation generator (`exorcism doc`)
+🛠️ Package manager (`exorcism install`)
+🛠️ Unit testing framework
+🛠️ Language Server (full IntelliSense)
 
 ---

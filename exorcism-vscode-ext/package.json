@@ -1,10 +1,10 @@
 {
   "name": "exorcism-lang",
   "displayName": "Exorcism Language Support",
-  "description": "Official syntax support and file icon for the Exorcism programming language.",
-  "version": "1.0.0",
+  "description": "Official syntax support for the Exorcism programming language.",
+  "version": "1.0.2",
   "publisher": "exorcism-dev",
-  
+  "icon": "logo.png",
   "engines": {
     "vscode": "^1.125.0"
   },
@@ -48,10 +48,10 @@
       }
     ],
     "snippets": [
-        {
-            "language": "exorcism",
-            "path": "./snippets/exorcism.code-snippets"
-        }
+      {
+        "language": "exorcism",
+        "path": "./snippets/exorcism.code-snippets"
+      }
     ]
   },
   "scripts": {
