@@ -466,12 +466,12 @@ The extension significantly improves developer productivity by reducing typing, 
 
 ### What comes next
 
-🛠️ VS Code extension
-🛠️ Formatter (`exorcism fmt`)
-🛠️ Linter (`exorcism lint`)
-🛠️ Documentation generator (`exorcism doc`)
-🛠️ Package manager (`exorcism install`)
-🛠️ Unit testing framework
-🛠️ Language Server (full IntelliSense)
+- 🛠️ VS Code extension
+- 🛠️ Formatter (`exorcism fmt`)
+- 🛠️ Linter (`exorcism lint`)
+- 🛠️ Documentation generator (`exorcism doc`)
+- 🛠️ Package manager (`exorcism install`)
+- 🛠️ Unit testing framework
+- 🛠️ Language Server (full IntelliSense)
 
 ---
