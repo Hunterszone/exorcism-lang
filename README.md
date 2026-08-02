@@ -467,6 +467,7 @@ The extension significantly improves developer productivity by reducing typing, 
 - 🛠️ Formatter (`exorcism fmt`)
 - 🛠️ Linter (`exorcism lint`)
 - 🛠️ Documentation generator (`exorcism doc`)
+- 🛠️ Language installer (`exorcism.exe`)
 - 🛠️ Package manager (`exorcism install`)
 - 🛠️ Unit testing framework
 - 🛠️ Language Server (full IntelliSense)
