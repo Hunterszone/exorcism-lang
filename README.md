@@ -443,6 +443,12 @@ The compiler architecture is intentionally modular so new language features can 
 
 Exorcism includes its own Visual Studio Code extension, providing a modern development experience with intelligent editing features for `.exrc` source files.
 
+### Extension URL: 
+https://marketplace.visualstudio.com/items?itemName=exorcism-dev.exorcism-lang
+
+### Hub URL: 
+https://marketplace.visualstudio.com/manage/publishers/exorcism-dev/extensions/exorcism-lang/hub
+
 ### Features
 
 - 🎯 Syntax highlighting

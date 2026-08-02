@@ -1,14 +1,20 @@
 {
-  "name": "exorcism",
-  "displayName": "exorcism",
-  "description": "exorcism lang",
-  "version": "0.0.1",
+  "name": "exorcism-lang",
+  "displayName": "Exorcism Language Support",
+  "description": "Official syntax support and file icon for the Exorcism programming language.",
+  "version": "1.0.0",
+  "publisher": "exorcism-dev",
+  
   "engines": {
     "vscode": "^1.125.0"
   },
   "categories": [
-    "Other"
+    "Programming Languages"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hunterszone/exorcism-lang"
+  },
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {

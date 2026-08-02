@@ -1,71 +1,459 @@
-# exorcism README
+![alt text](https://github.com/Hunterszone/exorcism-lang/blob/main/exrc-mascot.png)
 
-This is the README for your extension "exorcism". After writing up a brief description, we recommend including the following sections.
+# Exorcism Language Architecture 
 
-## Features
+Exorcism uses a modern compiler architecture with a **Python-based compiler frontend**, an **LLVM-powered backend**, 
+and multiple output targets including **WebAssembly (`.wasm`)** and **intermediate representation (`.ll`)** files.
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+## The Compiler Structure
 
-For example if there is an image subfolder under your extension project workspace:
+### Python Frontend
 
-\!\[feature X\]\(images/feature-x.png\)
+The Exorcism compiler frontend is implemented in Python, handling:
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+- Lexical analysis
+- Parsing
+- AST generation
+- Semantic analysis
+- Type checking
+- Symbol management
 
-## Requirements
+Python provides:
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+- Rapid iteration during language design
+- Simple and readable compiler components
+- Rich ecosystem for testing and tooling
+- Easier experimentation with new language features
 
-## Extension Settings
+This allows Exorcism to evolve quickly while maintaining a clean compiler structure.
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+### LLVM Backend
 
-For example:
+The LLVM backend provides:
 
-This extension contributes the following settings:
+- Mature optimization passes
+- Platform-independent code generation
+- Efficient low-level representations
+- A foundation used by many production languages
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+This means Exorcism programs can benefit from decades of compiler optimization research without implementing every optimization manually.
 
-## Known Issues
+## The Runtime Environment
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+The .js output file is required by the current execution model that uses JavaScript as the WebAssembly host/runtime launcher.
+WebAssembly is a portable binary format, but it needs a host environment to:
 
-## Release Notes
+- load the .wasm file
+- provide imported functions
+- provide memory access
+- call exported functions
 
-Users appreciate release notes as you update your extension.
+## How To Compile & Run
 
-### 1.0.0
+### Build
+```console
+exorcism build hello.exrc						 
+```
 
-Initial release of ...
+### Build & Run
+```console
+exorcism run hello.exrc						 
+```
 
-### 1.0.1
+# Exorcism Language Syntax
 
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+Exorcism is a statically typed, compiled programming language targeting **WebAssembly** through **LLVM**. Its syntax is intentionally simple while providing modern language features such as strict typing, compile-time null safety, type inference, and structured control flow.
 
 ---
 
-## Following extension guidelines
+## Variable Declarations
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+Variables can be declared using explicit types or automatic type inference.
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+```exrc
+int age = 25;
 
-## Working with Markdown
+float price = 12.50;
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
+String name = "John";
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
+var score = 100;
+```
 
-## For more information
+---
 
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+## Nullable Types
 
-**Enjoy!**
+Types followed by `?` may contain `null`.
+
+```exrc
+String? nickname = null;
+
+int? value = null;
+```
+
+Assigning `null` to a non-nullable variable results in a compile-time error.
+
+```exrc
+int number = null;     // Compile Error
+```
+
+---
+
+## Type Inference
+
+The `var` keyword automatically infers the variable type from its initializer.
+
+```exrc
+var count = 10;          // int
+
+var message = "Hello";   // String
+```
+
+Once inferred, the variable remains strongly typed.
+
+---
+
+## Primitive Types
+
+Current primitive types include:
+
+| Type | Description |
+|------|-------------|
+| `int` | 32-bit signed integer |
+| `float` | Floating-point number |
+| `String` | UTF-8 string |
+| `bool` | Boolean (`true` / `false`) |
+
+---
+
+## Arithmetic Expressions
+
+Operator precedence follows standard mathematical rules.
+
+```exrc
+int result = 2 + 5 * 8;
+```
+
+Equivalent to:
+
+```text
+2 + (5 * 8)
+```
+
+Supported operators:
+
+| Operator | Meaning |
+|----------|---------|
+| `+` | Addition |
+| `-` | Subtraction |
+| `*` | Multiplication |
+| `/` | Division |
+
+Expressions may be nested.
+
+```exrc
+int value = (10 + 5) * (8 - 2);
+```
+
+---
+
+## Assignments
+
+Variables may be reassigned after declaration.
+
+```exrc
+int count = 5;
+
+count = count + 1;
+```
+
+---
+
+## String Literals
+
+Strings are enclosed using double quotes.
+
+```exrc
+String text = "Hello World!";
+```
+
+---
+
+## Boolean Literals
+
+```exrc
+bool enabled = true;
+
+bool disabled = false;
+```
+
+---
+
+## Null Literal
+
+```exrc
+String? name = null;
+```
+
+---
+
+## If / Else Statements
+
+Conditional execution is supported.
+
+```exrc
+int age = 20;
+
+if (age >= 18)
+{
+    print("Adult");
+}
+else
+{
+    print("Minor");
+}
+```
+
+Nested conditionals are also supported.
+
+```exrc
+if (x > 10)
+{
+    if (y == 5)
+    {
+        print("Nested");
+    }
+}
+```
+
+---
+
+## Function call expressions
+
+Function call expressions are supported.
+
+```exrc
+print("Hello World");
+
+int add(int a, int b)
+{
+    return a + b;
+}
+
+var x = add(10, 6);
+
+print(12 + x);
+```
+
+## Comparison Operators
+
+Supported comparison operators include:
+
+| Operator | Meaning |
+|----------|---------|
+| `==` | Equal |
+| `!=` | Not equal |
+| `>` | Greater than |
+| `<` | Less than |
+| `>=` | Greater than or equal |
+| `<=` | Less than or equal |
+
+Example:
+
+```exrc
+if (score >= 90)
+{
+    print("Excellent");
+}
+```
+
+---
+
+## Printing
+
+The standard library provides a built-in `print()` function.
+
+```exrc
+print("Hello World!");
+```
+
+Printing variables:
+
+```exrc
+int score = 100;
+
+print(score);
+```
+
+---
+
+## Comments
+
+Single-line comments:
+
+```exrc
+// This is a comment
+```
+
+Multi-line comments:
+
+```exrc
+/*
+   Multiple
+   line
+   comment
+*/
+```
+
+---
+
+## Example Program
+
+```exrc
+String message = "Hello World!";
+
+int a = 5;
+int b = 10;
+
+var result = a + b * 2;
+
+if (result > 20)
+{
+    print(message);
+}
+else
+{
+    print("Computation failed");
+}
+```
+
+---
+
+## Language Characteristics & Features
+
+- ✅ Statically typed
+- ✅ Strong type checking
+- ✅ Compile-time null safety (`String? name = null;`)
+- ✅ Automatic type inference (`var`)
+- ✅ Mathematical operator precedence
+- ✅ LLVM Intermediate Representation (IR) generation
+- ✅ WebAssembly compilation
+- ✅ JavaScript runtime launcher generation
+- ✅ Cross-platform execution
+- ✅ Function calls (`add(int a, int b);`)
+- ✅ Function calls in expressions (`var x = add(int a, int b);`)
+- ❌ Main entry point - WIP
+- ❌ String concatenation - WIP
+- ❌ User input handling - WIP
+- ❌ Loops - WIP
+- ❌ Data structures / Collections - WIP
+- ❌ OOP features - WIP
+- ❌ Standard library - WIP
+
+---
+
+## File Extension
+
+Exorcism source files use the `.exrc` extension.
+
+Example:
+
+```text
+hello.exrc
+calculator.exrc
+game.exrc
+```
+
+The compiler produces:
+
+```text
+build/
+├── hello.wasm
+├── run.js
+└── program.ll
+```
+
+# What problems does Exorcism solve ?
+
+## 1. A simple but powerful language design
+
+Many existing languages have accumulated decades of complexity, historical decisions, and compatibility requirements.
+
+Exorcism aims to provide a clean language design with:
+
+- strict typing
+- explicit syntax
+- predictable behavior
+- simple compilation rules
+- modern safety features
+
+The goal is not to replace established languages, but to provide a focused environment where the language rules are easy to understand and reason about.
+
+---
+
+## 2. Safer software development
+
+Exorcism is designed with safety in mind.
+
+Planned and implemented safety features include:
+
+- semantic type checking
+- null safety
+- controlled memory access through WebAssembly
+- explicit variable handling
+- compile-time error detection
+
+Errors should be discovered during compilation instead of causing unexpected runtime failures.
+
+---
+
+## 3. Portable execution
+
+By targeting WebAssembly, Exorcism programs can run in multiple environments:
+
+- browsers
+- Node.js
+- WebAssembly runtimes
+- embedded environments
+
+A compiled Exorcism program is not tied to a single operating system or CPU architecture.
+
+---
+
+## 4. A foundation for experimenting with programming language features
+
+Exorcism provides a platform for exploring advanced language concepts, including:
+
+- functions
+- recursion
+- control flow
+- arrays
+- structures
+- pattern matching
+- type inference
+- memory management
+- optimization techniques
+
+The compiler architecture is intentionally modular so new language features can be added without redesigning the entire system.
+
+---
+
+## Visual Studio Code Extension
+
+Exorcism includes its own Visual Studio Code extension, providing a modern development experience with intelligent editing features for `.exrc` source files.
+
+### Features
+
+- 🎯 Syntax highlighting
+- 💡 IntelliSense support
+- ⚡ Code auto-completion
+- 🔍 Real-time syntax validation
+- 📝 Smart code suggestions
+- 🔧 Automatic code corrections for common mistakes
+- 📂 Native support for `.exrc` files
+- 🎨 Exorcism language icon and file association
+
+The extension significantly improves developer productivity by reducing typing, detecting errors while writing code, and providing contextual suggestions for language keywords, functions, variables, and types.
+
+---
