@@ -52,12 +52,12 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 
 ### Build
 ```console
-exorcism build hello.exrc						 
+exorcism build build/hello.exrc						 
 ```
 
 ### Build & Run
 ```console
-exorcism run hello.exrc						 
+exorcism run build/hello.exrc						 
 ```
 
 # Exorcism Language Syntax
@@ -343,15 +343,16 @@ else
 - ✅ Cross-platform execution
 - ✅ Function calls (`add(int a, int b);`)
 - ✅ Function calls in expressions (`var x = add(int a, int b);`)
-- ❌ Main entry point - WIP
-- ❌ String concatenation - WIP
-- ❌ User input handling - WIP
-- ❌ Loops - WIP
-- ❌ Data structures / Collections - WIP
-- ❌ OOP features - WIP
-- ❌ Standard library - WIP
-- ❌ Getter/Setter API - WIP
-- ❌ Unit testing support - WIP
+- 🛠️ Void functions - WIP
+- 🛠️ Main entry point - WIP
+- 🛠️ String concatenation - WIP
+- 🛠️ User input handling - WIP
+- 🛠️ Loops - WIP
+- 🛠️ Data structures / Collections - WIP
+- 🛠️ OOP features - WIP
+- 🛠️ Standard library - WIP
+- 🛠️ Getter/Setter API - WIP
+- 🛠️ Unit testing support - WIP
 
 ---
 
@@ -450,20 +451,20 @@ https://marketplace.visualstudio.com/items?itemName=exorcism-dev.exorcism-lang
 
 ## Features
 
-- 🎯 Syntax highlighting
-- 💡 IntelliSense support
-- ⚡ Code auto-completion
-- 🔍 Real-time syntax validation
-- 📝 Smart code suggestions
-- 🔧 Automatic code corrections for common mistakes
-- 📂 Native support for `.exrc` files
-- 🎨 Exorcism language icon and file association
+- ✅ Syntax highlighting
+- ✅ Native support for `.exrc` files
+- ✅ Exorcism language icon and file association
+- 🛠️ IntelliSense support - WIP
+- 🛠️ Code auto-completion - WIP
+- 🛠️ Real-time syntax validation - WIP
+- 🛠️ Smart code suggestions - WIP
+- 🛠️ Automatic code corrections for common mistakes - WIP
 
 The extension significantly improves developer productivity by reducing typing, detecting errors while writing code, and providing contextual suggestions for language keywords, functions, variables, and types.
 
 ## What comes next
 
-- 🛠️ VS Code extension
+- ✅ VS Code extension
 - 🛠️ Formatter (`exorcism fmt`)
 - 🛠️ Linter (`exorcism lint`)
 - 🛠️ Documentation generator (`exorcism doc`)
