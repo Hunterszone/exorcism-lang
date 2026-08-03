@@ -343,7 +343,7 @@ else
 - ✅ Cross-platform execution
 - ✅ Function calls (`add(int a, int b);`)
 - ✅ Function calls in expressions (`var x = add(int a, int b);`)
-- 🛠️ Void functions - WIP
+- ✅ Void functions
 - 🛠️ Main entry point - WIP
 - 🛠️ String concatenation - WIP
 - 🛠️ User input handling - WIP
