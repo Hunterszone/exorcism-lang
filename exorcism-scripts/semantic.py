@@ -26,6 +26,24 @@ from compiler_ast import (
 
 from tokens import TokenType
 
+from exorcism_types import (
+    Type,
+    PrimitiveType,
+    ClassType,
+    NullableType,
+
+    INT,
+    FLOAT,
+    DOUBLE,
+    BOOL,
+    CHAR,
+    STRING,
+    VOID,
+    NULL
+)
+
+from type_system import TypeSystem
+
 from symbols import (
     SymbolTable, 
     SymbolError,
@@ -49,8 +67,41 @@ class SemanticAnalyzer:
 
         self.symbols = SymbolTable()
         
+        self.type_system = TypeSystem()
+        
         self.current_function = None
 
+    # ========================================================
+    # Type resolver
+    # ========================================================
+    
+    def resolve_type(self, type_name):
+
+        if type_name == "int":
+            return INT
+
+        if type_name == "float":
+            return FLOAT
+            
+        if type_name == "double":
+            return DOUBLE
+
+        if type_name == "bool":
+            return BOOL
+
+        if type_name == "char":
+            return CHAR
+            
+        if type_name == "String":
+            return STRING
+
+        if type_name == "void":
+            return VOID
+
+
+        raise SemanticError(
+            f"Unknown type {type_name}"
+        )
 
 
     # ========================================================
@@ -137,7 +188,7 @@ class SemanticAnalyzer:
         
         if isinstance(node, IntegerLiteral):
 
-            return "int"
+            return INT
 
 
         if isinstance(node, VariableReference):
@@ -152,7 +203,7 @@ class SemanticAnalyzer:
                     f"Undefined variable '{node.identifier.value}'"
                 )
 
-            return symbol.type_name
+            return symbol.type
 
 
         # binary operation
@@ -195,7 +246,7 @@ class SemanticAnalyzer:
 
         if node.expression is not None:
 
-            return_type, nullable = (
+            return_type = (
                 self.evaluate_expression(
                     node.expression
                 )
@@ -209,6 +260,7 @@ class SemanticAnalyzer:
                     f"expected {self.current_function.return_type}, "
                     f"got {return_type}"
                 )
+
 
     # ========================================================
     # Blocks / scopes
@@ -239,7 +291,7 @@ class SemanticAnalyzer:
     ):
 
 
-        expression_type, nullable = (
+        expression_type = (
             self.evaluate_expression(
                 node.initializer
             )
@@ -257,45 +309,24 @@ class SemanticAnalyzer:
 
         else:
 
-            final_type = (
+            final_type = self.resolve_type(
                 node.declared_type.name.value
             )
 
 
-            declared_nullable = (
-                node.declared_type.nullable
-            )
-
-
-            # null assignment check
-
-            if nullable and not declared_nullable:
+            if not self.type_system.is_assignable(
+                expression_type,
+                final_type
+            ):
 
                 raise SemanticError(
-                    f"Cannot assign nullable value "
-                    f"to non-nullable type "
-                    f"'{final_type}' "
+                    f"Cannot assign "
+                    f"{expression_type} "
+                    f"to "
+                    f"{final_type} "
                     f"at "
                     f"{node.line}:{node.column}"
                 )
-
-
-            # type mismatch
-
-            if expression_type != "null":
-
-                if final_type != expression_type:
-
-                    raise SemanticError(
-                        f"Type mismatch: "
-                        f"cannot assign "
-                        f"{expression_type} "
-                        f"to {final_type}"
-                    )
-
-
-            nullable = declared_nullable
-
 
 
         self.symbols.declare(
@@ -303,8 +334,6 @@ class SemanticAnalyzer:
             node.identifier,
 
             final_type,
-
-            nullable,
 
             initialized=True,
         )
@@ -319,37 +348,43 @@ class SemanticAnalyzer:
         node
     ):
 
+        resolved_return_type = self.resolve_type(
+            node.return_type
+        )
+        
+        node.return_type = resolved_return_type
+        
         symbol = FunctionSymbol(
 
             name=node.name,
             
             token=node.token,
             
-            type_name=node.return_type,
+            type=resolved_return_type,
 
-            return_type=node.return_type,
+            return_type=resolved_return_type,
             
-            nullable=False,
-
             initialized=True,
 
             parameters=node.parameters
         )
 
-
         self.symbols.current_scope.define(
             symbol
         )
 
-
         self.symbols.enter_scope()
 
-        self.current_function = node
+        self.current_function = symbol
 
 
         # define parameters as normal Symbols
 
         for parameter in node.parameters:
+            
+            parameter.parameter_type = self.resolve_type(
+                parameter.parameter_type
+            )
 
             self.symbols.current_scope.define(
 
@@ -359,9 +394,7 @@ class SemanticAnalyzer:
 
                     token=node.token,
 
-                    type_name=parameter.parameter_type,
-
-                    nullable=False,
+                    type=parameter.parameter_type,
 
                     initialized=True
                 )
@@ -448,32 +481,24 @@ class SemanticAnalyzer:
         )
 
 
-        value_type, nullable = (
+        value_type = (
             self.evaluate_expression(
                 node.value
             )
         )
 
 
-        if nullable and not symbol.nullable:
+        if not self.type_system.is_assignable(
+            value_type,
+            symbol.type
+        ):
 
             raise SemanticError(
-                f"Cannot assign null value "
-                f"to non-null variable "
-                f"'{symbol.name}'"
+                f"Cannot assign "
+                f"{value_type} "
+                f"to "
+                f"{symbol.type}"
             )
-
-
-        if value_type != "null":
-
-            if symbol.type_name != value_type:
-
-                raise SemanticError(
-                    f"Cannot assign "
-                    f"{value_type} "
-                    f"to "
-                    f"{symbol.type_name}"
-                )
 
 
 
@@ -487,14 +512,14 @@ class SemanticAnalyzer:
     ):
 
 
-        condition_type, _ = (
+        condition_type = (
             self.evaluate_expression(
                 node.condition
             )
         )
 
 
-        if condition_type != "bool":
+        if condition_type != BOOL:
 
             raise SemanticError(
                 "If condition must be boolean"
@@ -526,27 +551,27 @@ class SemanticAnalyzer:
 
         if isinstance(node, IntegerLiteral):
 
-            return "int", False
+            return INT
 
 
         if isinstance(node, FloatLiteral):
 
-            return "float", False
-
+            return FLOAT
+            
 
         if isinstance(node, StringLiteral):
 
-            return "String", False
+            return STRING
 
 
         if isinstance(node, BooleanLiteral):
 
-            return "bool", False
+            return BOOL
 
 
         if isinstance(node, NullLiteral):
 
-            return "null", True
+            return NULL
 
 
 
@@ -561,8 +586,7 @@ class SemanticAnalyzer:
             )
 
             return (
-                symbol.type_name,
-                symbol.nullable
+                symbol.type
             )
 
         
@@ -609,7 +633,7 @@ class SemanticAnalyzer:
                 symbol.parameters
             ):
 
-                argument_type, _ = (
+                argument_type = (
                     self.evaluate_expression(
                         argument
                     )
@@ -624,7 +648,7 @@ class SemanticAnalyzer:
                     )
 
 
-            return symbol.return_type, False
+            return symbol.return_type
 
         # -----------------------------
         # unary
@@ -632,7 +656,7 @@ class SemanticAnalyzer:
 
         if isinstance(node, UnaryExpression):
 
-            operand_type, nullable = (
+            operand_type = (
                 self.evaluate_expression(
                     node.operand
                 )
@@ -641,28 +665,28 @@ class SemanticAnalyzer:
 
             if node.operator.type == TokenType.NOT:
 
-                if operand_type != "bool":
+                if operand_type != BOOL:
 
                     raise SemanticError(
                         "! requires bool"
                     )
 
-                return "bool", False
+                return BOOL
 
 
 
             if node.operator.type == TokenType.MINUS:
 
                 if operand_type not in (
-                    "int",
-                    "float"
+                    INT,
+                    FLOAT
                 ):
 
                     raise SemanticError(
                         "- requires number"
                     )
 
-                return operand_type, False
+                return operand_type
 
 
 
@@ -672,14 +696,14 @@ class SemanticAnalyzer:
 
         if isinstance(node, BinaryExpression):
 
-            left_type, left_null = (
+            left_type = (
                 self.evaluate_expression(
                     node.left
                 )
             )
 
 
-            right_type, right_null = (
+            right_type = (
                 self.evaluate_expression(
                     node.right
                 )
@@ -700,8 +724,8 @@ class SemanticAnalyzer:
             ):
 
                 if left_type not in (
-                    "int",
-                    "float"
+                    INT,
+                    FLOAT
                 ):
 
                     raise SemanticError(
@@ -710,8 +734,8 @@ class SemanticAnalyzer:
 
 
                 if right_type not in (
-                    "int",
-                    "float"
+                    INT,
+                    FLOAT
                 ):
 
                     raise SemanticError(
@@ -720,14 +744,14 @@ class SemanticAnalyzer:
 
 
                 if (
-                    left_type == "float"
-                    or right_type == "float"
+                    left_type == FLOAT
+                    or right_type == FLOAT
                 ):
 
-                    return "float", False
+                    return FLOAT
 
 
-                return "int", False
+                return INT
 
 
 
@@ -742,7 +766,7 @@ class SemanticAnalyzer:
                 TokenType.GREATER_EQUAL,
             ):
 
-                return "bool", False
+                return BOOL
 
 
 
@@ -754,15 +778,15 @@ class SemanticAnalyzer:
             ):
 
                 if (
-                    left_type != "bool"
-                    or right_type != "bool"
+                    left_type != BOOL
+                    or right_type != BOOL
                 ):
 
                     raise SemanticError(
                         "Logical operators require bool"
                     )
 
-                return "bool", False
+                return BOOL
 
 
 

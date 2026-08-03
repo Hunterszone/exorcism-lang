@@ -2,6 +2,21 @@ from __future__ import annotations
 
 from llvmlite import ir
 
+from exorcism_types import (
+    Type,
+    PrimitiveType,
+    ClassType,
+    NullableType,
+
+    INT,
+    FLOAT,
+    DOUBLE,
+    BOOL,
+    CHAR,
+    STRING,
+    VOID
+)
+
 from compiler_ast import (
     Program,
     Block,
@@ -19,7 +34,6 @@ from compiler_ast import (
     BooleanLiteral,
     StringLiteral,
     NullLiteral,
-    StringLiteral,
     PrintStatement,
     
     FunctionDeclaration,
@@ -139,7 +153,7 @@ class LLVMCodeGenerator:
 
         return_type = self.get_llvm_type(
             node.return_type
-        )
+        )   
 
 
         arguments = []
@@ -224,7 +238,7 @@ class LLVMCodeGenerator:
 
         if not self.builder.block.is_terminated:
 
-            if node.return_type == "void":
+            if node.return_type == VOID:
 
                 self.builder.ret_void()
 
@@ -243,25 +257,78 @@ class LLVMCodeGenerator:
         self.variables = old_variables
 
 
-    def get_llvm_type(self, type_name):
+    def get_llvm_type(self, type_obj: Type):
 
-        if type_name == "int":
+        # ---------------------------------
+        # Nullable types
+        # ---------------------------------
+
+        if isinstance(type_obj, NullableType):
+
+            return self.get_llvm_type(
+                type_obj.base_type
+            )
+
+
+        # ---------------------------------
+        # Primitive types
+        # ---------------------------------
+
+        if type_obj is INT:
+
             return ir.IntType(32)
 
-        if type_name == "float":
+
+        if type_obj is FLOAT:
+
             return ir.FloatType()
 
-        if type_name == "bool":
+
+        if type_obj is DOUBLE:
+
+            return ir.DoubleType()
+
+
+        if type_obj is BOOL:
+
             return ir.IntType(1)
 
-        if type_name == "String":
-            return ir.IntType(8).as_pointer()
 
-        if type_name == "void":
+        if type_obj is CHAR:
+
+            return ir.IntType(8)
+
+
+        if type_obj is VOID:
+
             return ir.VoidType()
 
+
+        # ---------------------------------
+        # Reference types
+        # ---------------------------------
+
+        if type_obj is STRING:
+
+            # temporary representation
+            # until you introduce %String runtime object
+
+            return ir.IntType(8).as_pointer()
+
+
+        if isinstance(type_obj, ClassType):
+
+            # future:
+            #
+            # %Person*
+            #
+            # %Animal*
+
+            return ir.IntType(8).as_pointer()
+
+
         raise Exception(
-            f"Unknown type '{type_name}'"
+            f"Unknown type '{type_obj}'"
         )
     
     # ========================================================

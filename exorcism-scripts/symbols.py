@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+
 from typing import Optional
 
 from tokens import Token
 
+from exorcism_types import Type, VOID
+
+from type_system import TypeSystem
 
 class SymbolError(Exception):
     pass
@@ -22,9 +26,7 @@ class Symbol:
 
     token: Token
 
-    type_name: str
-
-    nullable: bool
+    type: Type
 
     initialized: bool = False
 
@@ -32,9 +34,11 @@ class Symbol:
 @dataclass(slots=True)
 class FunctionSymbol(Symbol):
     
-    parameters: list = field(default_factory=list)
+    parameters: list["Symbol"] = field(
+        default_factory=list
+    )
 
-    return_type: str = ""
+    return_type: Type = VOID
 
 
 # ============================================================
@@ -152,8 +156,7 @@ class SymbolTable:
     def declare(
         self,
         identifier: Token,
-        type_name: str,
-        nullable: bool,
+        type: Type,
         initialized: bool = False,
     ):
 
@@ -163,9 +166,7 @@ class SymbolTable:
 
             token=identifier,
 
-            type_name=type_name,
-
-            nullable=nullable,
+            type=type,
 
             initialized=initialized,
         )
