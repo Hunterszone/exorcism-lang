@@ -241,25 +241,42 @@ class SemanticAnalyzer:
                 "Return statement outside function"
             )
 
+        
+        if self.current_function.return_type is VOID:
 
-        # return expression;
-
-        if node.expression is not None:
-
-            return_type = (
-                self.evaluate_expression(
-                    node.expression
-                )
-            )
-
-
-            if return_type != self.current_function.return_type:
+            if node.expression is not None:
 
                 raise SemanticError(
-                    f"Return type mismatch: "
-                    f"expected {self.current_function.return_type}, "
-                    f"got {return_type}"
+                    "Void function cannot return a value"
                 )
+
+            return
+            
+        
+        if node.expression is None:
+
+            raise SemanticError(
+                "Non-void function must return a value"
+            )
+            
+            
+        # return expression;
+
+        return_type = self.evaluate_expression(
+            node.expression
+        )
+
+
+        if not self.type_system.is_assignable(
+            return_type,
+            self.current_function.return_type
+        ):
+
+            raise SemanticError(
+                f"Return type mismatch: "
+                f"expected {self.current_function.return_type}, "
+                f"got {return_type}"
+            )
 
 
     # ========================================================
@@ -421,6 +438,11 @@ class SemanticAnalyzer:
         symbol = self.symbols.current_scope.lookup(
             node.name
         )
+        
+        
+        if symbol.return_type is VOID:
+
+            return VOID
 
 
         if symbol is None:
@@ -599,7 +621,11 @@ class SemanticAnalyzer:
             symbol = self.symbols.lookup_name(
                 node.name
             )
+            
+            if symbol.return_type is VOID:
 
+                return VOID
+                
 
             if symbol is None:
 

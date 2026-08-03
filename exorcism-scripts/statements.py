@@ -80,6 +80,7 @@ class StatementParserMixin:
             TokenType.TYPE_FLOAT,
             TokenType.TYPE_STRING,
             TokenType.TYPE_BOOL,
+            TokenType.TYPE_VOID,
         )
 
 

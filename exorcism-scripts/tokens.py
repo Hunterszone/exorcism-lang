@@ -22,6 +22,7 @@ class TokenType(Enum):
     TYPE_FLOAT = auto()
     TYPE_STRING = auto()
     TYPE_BOOL = auto()
+    TYPE_VOID = auto()
     VAR = auto()
 
     # ---------- Keywords ----------
@@ -86,6 +87,7 @@ KEYWORDS = {
     "float": TokenType.TYPE_FLOAT,
     "String": TokenType.TYPE_STRING,
     "bool": TokenType.TYPE_BOOL,
+    "void": TokenType.TYPE_VOID,
     "var": TokenType.VAR,
 
     # keywords

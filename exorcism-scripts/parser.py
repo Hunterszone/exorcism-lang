@@ -174,6 +174,13 @@ class Parser(
             token = self.advance()
 
             return token.value
+            
+        
+        if self.check(TokenType.TYPE_VOID):
+
+            token = self.advance()
+
+            return token.value
 
 
         raise ParserError(
