@@ -465,10 +465,10 @@ The extension significantly improves developer productivity by reducing typing, 
 ## What comes next
 
 - ✅ VS Code extension
+- 🛠️ Compiler installer (`exorcism.exe`)
 - 🛠️ Formatter (`exorcism fmt`)
 - 🛠️ Linter (`exorcism lint`)
 - 🛠️ Documentation generator (`exorcism doc`)
-- 🛠️ Compiler installer (`exorcism.exe`)
 - 🛠️ Package manager (`exorcism install`)
 
 ---
