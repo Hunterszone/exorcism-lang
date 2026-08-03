@@ -454,11 +454,11 @@ https://marketplace.visualstudio.com/items?itemName=exorcism-dev.exorcism-lang
 - ✅ Syntax highlighting
 - ✅ Native support for `.exrc` files
 - ✅ Exorcism language icon and file association
-- 🛠️ IntelliSense support - WIP
+- 🛠️ Language Server (IntelliSense) - WIP
 - 🛠️ Code auto-completion - WIP
 - 🛠️ Real-time syntax validation - WIP
 - 🛠️ Smart code suggestions - WIP
-- 🛠️ Automatic code corrections for common mistakes - WIP
+- 🛠️ Automatic code corrections - WIP
 
 The extension significantly improves developer productivity by reducing typing, detecting errors while writing code, and providing contextual suggestions for language keywords, functions, variables, and types.
 
@@ -470,7 +470,5 @@ The extension significantly improves developer productivity by reducing typing, 
 - 🛠️ Documentation generator (`exorcism doc`)
 - 🛠️ Compiler installer (`exorcism.exe`)
 - 🛠️ Package manager (`exorcism install`)
-- 🛠️ Unit testing framework
-- 🛠️ Language Server (full IntelliSense)
 
 ---
