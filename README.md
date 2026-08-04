@@ -18,7 +18,7 @@ The Exorcism compiler frontend is implemented in Python, handling:
 - Type checking
 - Symbol management
 
-Python provides:
+Why Python:
 
 - Rapid iteration during language design
 - Simple and readable compiler components
@@ -35,8 +35,6 @@ The LLVM backend provides:
 - Platform-independent code generation
 - Efficient low-level representations
 - A foundation used by many production languages
-
-This means Exorcism programs can benefit from decades of compiler optimization research without implementing every optimization manually.
 
 ## The Runtime Environment
 
@@ -330,7 +328,7 @@ else
 
 ---
 
-## Language Characteristics & Features
+## Language & Compiler Features
 
 - ✅ Statically typed
 - ✅ Strong type checking
@@ -350,6 +348,7 @@ else
 - 🛠️ Loops - WIP
 - 🛠️ Data structures / Collections - WIP
 - 🛠️ OOP features - WIP
+- 🛠️ Memory management - WIP
 - 🛠️ Standard library - WIP
 - 🛠️ Getter/Setter API - WIP
 - 🛠️ Unit testing support - WIP
