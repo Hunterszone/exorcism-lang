@@ -45,7 +45,7 @@ The LLVM backend provides:
 ### Cross-platform compilation
 The same language can target Windows, Linux, macOS, WebAssembly, and potentially more architectures through LLVM.
 
-NOTE: The .js output file is required by the current execution model that uses JavaScript as the WebAssembly host/runtime launcher.
+**NOTE**: The .js output file is required by the current execution model that uses JavaScript as the WebAssembly host/runtime launcher.
 WebAssembly is a portable binary format, but it needs a host environment to:
 
 - load the .wasm file
