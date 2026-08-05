@@ -1,5 +1,6 @@
 ![alt text](https://github.com/Hunterszone/exorcism-lang/blob/main/exrc-mascot.png)
 
+<center>
 - [I. Exorcism Language Architecture](#i-exorcism-language-architecture)
   - [The Compiler Structure](#the-compiler-structure)
     - [Python Frontend](#python-frontend)
@@ -39,7 +40,7 @@
 - [V. Exorcism VSCode Extension](#v-exorcism-vscode-extension)
   - [Extension URL:](#extension-url)
   - [Features](#features)
-
+</center>
 
 # I. Exorcism Language Architecture 
 
