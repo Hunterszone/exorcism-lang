@@ -36,9 +36,16 @@ The LLVM backend provides:
 - Efficient low-level representations
 - A foundation used by many production languages
 
-## The Runtime Environment
+## Runtime Environment Advantages
 
-The .js output file is required by the current execution model that uses JavaScript as the WebAssembly host/runtime launcher.
+### No Exorcism VM
+- Programs compile to native targets or WebAssembly
+- Users don't need to install an Exorcism runtime
+
+### Cross-platform compilation
+The same language can target Windows, Linux, macOS, WebAssembly, and potentially more architectures through LLVM.
+
+NOTE: The .js output file is required by the current execution model that uses JavaScript as the WebAssembly host/runtime launcher.
 WebAssembly is a portable binary format, but it needs a host environment to:
 
 - load the .wasm file
@@ -57,6 +64,57 @@ exorcism build build/hello.exrc
 ```console
 exorcism run build/hello.exrc						 
 ```
+
+# Exorcism Features & Tooling
+
+---
+
+## Compiler Features
+
+- ✅ Strong type checking
+- ✅ Compile-time null safety (`String? name = null;`)
+- ✅ Automatic type inference (`var`)
+- ✅ Mathematical operator precedence
+- ✅ LLVM Intermediate Representation (IR) generation
+- ✅ WebAssembly compilation
+- ✅ JavaScript runtime launcher generation
+- ✅ Cross-platform execution
+- 🛠️ Language Server (IntelliSense) - WIP
+- 🛠️ Code auto-completion - WIP
+- 🛠️ Real-time syntax validation - WIP
+- 🛠️ Smart code suggestions - WIP
+- 🛠️ Automatic code corrections - WIP
+- 🛠️ Memory management - WIP
+
+## Language Features
+
+- ✅ Statically typed
+- ✅ Function calls (`add(int a, int b);`)
+- ✅ Function calls in expressions (`var x = add(int a, int b);`)
+- ✅ Void functions
+- 🛠️ Access modifiers (`public`, `private`, etc.) - WIP
+- 🛠️ String concatenation - WIP
+- 🛠️ User input handling - WIP
+- 🛠️ Main entry point - WIP
+- 🛠️ Loops - WIP
+- 🛠️ Lambda functions
+- 🛠️ Data structures / Collections - WIP
+- 🛠️ Generics support
+- 🛠️ OOP features - WIP
+- 🛠️ Getter/Setter API - WIP
+- 🛠️ Async/Concurrency - WIP
+- 🛠️ Standard library - WIP
+- 🛠️ Unit testing support - WIP
+
+## Tooling
+
+- 🛠️ Compiler installer (`exorcism.exe`)
+- 🛠️ Formatter (`exorcism fmt`)
+- 🛠️ Linter (`exorcism lint`)
+- 🛠️ Documentation generator (`exorcism doc`)
+- 🛠️ Package manager (`exorcism install`)
+
+---
 
 # Exorcism Language Syntax
 
@@ -325,55 +383,6 @@ else
     print("Computation failed");
 }
 ```
-
----
-
-## Compiler Features
-
-- ✅ Strong type checking
-- ✅ Compile-time null safety (`String? name = null;`)
-- ✅ Automatic type inference (`var`)
-- ✅ Mathematical operator precedence
-- ✅ LLVM Intermediate Representation (IR) generation
-- ✅ WebAssembly compilation
-- ✅ JavaScript runtime launcher generation
-- ✅ Cross-platform execution
-- 🛠️ Language Server (IntelliSense) - WIP
-- 🛠️ Code auto-completion - WIP
-- 🛠️ Real-time syntax validation - WIP
-- 🛠️ Smart code suggestions - WIP
-- 🛠️ Automatic code corrections - WIP
-- 🛠️ Memory management - WIP
-
-## Language Features
-
-- ✅ Statically typed
-- ✅ Function calls (`add(int a, int b);`)
-- ✅ Function calls in expressions (`var x = add(int a, int b);`)
-- ✅ Void functions
-- 🛠️ Access modifiers (`public`, `private`, etc.) - WIP
-- 🛠️ String concatenation - WIP
-- 🛠️ User input handling - WIP
-- 🛠️ Main entry point - WIP
-- 🛠️ Loops - WIP
-- 🛠️ Lambda functions
-- 🛠️ Data structures / Collections - WIP
-- 🛠️ Generics support
-- 🛠️ OOP features - WIP
-- 🛠️ Getter/Setter API - WIP
-- 🛠️ Async/Concurrency - WIP
-- 🛠️ Standard library - WIP
-- 🛠️ Unit testing support - WIP
-
-## Tooling
-
-- 🛠️ Compiler installer (`exorcism.exe`)
-- 🛠️ Formatter (`exorcism fmt`)
-- 🛠️ Linter (`exorcism lint`)
-- 🛠️ Documentation generator (`exorcism doc`)
-- 🛠️ Package manager (`exorcism install`)
-
----
 
 ## File Extension
 
