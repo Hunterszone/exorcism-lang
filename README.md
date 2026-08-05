@@ -328,9 +328,8 @@ else
 
 ---
 
-## Language & Compiler Features
+## Compiler Features
 
-- ✅ Statically typed
 - ✅ Strong type checking
 - ✅ Compile-time null safety (`String? name = null;`)
 - ✅ Automatic type inference (`var`)
@@ -339,6 +338,16 @@ else
 - ✅ WebAssembly compilation
 - ✅ JavaScript runtime launcher generation
 - ✅ Cross-platform execution
+- 🛠️ Language Server (IntelliSense) - WIP
+- 🛠️ Code auto-completion - WIP
+- 🛠️ Real-time syntax validation - WIP
+- 🛠️ Smart code suggestions - WIP
+- 🛠️ Automatic code corrections - WIP
+- 🛠️ Memory management - WIP
+
+## Language Features
+
+- ✅ Statically typed
 - ✅ Function calls (`add(int a, int b);`)
 - ✅ Function calls in expressions (`var x = add(int a, int b);`)
 - ✅ Void functions
@@ -353,7 +362,6 @@ else
 - 🛠️ OOP features - WIP
 - 🛠️ Getter/Setter API - WIP
 - 🛠️ Async/Concurrency - WIP
-- 🛠️ Memory management - WIP
 - 🛠️ Standard library - WIP
 - 🛠️ Unit testing support - WIP
 
@@ -465,11 +473,6 @@ https://marketplace.visualstudio.com/items?itemName=exorcism-dev.exorcism-lang
 - ✅ Syntax highlighting
 - ✅ Native support for `.exrc` files
 - ✅ Exorcism language icon and file association
-- 🛠️ Language Server (IntelliSense) - WIP
-- 🛠️ Code auto-completion - WIP
-- 🛠️ Real-time syntax validation - WIP
-- 🛠️ Smart code suggestions - WIP
-- 🛠️ Automatic code corrections - WIP
 
 The extension significantly improves developer productivity by reducing typing, detecting errors while writing code, and providing contextual suggestions for language keywords, functions, variables, and types.
 
