@@ -44,7 +44,7 @@ class Compiler:
 
     def __init__(self):
 
-        self.builder = WasmBuilder()
+        pass
 
 
 
@@ -119,11 +119,20 @@ class Compiler:
             print("[5/5] Building WebAssembly...")
 
 
-            result = self.builder.compile(
-                llvm_ir,
-                output
+            output_dir = os.path.dirname(output)
+
+            
+            builder = WasmBuilder(
+                output_dir=output_dir
             )
 
+            
+            result = builder.compile(
+                llvm_ir,
+                os.path.basename(output)
+            )
+
+            
             return result
 
 
@@ -152,6 +161,8 @@ class Compiler:
         output=None
     ):
 
+        filename = os.path.abspath(filename)
+
 
         if not os.path.exists(filename):
 
@@ -159,7 +170,7 @@ class Compiler:
                 f"File not found: {filename}"
             )
 
-        
+
         if not filename.lower().endswith(".exrc"):
 
             raise Exception(
@@ -167,7 +178,7 @@ class Compiler:
                 "Expected .exrc"
             )
 
-        
+
         with open(
             filename,
             "r",
@@ -177,13 +188,23 @@ class Compiler:
             source = file.read()
 
 
+        source_dir = os.path.dirname(filename)
+
         name = os.path.splitext(
             os.path.basename(filename)
         )[0]
 
 
+        if output is None:
+
+            output = os.path.join(
+                source_dir,
+                name
+            )
+
+
         return self.compile_source(
             source,
-            output=output or name
+            output=output
         )
         

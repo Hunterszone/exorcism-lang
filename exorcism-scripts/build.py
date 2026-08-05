@@ -319,6 +319,6 @@ WebAssembly.instantiate(wasmBuffer, {
 
 
         return {
-            "wasm": wasm,
-            "runner": runner,
+            "wasm": os.path.abspath(wasm),
+            "runner": os.path.abspath(runner)
         }

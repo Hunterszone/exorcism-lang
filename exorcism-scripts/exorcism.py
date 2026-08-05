@@ -1,3 +1,5 @@
+print("EXORCISM STARTED")
+    
 import sys
 import os
 
