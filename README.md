@@ -357,6 +357,14 @@ else
 - 🛠️ Standard library - WIP
 - 🛠️ Unit testing support - WIP
 
+## Tooling
+
+- 🛠️ Compiler installer (`exorcism.exe`)
+- 🛠️ Formatter (`exorcism fmt`)
+- 🛠️ Linter (`exorcism lint`)
+- 🛠️ Documentation generator (`exorcism doc`)
+- 🛠️ Package manager (`exorcism install`)
+
 ---
 
 ## File Extension
@@ -464,14 +472,5 @@ https://marketplace.visualstudio.com/items?itemName=exorcism-dev.exorcism-lang
 - 🛠️ Automatic code corrections - WIP
 
 The extension significantly improves developer productivity by reducing typing, detecting errors while writing code, and providing contextual suggestions for language keywords, functions, variables, and types.
-
-## What comes next
-
-- ✅ VS Code extension
-- 🛠️ Compiler installer (`exorcism.exe`)
-- 🛠️ Formatter (`exorcism fmt`)
-- 🛠️ Linter (`exorcism lint`)
-- 🛠️ Documentation generator (`exorcism doc`)
-- 🛠️ Package manager (`exorcism install`)
 
 ---
