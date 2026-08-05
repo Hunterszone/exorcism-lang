@@ -342,15 +342,19 @@ else
 - ✅ Function calls (`add(int a, int b);`)
 - ✅ Function calls in expressions (`var x = add(int a, int b);`)
 - ✅ Void functions
-- 🛠️ Main entry point - WIP
+- 🛠️ Access modifiers (`public`, `private`, etc.) - WIP
 - 🛠️ String concatenation - WIP
 - 🛠️ User input handling - WIP
+- 🛠️ Main entry point - WIP
 - 🛠️ Loops - WIP
+- 🛠️ Lambda functions
 - 🛠️ Data structures / Collections - WIP
+- 🛠️ Generics support
 - 🛠️ OOP features - WIP
+- 🛠️ Getter/Setter API - WIP
+- 🛠️ Async/Concurrency - WIP
 - 🛠️ Memory management - WIP
 - 🛠️ Standard library - WIP
-- 🛠️ Getter/Setter API - WIP
 - 🛠️ Unit testing support - WIP
 
 ---
