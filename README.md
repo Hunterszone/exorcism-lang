@@ -2,6 +2,7 @@
 
 # Exorcism Language Architecture 
 
+---
 
 Exorcism uses a modern compiler architecture with a **Python-based compiler frontend**, an **LLVM-powered backend**, 
 and multiple output targets including **WebAssembly (`.wasm`)** and **intermediate representation (`.ll`)** files.
@@ -68,6 +69,7 @@ exorcism run build/hello.exrc
 
 # Exorcism Features & Tooling
 
+---
 
 ## Compiler Features
 
@@ -118,6 +120,7 @@ exorcism run build/hello.exrc
 
 # Exorcism Language Syntax
 
+---
 
 Exorcism is a statically typed, compiled programming language targeting **WebAssembly** through **LLVM**. Its syntax is intentionally simple while providing modern language features such as strict typing, compile-time null safety, type inference, and structured control flow.
 
@@ -473,6 +476,7 @@ The compiler architecture is intentionally modular so new language features can 
 
 # Visual Studio Code Extension
 
+---
 
 Exorcism includes its own Visual Studio Code extension, providing a modern development experience with intelligent editing features for `.exrc` source files.
 
