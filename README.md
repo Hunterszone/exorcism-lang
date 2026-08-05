@@ -476,7 +476,7 @@ The compiler architecture is intentionally modular so new language features can 
 
 ---
 
-# V. VSCode Extension
+# V. Exorcism VSCode Extension
 
 ---
 
