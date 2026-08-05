@@ -1,6 +1,6 @@
 ![alt text](https://github.com/Hunterszone/exorcism-lang/blob/main/exrc-mascot.png)
 
-# Exorcism Language Architecture 
+# I. Exorcism Language Architecture 
 
 ---
 
@@ -67,7 +67,7 @@ exorcism build build/hello.exrc
 exorcism run build/hello.exrc						 
 ```
 
-# Exorcism Features & Tooling
+# II. Exorcism Features & Tooling
 
 ---
 
@@ -118,7 +118,7 @@ exorcism run build/hello.exrc
 
 ---
 
-# Exorcism Language Syntax
+# III. Exorcism Language Syntax
 
 ---
 
@@ -409,7 +409,9 @@ build/
 └── program.ll
 ```
 
-# What problems does Exorcism solve ?
+# IV. What problems does Exorcism solve ?
+
+---
 
 ## 1. A simple but powerful language design
 
@@ -474,7 +476,7 @@ The compiler architecture is intentionally modular so new language features can 
 
 ---
 
-# Visual Studio Code Extension
+# V. Visual Studio Code Extension
 
 ---
 
