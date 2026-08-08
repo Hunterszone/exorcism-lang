@@ -264,7 +264,7 @@ def main():
     
     # Commands requiring a source file
     
-    if command in ("build", "run") and len(sys.argv) < 3:
+    if command not in ("doctor", "--version", "-v") and len(sys.argv) < 3:
     
         print(HELP_MSG)
 
