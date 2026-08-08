@@ -59,12 +59,12 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 
 ### Build
 ```console
-exorcism build build/hello.exrc						 
+exorcism build <path-to-exrc-file>/hello.exrc						 
 ```
 
 ### Build & Run
 ```console
-exorcism run build/hello.exrc						 
+exorcism run <path-to-exrc-file>hello.exrc						 
 ```
 
 # II. Exorcism Features & Tooling
