@@ -29,10 +29,12 @@ class WasmBuilder:
 
     def __init__(
         self,
-        output_dir="build"
+        output_dir
     ):
 
-        self.output_dir = output_dir
+        self.output_dir = os.path.abspath(
+            output_dir
+        )
 
 
         os.makedirs(
