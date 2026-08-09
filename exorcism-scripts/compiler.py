@@ -119,7 +119,9 @@ class Compiler:
             print("[5/5] Building WebAssembly...")
 
 
-            output_dir = os.path.dirname(output)
+            output_dir = os.path.dirname(
+                output
+            )
 
             
             builder = WasmBuilder(
@@ -134,7 +136,6 @@ class Compiler:
 
             
             return result
-
 
 
         except (
@@ -161,7 +162,9 @@ class Compiler:
         output=None
     ):
 
-        filename = os.path.abspath(filename)
+        filename = os.path.abspath(
+            filename
+        )
 
 
         if not os.path.exists(filename):
@@ -188,17 +191,35 @@ class Compiler:
             source = file.read()
 
 
-        source_dir = os.path.dirname(filename)
+        source_dir = os.path.dirname(
+            filename
+        )
 
         name = os.path.splitext(
             os.path.basename(filename)
         )[0]
 
+        
+        # ---------------------------------
+        # Generated artifacts
+        # ---------------------------------
 
+        artifacts_dir = os.path.join(
+            source_dir,
+            "artifacts"
+        )
+
+
+        os.makedirs(
+            artifacts_dir,
+            exist_ok=True
+        )
+
+        
         if output is None:
 
             output = os.path.join(
-                source_dir,
+                artifacts_dir,
                 name
             )
 

@@ -113,14 +113,15 @@ class WasmBuilder:
 
     def write_ir(
         self,
-        llvm_ir: str
+        llvm_ir: str,
+        name="program"
     ):
 
         path = os.path.join(
             self.output_dir,
-            "program.ll"
+            f"{name}.ll"
         )
-
+        
 
         with open(
             path,
@@ -152,7 +153,8 @@ class WasmBuilder:
 
 
         ir_file = self.write_ir(
-            llvm_ir
+            llvm_ir,
+            name
         )
 
 
@@ -186,13 +188,11 @@ class WasmBuilder:
         ]
 
 
-
         result = subprocess.run(
             command,
             capture_output=True,
             text=True
         )
-
 
 
         if result.returncode != 0:
@@ -203,9 +203,7 @@ class WasmBuilder:
             )
 
 
-
         return wasm_file
-
 
 
     # ========================================================
