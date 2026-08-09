@@ -1,13 +1,13 @@
 ![alt text](https://github.com/Hunterszone/exorcism-lang/blob/main/exrc-mascot.png)
 
-# I. Exorcism Language Architecture
+# I. The Exorcism Architecture
 
 ---
 
-Exorcism uses a modern compiler architecture with a **Python-based compiler frontend**, an **LLVM-powered backend**, 
+The Exorcism lang uses a modern compiler architecture with a **Python-based compiler frontend**, an **LLVM-powered backend**, 
 and multiple output targets including **WebAssembly (`.wasm`)** and **intermediate representation (`.ll`)** files.
 
-## The Compiler Structure
+## The Compiler
 
 ### Python Frontend
 
@@ -38,14 +38,14 @@ The LLVM backend provides:
 - Efficient low-level representations
 - A foundation used by many production languages
 
-## Runtime Environment Advantages
+## The Exorcism Environment
 
 ### No Exorcism VM
 - Programs compile to native targets or WebAssembly
 - Users don't need to install an Exorcism runtime
 
 ### Cross-platform compilation
-The same language can target Windows, Linux, macOS, WebAssembly, and potentially more architectures through LLVM.
+The same lang distribution can target Windows, Linux, macOS, WebAssembly, and potentially more architectures through LLVM.
 
 **NOTE**: The .js output file is required by the current execution model that uses JavaScript as the WebAssembly host/runtime launcher.
 WebAssembly is a portable binary format, but it needs a host environment to:
@@ -55,7 +55,7 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 - provide memory access
 - call exported functions
 
-## Language commands list
+## The Exorcism Commands
 
 **NOTE**: The Exorcism Setup Installer adds `exorcism.exe` to PATH, so that .exrc programs could be executed from any location.
 
@@ -129,7 +129,7 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 
 ---
 
-# III. Exorcism Language Syntax
+# III. The Exorcism Language Syntax
 
 ---
 
@@ -420,11 +420,11 @@ build/
 └── program.ll
 ```
 
-# IV. What problems does Exorcism solve ?
+# IV. What makes Exorcism awesome
 
 ---
 
-## 1. A simple but powerful language design
+## Simple but powerful language design
 
 Many existing languages have accumulated decades of complexity, historical decisions, and compatibility requirements.
 
@@ -440,7 +440,7 @@ The goal is not to replace established languages, but to provide a focused envir
 
 ---
 
-## 2. Safer software development
+## Safer software development
 
 Exorcism is designed with safety in mind.
 
@@ -456,7 +456,7 @@ Errors should be discovered during compilation instead of causing unexpected run
 
 ---
 
-## 3. Portable execution
+## Portable execution
 
 By targeting WebAssembly, Exorcism programs can run in multiple environments:
 
@@ -469,7 +469,7 @@ A compiled Exorcism program is not tied to a single operating system or CPU arch
 
 ---
 
-## 4. A foundation for experimenting with programming language features
+## Rich language features support
 
 Exorcism provides a platform for exploring advanced language concepts, including:
 
@@ -487,7 +487,7 @@ The compiler architecture is intentionally modular so new language features can 
 
 ---
 
-# V. Exorcism VSCode Extension
+# V. The Exorcism VSCode Extension
 
 ---
 
