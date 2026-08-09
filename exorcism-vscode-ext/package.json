@@ -15,15 +15,33 @@
     "type": "git",
     "url": "https://github.com/Hunterszone/exorcism-lang"
   },
-  "activationEvents": [],
+  "activationEvents": [ "onLanguage:exorcism" ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "exorcism.helloWorld",
-        "title": "Hello World"
+        "command": "exorcism.build",
+        "title": "Exorcism: Build"
+      },
+      {
+        "command": "exorcism.run",
+        "title": "Exorcism: Run"
+      },
+      {
+        "command": "exorcism.doctor",
+        "title": "Exorcism: Doctor"
       }
     ],
+    "configuration": {
+      "title": "Exorcism",
+      "properties": {
+        "exorcism.executablePath": {
+          "type": "string",
+          "default": "exorcism",
+          "description": "Path to the Exorcism compiler executable."
+        }
+      }
+    },
     "languages": [
       {
         "id": "exorcism",

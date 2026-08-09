@@ -43,7 +43,7 @@ InfoBeforeFile=C:\Users\kdren\Downloads\EXORCISM_LANG_PROJ\README.md
 ;PrivilegesRequired=lowest
 OutputDir=C:\Users\kdren\Downloads\EXORCISM_LANG_PROJ\build
 OutputBaseFilename=Exorcism-0.1.0-Setup
-SetupIconFile=C:\Users\kdren\Downloads\EXORCISM_LANG_PROJ\icons\logo.ico
+SetupIconFile=C:\Users\kdren\Downloads\EXORCISM_LANG_PROJ\exorcism-logo\logo.ico
 SolidCompression=yes
 WizardStyle=modern dynamic
 

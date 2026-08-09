@@ -7,6 +7,14 @@ import tempfile
 from compiler import Compiler
 from build import WasmBuilder, BuildError
 
+# Force UTF-8 output on Windows 
+if sys.platform == "win32": 
+    try: 
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8") 
+    except AttributeError: 
+        pass
+
 EXORCISM_VERSION = "0.1.0"
 HELP_MSG = '''
     Usage:
