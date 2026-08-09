@@ -23,6 +23,7 @@ HELP_MSG = '''
     Commands:
       build <file.exrc>       Compile an Exorcism source file to WebAssembly
       run <file.exrc>         Compile and execute an Exorcism source file
+      doctor                  Do a toolchain/environment diagnostic & prerequisites check
 
     Options:
       -h, --help              Show this help message
@@ -31,8 +32,9 @@ HELP_MSG = '''
     Examples:
       exorcism build hello.exrc
       exorcism run hello.exrc
+      exorcism doctor
       exorcism --version
-      exorcism --help
+      exorcism --help		
 '''
         
 

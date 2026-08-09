@@ -75,6 +75,7 @@ WebAssembly is a portable binary format, but it needs a host environment to:
     Examples:
       exorcism build hello.exrc
       exorcism run hello.exrc
+	  exorcism doctor
       exorcism --version
       exorcism --help						 
 ```
