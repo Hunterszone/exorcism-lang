@@ -57,7 +57,7 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 
 ## How To Compile & Run
 
-**NOTE**: Add `exorcism.exe` to PATH, so that it could be executd from anywhere.
+**NOTE**: The Exorcism Setup Installer adds `exorcism.exe` to PATH, so that it could be executd from anywhere.
 
 ### Build
 ```console
@@ -79,9 +79,6 @@ exorcism run <path-to-exrc-file>hello.exrc
 - ✅ Compile-time null safety (`String? name = null;`)
 - ✅ Automatic type inference (`var`)
 - ✅ Mathematical operator precedence
-- ✅ LLVM Intermediate Representation (IR) generation
-- ✅ WebAssembly compilation
-- ✅ JavaScript runtime launcher generation
 - ✅ Cross-platform execution
 - 🛠️ Language Server (IntelliSense) - WIP
 - 🛠️ Code auto-completion - WIP
@@ -112,7 +109,8 @@ exorcism run <path-to-exrc-file>hello.exrc
 
 ## Tooling
 
-- 🛠️ Compiler installer (`exorcism.exe`)
+- ✅ Compiler installer (`exorcism.exe`)
+- ✅ Perquisites checker (`exorcism doctor`)
 - 🛠️ Formatter (`exorcism fmt`)
 - 🛠️ Linter (`exorcism lint`)
 - 🛠️ Documentation generator (`exorcism doc`)
