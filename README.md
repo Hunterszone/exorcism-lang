@@ -57,7 +57,7 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 
 ## How To Compile & Run
 
-**NOTE**: The Exorcism Setup Installer adds `exorcism.exe` to PATH, so that it could be executd from anywhere.
+**NOTE**: The Exorcism Setup Installer adds `exorcism.exe` to PATH, so that .exrc programs could be executed from any location.
 
 ### Build
 ```console
