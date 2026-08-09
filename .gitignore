@@ -6,4 +6,3 @@
 **/*.exrc
 **/__pycache__/
 **/build/
-**/installation-script/

@@ -109,11 +109,11 @@ exorcism run <path-to-exrc-file>hello.exrc
 
 ## Tooling
 
-- ✅ Compiler installer (`exorcism.exe`)
+- ✅ Language installer (`ExorcismSetup.exe`)
 - ✅ Perquisites checker (`exorcism doctor`)
 - 🛠️ Formatter (`exorcism fmt`)
 - 🛠️ Linter (`exorcism lint`)
-- 🛠️ Documentation generator (`exorcism doc`)
+- 🛠️ Documentation generator (`exorcism docs`)
 - 🛠️ Package manager (`exorcism install`)
 
 ---
