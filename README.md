@@ -55,18 +55,30 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 - provide memory access
 - call exported functions
 
-## How To Compile & Run
+## Language commands list
 
 **NOTE**: The Exorcism Setup Installer adds `exorcism.exe` to PATH, so that .exrc programs could be executed from any location.
 
 ### Build
-```console
-exorcism build <path-to-exrc-file>/hello.exrc						 
-```
 
-### Build & Run
 ```console
-exorcism run <path-to-exrc-file>hello.exrc						 
+ Usage:
+      exorcism <command> [options]
+
+    Commands:
+      build <file.exrc>       Compile an Exorcism source file to WebAssembly
+      run <file.exrc>         Compile and execute an Exorcism source file
+	  doctor                  Do a toolchain/environment diagnostic & prerequisites check
+
+    Options:
+      -h, --help              Show this help message
+      -v, --version           Show the Exorcism version
+
+    Examples:
+      exorcism build hello.exrc
+      exorcism run hello.exrc
+      exorcism --version
+      exorcism --help						 
 ```
 
 # II. Exorcism Features & Tooling
