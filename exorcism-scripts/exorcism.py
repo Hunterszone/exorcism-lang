@@ -280,7 +280,7 @@ def analyze_command(
     if diagnostics.is_empty:
 
         print(
-            "No diagnostics."
+            "No errors found."
         )
 
         return 0
