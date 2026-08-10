@@ -138,6 +138,122 @@ def doctor_command():
         )
 
 
+    # ---------------------------------
+    # LLVM / Clang
+    # ---------------------------------
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+
+        builder = WasmBuilder(
+            output_dir=temp_dir
+        )
+
+        try:
+
+            clang = builder.find_clang()
+
+            print(
+                "✓ LLVM/Clang: found"
+            )
+
+        except BuildError:
+
+            print(
+                "✗ LLVM/Clang: not found"
+            )
+
+            clang = None
+
+
+    # ---------------------------------
+    # Node.js
+    # ---------------------------------
+
+    node = shutil.which(
+        "node"
+    )
+
+    if node:
+
+        print(
+            "✓ Node.js: found"
+        )
+
+    else:
+
+        print(
+            "✗ Node.js: not found"
+        )
+
+
+    # ---------------------------------
+    # WebAssembly target
+    # ---------------------------------
+
+    wasm_available = False
+
+    if clang:
+
+        try:
+
+            result = subprocess.run(
+                [
+                    clang,
+                    "--print-targets"
+                ],
+                capture_output=True,
+                text=True
+            )
+
+            if result.returncode == 0:
+
+                targets = result.stdout.lower()
+
+                wasm_available = (
+                    "wasm32" in targets
+                )
+
+        except Exception:
+
+            wasm_available = False
+
+
+    if wasm_available:
+
+        print(
+            "✓ WebAssembly target: available"
+        )
+
+    else:
+
+        print(
+            "✗ WebAssembly target: unavailable"
+        )
+
+
+    print()
+
+
+    if (
+        clang
+        and node
+        and wasm_available
+    ):
+
+        print(
+            "Environment is ready."
+        )
+
+        return 0
+
+
+    print(
+        "Environment is not ready."
+    )
+
+    return 1
+
+
 # ========================================================
 # Analyze Command
 # ========================================================
