@@ -91,9 +91,9 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 - ✅ Automatic type inference (`var`)
 - ✅ Mathematical operator precedence
 - ✅ Cross-platform execution
+- ✅ Syntax analysis & validation (`exorcism analyze file.exrc`)
 - 🛠️ Language Server (IntelliSense) - WIP
 - 🛠️ Code auto-completion - WIP
-- 🛠️ Real-time syntax validation - WIP
 - 🛠️ Smart code suggestions - WIP
 - 🛠️ Automatic code corrections - WIP
 - 🛠️ Memory management - WIP
@@ -501,6 +501,7 @@ https://marketplace.visualstudio.com/items?itemName=exorcism-dev.exorcism-lang
 - ✅ Syntax highlighting
 - ✅ Native support for `.exrc` files
 - ✅ Exorcism language icon and file association
+- 🛠️ Real-time syntax validation - WIP
 
 The extension significantly improves developer productivity by reducing typing, detecting errors while writing code, and providing contextual suggestions for language keywords, functions, variables, and types.
 
