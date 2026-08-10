@@ -6,7 +6,7 @@ import os
 
 from lexer import Lexer
 from parser import Parser
-
+from diagnostics import DiagnosticBag
 from semantic import SemanticAnalyzer, SemanticError
 
 from codegen import (
@@ -234,5 +234,99 @@ class Compiler:
         return self.compile_source(
             source,
             output=output
+        )    
+        
+    
+    # ========================================================
+    # Analyze source & file
+    # ========================================================
+    
+    def analyze_source(
+        self,
+        source: str
+    ):
+        diagnostics = DiagnosticBag()
+
+        try:
+
+            lexer = Lexer(
+                source
+            )
+
+            tokens = lexer.tokenize()
+
+            parser = Parser(
+                tokens
+            )
+
+            ast = parser.parse()
+
+            analyzer = SemanticAnalyzer()
+
+            analyzer.analyze(
+                ast
+            )
+
+        except ParserError as error:
+
+            diagnostics.error(
+                message=str(error),
+                line=getattr(error, "line", 1),
+                column=getattr(error, "column", 1),
+                length=1,
+            )
+
+        except SemanticError as error:
+
+            diagnostics.error(
+                message=str(error),
+                line=getattr(error, "line", 1),
+                column=getattr(error, "column", 1),
+                length=1,
+            )
+
+        except Exception as error:
+
+            diagnostics.error(
+                message=str(error),
+                line=1,
+                column=1,
+                length=1,
+            )
+
+        return diagnostics
+
+
+    def analyze_file(
+        self,
+        filename
+    ):
+        filename = os.path.abspath(
+            filename
+        )
+
+        if not os.path.exists(filename):
+
+            raise CompilerError(
+                f"File not found: {filename}"
+            )
+
+        if not filename.lower().endswith(".exrc"):
+
+            raise CompilerError(
+                f"Invalid source file extension: '{filename}'. "
+                "Expected .exrc"
+            )
+
+        with open(
+            filename,
+            "r",
+            encoding="utf8"
+        ) as file:
+
+            source = file.read()
+
+        return self.analyze_source(
+            source
         )
         

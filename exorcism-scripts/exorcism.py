@@ -21,9 +21,10 @@ HELP_MSG = '''
       exorcism <command> [options]
 
     Commands:
-      build <file.exrc>       Compile an Exorcism source file to WebAssembly
-      run <file.exrc>         Compile and execute an Exorcism source file
-      doctor                  Do a toolchain/environment diagnostic & prerequisites check
+      build <file.exrc>       Compiles an Exorcism source file to WebAssembly
+      run <file.exrc>         Compiles and execute an Exorcism source file
+      doctor                  Does a toolchain/environment diagnostics & prerequisites check
+      analyze                 Does error diagnostics of the analyzed code block
 
     Options:
       -h, --help              Show this help message
@@ -32,11 +33,16 @@ HELP_MSG = '''
     Examples:
       exorcism build hello.exrc
       exorcism run hello.exrc
+      exorcism analyze file.exrc
+      exorcism analyze file.exrc --json
       exorcism doctor
       exorcism --version
       exorcism --help		
 '''
-        
+  
+# ========================================================
+# Build Command
+# ========================================================
 
 def build_command(source_file):
     
@@ -67,7 +73,11 @@ def build_command(source_file):
     )
 
     return result
-    
+
+
+# ========================================================
+# Run Command
+# ========================================================    
 
 def run_command(source_file):
 
@@ -92,6 +102,10 @@ def run_command(source_file):
             process.returncode
         )
 
+
+# ========================================================
+# Doctor Command
+# ========================================================
         
 def doctor_command():
 
@@ -122,6 +136,52 @@ def doctor_command():
         print(
             "✓ Python frontend: source"
         )
+
+
+# ========================================================
+# Analyze Command
+# ========================================================
+
+def analyze_command(
+    source_file,
+    json_output=False
+):
+
+    compiler = Compiler()
+
+    diagnostics = compiler.analyze_file(
+        source_file
+    )
+
+    if json_output:
+
+        print(
+            diagnostics.to_json()
+        )
+
+        return 1 if diagnostics.has_errors else 0
+
+    if diagnostics.is_empty:
+
+        print(
+            "No diagnostics."
+        )
+
+        return 0
+
+    for diagnostic in diagnostics.diagnostics:
+
+        location = diagnostic.location
+
+        print(
+            f"{source_file}:"
+            f"{location.line}:"
+            f"{location.column}: "
+            f"{diagnostic.severity.value}: "
+            f"{diagnostic.message}"
+        )
+
+    return 1 if diagnostics.has_errors else 0
 
 
     # ---------------------------------
@@ -297,16 +357,33 @@ def main():
 
         build_command(
             filename
-
         )
 
 
     # Run
     
-    elif command == "run":
+    if command == "run":
 
         run_command(
             filename
+        )
+        
+        
+    source_file = sys.argv[2]
+    
+    
+    # Analyze
+    
+    if command == "analyze":
+        
+        json_output = ( 
+            len(sys.argv) >= 4 
+            and sys.argv[3] == "--json" 
+        ) 
+        
+        return analyze_command( 
+            source_file, 
+            json_output 
         )
 
 
