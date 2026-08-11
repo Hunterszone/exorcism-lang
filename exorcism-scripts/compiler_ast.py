@@ -174,8 +174,6 @@ class Parameter(ASTNode):
 
     name: str
     
-    # token: Token
-    
 
 @dataclass
 class FunctionCall(Expression):

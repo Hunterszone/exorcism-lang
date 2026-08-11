@@ -3,9 +3,11 @@ import os
 import shutil
 import subprocess
 import tempfile
+import json
 
 from compiler import Compiler
 from build import WasmBuilder, BuildError
+from symbols import FunctionSymbol
 
 # Force UTF-8 output on Windows 
 if sys.platform == "win32": 
@@ -346,6 +348,73 @@ def analyze_stdin_command(
 
 
 # ========================================================
+# Symbol to Json
+# ========================================================
+
+def symbol_to_json(symbol):
+    
+    result = {
+        "name": symbol.name,
+        "kind": (
+            "function"
+            if isinstance(symbol, FunctionSymbol)
+            else "variable"
+        ),
+        "type": str(symbol.type),
+        "line": symbol.token.line,
+        "column": symbol.token.column,
+    }
+
+    if isinstance(symbol, FunctionSymbol):
+        result["returnType"] = str(symbol.return_type)
+
+        result["parameters"] = [
+            {
+                "name": parameter.name,
+                "type": str(parameter.parameter_type),
+            }
+            for parameter in symbol.parameters
+        ]
+
+    
+    return result
+    
+    
+# ========================================================
+# Symbols command function
+# ========================================================
+    
+def symbols_command(source_file):
+    
+    with open(
+        source_file,
+        "r",
+        encoding="utf-8",
+    ) as file:
+        source = file.read()
+
+    compiler = Compiler()
+
+    symbol_table = compiler.analyze_symbols(
+        source
+    )
+
+    symbols = [
+        symbol_to_json(symbol)
+        for symbol in symbol_table.all_symbols()
+    ]
+
+    print(
+        json.dumps(
+            {"symbols": symbols},
+            indent=4,
+        )
+    )
+
+    return 0
+    
+
+# ========================================================
 # Main function
 # ========================================================
 
@@ -454,6 +523,29 @@ def main():
         return 0
 
 
+    # ========================================================
+    # Symbols
+    # ========================================================
+    
+    if command == "symbols":
+        
+        if len(sys.argv) < 3:
+            
+            print(
+                HELP_MSG
+            )
+            
+            return 1
+
+        
+        filename = sys.argv[2]
+
+        
+        return symbols_command(
+            filename
+        )
+        
+        
     # ========================================================
     # Analyze
     # ========================================================

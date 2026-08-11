@@ -106,6 +106,12 @@ class Scope:
 
         return None
 
+    
+    def all_symbols(self): 
+        
+        return list( 
+            self.symbols.values() 
+        )
 
 
 # ============================================================
@@ -218,3 +224,8 @@ class SymbolTable:
             self.current_scope.lookup(name)
             is not None
         )
+        
+        
+    def all_symbols(self): 
+        
+        return self.global_scope.all_symbols()

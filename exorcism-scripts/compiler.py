@@ -330,3 +330,31 @@ class Compiler:
             source
         )
         
+        
+    def analyze_symbols(
+        self,
+        source: str
+    ):
+
+        lexer = Lexer(
+            source
+        )
+
+        tokens = lexer.tokenize()
+
+
+        parser = Parser(
+            tokens
+        )
+
+        ast = parser.parse()
+
+
+        analyzer = SemanticAnalyzer()
+
+        analyzer.analyze(
+            ast
+        )
+
+        
+        return analyzer.symbols
