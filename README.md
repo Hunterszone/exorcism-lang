@@ -67,6 +67,7 @@ WebAssembly is a portable binary format, but it needs a host environment to:
       build <file.exrc>       Compile an Exorcism source file to WebAssembly
       run <file.exrc>         Compile and execute an Exorcism source file
 	  doctor                  Do a toolchain/environment diagnostic & prerequisites check
+	  analyze                 Does error diagnostics of the analyzed code block
 
     Options:
       -h, --help              Show this help message
@@ -75,6 +76,8 @@ WebAssembly is a portable binary format, but it needs a host environment to:
     Examples:
       exorcism build hello.exrc
       exorcism run hello.exrc
+	  exorcism analyze file.exrc
+      exorcism analyze file.exrc --json
 	  exorcism doctor
       exorcism --version
       exorcism --help						 
