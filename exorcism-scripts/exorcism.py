@@ -416,6 +416,52 @@ def analyze_command(
     return 1
 
 
+# ========================================================
+# Analyze STDIN Command
+# ========================================================
+
+def analyze_stdin_command(
+    json_output=False
+):
+
+    source = sys.stdin.read()
+
+    compiler = Compiler()
+
+    diagnostics = compiler.analyze_source(
+        source
+    )
+
+    if json_output:
+
+        print(
+            diagnostics.to_json()
+        )
+
+        return 1 if diagnostics.has_errors else 0
+
+    if diagnostics.is_empty:
+
+        print(
+            "No diagnostics."
+        )
+
+        return 0
+
+    for diagnostic in diagnostics.diagnostics:
+
+        location = diagnostic.location
+
+        print(
+            f"{location.line}:"
+            f"{location.column}: "
+            f"{diagnostic.severity.value}: "
+            f"{diagnostic.message}"
+        )
+
+    return 1 if diagnostics.has_errors else 0
+
+
 def main():
     
     # No command
@@ -492,9 +538,31 @@ def main():
     
     if command == "analyze":
         
+        if len(sys.argv) < 3: 
+            print( 
+                HELP_MSG 
+            ) 
+            
+            return 1 
+            
+        
+        if sys.argv[2] == "--stdin": 
+            
+            json_output = ( 
+                len(sys.argv) >= 4 and 
+                sys.argv[3] == "--json" 
+            )
+
+            return analyze_stdin_command( 
+                json_output 
+            ) 
+                
+        
+        source_file = sys.argv[2]
+        
         json_output = ( 
-            len(sys.argv) >= 4 
-            and sys.argv[3] == "--json" 
+            len(sys.argv) >= 4 and 
+            sys.argv[3] == "--json" 
         ) 
         
         return analyze_command( 

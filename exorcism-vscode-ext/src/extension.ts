@@ -1,11 +1,25 @@
 import * as vscode from "vscode";
 import { execFile } from "child_process";
 
+
+const LANGUAGE_ID = "exorcism";
+const DIAGNOSTIC_SOURCE = "exorcism";
+
+
+interface ExorcismDiagnostic {
+	severity: "error" | "warning" | "info";
+	message: string;
+	line: number;
+	column: number;
+	length: number;
+	code?: string;
+}
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
-	const config = vscode.workspace.getConfiguration("exorcism");
-	const exorcismPath = config.get<string>("executablePath", "exorcism");
+export function activate(
+	context: vscode.ExtensionContext
+) {
 
 	// ========================================================
 	// Keyword completion
@@ -29,174 +43,236 @@ export function activate(context: vscode.ExtensionContext) {
 		"struct"
 	];
 
-	const completionProvider = vscode.languages.registerCompletionItemProvider(
-		"exorcism",
-		{
-			provideCompletionItems() {
-				return keywords.map(
-					keyword =>
-						new vscode.CompletionItem(
-							keyword,
-							vscode.CompletionItemKind.Keyword
-						)
-				);
-			}
-		}
-	);
 
-	context.subscriptions.push(completionProvider);
+	const completionProvider =
+		vscode.languages.registerCompletionItemProvider(
+			LANGUAGE_ID,
 
-	// ========================================================
-	// Helper - execute Exorcism commands
-	// ========================================================
+			{
 
-	function runExorcism(
-		args: string[]
-	): Promise<void> {
-		return new Promise((resolve, reject) => {
-			execFile(
-				exorcismPath,
-				args,
-				{
-					cwd: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
-				},
-				(error, stdout, stderr) => {
-					const output =
-						vscode.window.createOutputChannel("Exorcism");
+				provideCompletionItems() {
 
-					if (stdout) {
-						output.appendLine(stdout);
-					}
+					return keywords.map(
+						keyword => {
 
-					if (stderr) {
-						output.appendLine(stderr);
-					}
+							return new vscode.CompletionItem(
+								keyword,
+								vscode.CompletionItemKind.Keyword
+							);
 
-					output.show(true);
+						}
+					);
 
-					if (error) {
-						reject(error);
-						return;
-					}
-
-					resolve();
 				}
-			);
-		});
+
+			}
+		);
+
+
+	// ========================================================
+	// Diagnostics
+	// ========================================================
+
+	const diagnosticCollection =
+		vscode.languages.createDiagnosticCollection(
+			DIAGNOSTIC_SOURCE
+		);
+
+
+	// ========================================================
+	// Run Exorcism analyzer
+	// ========================================================
+
+	function analyzeDocument(
+		document: vscode.TextDocument
+	) {
+
+		if (
+			document.languageId !== LANGUAGE_ID
+		) {
+			return;
+		}
+
+
+		if (
+			document.isUntitled
+		) {
+			return;
+		}
+
+
+		const filePath =
+			document.uri.fsPath;
+
+
+		const child = execFile(
+			"exorcism",
+			[
+				"analyze", 
+				"--stdin", 
+				"--json"
+			],
+			{ 
+				windowsHide: true 
+			},
+			(error, stdout, stderr) => {
+				if (!stdout && error) {
+					console.error("Exorcism analyzer failed:", stderr || error.message);
+					return;
+				}
+
+				try {
+					const diagnostics: ExorcismDiagnostic[] = JSON.parse(stdout || "[]");
+					const vscodeDiagnostics: vscode.Diagnostic[] = [];
+					
+					for (const diagnostic of diagnostics) {
+						const line = Math.max(0, diagnostic.line - 1);
+						const column = Math.max(0, diagnostic.column - 1);
+						const length = Math.max(1, diagnostic.length);
+						const start = new vscode.Position(line, column);
+						const end = new vscode.Position(line, column + length);
+						const range = new vscode.Range(start, end);
+						let severity = vscode.DiagnosticSeverity.Error;
+						
+						if (diagnostic.severity === "warning") {
+							severity = vscode.DiagnosticSeverity.Warning;
+						} else if (diagnostic.severity === "info") {
+							severity = vscode.DiagnosticSeverity.Information;
+						}
+						
+						const vscodeDiagnostic = new vscode.Diagnostic(
+							range,
+							diagnostic.message,
+							severity
+						);
+						
+						vscodeDiagnostic.source = DIAGNOSTIC_SOURCE;
+						
+						if (diagnostic.code) {
+							vscodeDiagnostic.code = diagnostic.code;
+						}
+						
+						vscodeDiagnostics.push(vscodeDiagnostic);
+					}
+					
+					diagnosticCollection.set(document.uri, vscodeDiagnostics);
+				} catch (parseError) {
+					console.error("Failed to parse Exorcism diagnostics:", parseError);
+				}
+			}
+		);
+
+		if (child.stdin) { 
+			
+			child.stdin.write(
+				document.getText()
+			); 
+			
+			child.stdin.end(); 
+		}
+
 	}
 
+
 	// ========================================================
-	// Build
+	// Validate currently open document
 	// ========================================================
 
-	const buildCommand = vscode.commands.registerCommand(
-		"exorcism.build",
-		async () => {
-			const editor = vscode.window.activeTextEditor;
+	if (
+		vscode.window.activeTextEditor
+	) {
 
-			if (!editor) {
-				vscode.window.showErrorMessage(
-					"No Exorcism file is open."
+		analyzeDocument(
+			vscode.window.activeTextEditor.document
+		);
+
+	}
+
+
+	// ========================================================
+	// Validate when document changes
+	// ========================================================
+
+	const changeSubscription =
+		vscode.workspace.onDidChangeTextDocument(
+			event => {
+
+				analyzeDocument(
+					event.document
 				);
-				return;
-			}
 
-			if (editor.document.languageId !== "exorcism") {
-				vscode.window.showErrorMessage(
-					"The active file is not an Exorcism source file."
+			}
+		);
+
+
+	// ========================================================
+	// Validate when document is opened
+	// ========================================================
+
+	const openSubscription =
+		vscode.workspace.onDidOpenTextDocument(
+			document => {
+
+				analyzeDocument(
+					document
 				);
-				return;
+
 			}
+		);
 
-			const sourceFile = editor.document.fileName;
 
-			try {
-				await runExorcism([
-					"build",
-					sourceFile
-				]);
+	// ========================================================
+	// Clear diagnostics when document closes
+	// ========================================================
+
+	const closeSubscription =
+		vscode.workspace.onDidCloseTextDocument(
+			document => {
+
+				diagnosticCollection.delete(
+					document.uri
+				);
+
+			}
+		);
+
+
+	// ========================================================
+	// Hello World command
+	// ========================================================
+
+	const disposable =
+		vscode.commands.registerCommand(
+			"exorcism.helloWorld",
+			() => {
 
 				vscode.window.showInformationMessage(
-					"Exorcism build succeeded."
+					"Hello World from exorcism!"
 				);
-			} catch {
-				vscode.window.showErrorMessage(
-					"Exorcism build failed."
-				);
+
 			}
-		}
+		);
+
+
+	// ========================================================
+	// Subscriptions
+	// ========================================================
+
+	context.subscriptions.push(
+		completionProvider,
+		diagnosticCollection,
+		changeSubscription,
+		openSubscription,
+		closeSubscription,
+		disposable
 	);
 
-	context.subscriptions.push(buildCommand);
-
-	// ========================================================
-	// Run
-	// ========================================================
-
-	const runCommand = vscode.commands.registerCommand(
-		"exorcism.run",
-		() => {
-			const editor = vscode.window.activeTextEditor;
-
-			if (!editor) {
-				vscode.window.showErrorMessage(
-					"No Exorcism file is open."
-				);
-				return;
-			}
-
-			if (editor.document.languageId !== "exorcism") {
-				vscode.window.showErrorMessage(
-					"The active file is not an Exorcism source file."
-				);
-				return;
-			}
-
-			const sourceFile = editor.document.fileName;
-			const sourceDir = vscode.Uri.file(sourceFile).fsPath
-				.replace(/[\\/][^\\/]+$/, "");
-
-			const terminal = vscode.window.createTerminal({
-				name: "Exorcism",
-				cwd: sourceDir
-			});
-
-			terminal.show();
-
-			terminal.sendText(
-				`"${exorcismPath}" run "${sourceFile}"`
-			);
-		}
-	);
-
-	context.subscriptions.push(runCommand);
-
-	// ========================================================
-	// Doctor
-	// ========================================================
-
-	const doctorCommand = vscode.commands.registerCommand(
-		"exorcism.doctor",
-		async () => {
-			try {
-				await runExorcism(["doctor"]);
-			} catch {
-				vscode.window.showErrorMessage(
-					"Exorcism doctor failed. Is Exorcism installed and available on PATH?"
-				);
-			}
-		}
-	);
-
-	context.subscriptions.push(doctorCommand);
-
-	// ========================================================
-	// Activation
-	// ========================================================
 
 	console.log(
 		'Exorcism extension is now active.'
 	);
+
 }
 
-export function deactivate() {}
+
+export function deactivate() { }
