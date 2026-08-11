@@ -2,8 +2,6 @@
 
 # I. The Exorcism Architecture
 
----
-
 The Exorcism lang uses a modern compiler architecture with a **Python-based compiler frontend**, an **LLVM-powered backend**, 
 and multiple output targets including **WebAssembly (`.wasm`)** and **intermediate representation (`.ll`)** files.
 
@@ -83,9 +81,9 @@ WebAssembly is a portable binary format, but it needs a host environment to:
       exorcism --help						 
 ```
 
-# II. Exorcism Features & Tooling
+<br>
 
----
+# II. Exorcism Features & Tooling
 
 ## Compiler Features
 
@@ -126,11 +124,9 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 - 🛠️ Documentation generator (`exorcism docs`)
 - 🛠️ Package manager (`exorcism install`)
 
----
+<br>
 
 # III. The Exorcism Language Syntax
-
----
 
 Exorcism is a statically typed, compiled programming language targeting **WebAssembly** through **LLVM**. Its syntax is intentionally simple while providing modern language features such as strict typing, compile-time null safety, type inference, and structured control flow.
 
@@ -419,9 +415,9 @@ build/
 └── program.ll
 ```
 
-# IV. What makes Exorcism awesome
+<br>
 
----
+# IV. What makes Exorcism awesome
 
 ## Simple but powerful language design
 
@@ -437,8 +433,6 @@ Exorcism aims to provide a clean language design with:
 
 The goal is not to replace established languages, but to provide a focused environment where the language rules are easy to understand and reason about.
 
----
-
 ## Safer software development
 
 Exorcism is designed with safety in mind.
@@ -453,7 +447,6 @@ Planned and implemented safety features include:
 
 Errors should be discovered during compilation instead of causing unexpected runtime failures.
 
----
 
 ## Portable execution
 
@@ -464,9 +457,9 @@ By targeting WebAssembly, Exorcism programs can run in multiple environments:
 - WebAssembly runtimes
 - embedded environments
 
-A compiled Exorcism program is not tied to a single operating system or CPU architecture.
-
 ---
+
+💡A compiled Exorcism program is not tied to a single operating system or CPU architecture.
 
 ## Rich language features support
 
@@ -482,13 +475,13 @@ Exorcism provides a platform for exploring advanced language concepts, including
 - memory management
 - optimization techniques
 
-The compiler architecture is intentionally modular so new language features can be added without redesigning the entire system.
-
 ---
+
+💡The compiler architecture is intentionally modular so new language features can be added without redesigning the entire system.
+
+<br>
 
 # V. The Exorcism VS Code Extension
-
----
 
 Exorcism includes its own Visual Studio Code extension, providing a modern development experience with intelligent editing features for `.exrc` source files.
 
@@ -506,6 +499,7 @@ https://marketplace.visualstudio.com/items?itemName=exorcism-dev.exorcism-lang
 - 🛠️ Smart code suggestions - WIP
 - 🛠️ Language Server (IntelliSense) - WIP
 
-The extension significantly improves developer productivity by reducing typing, detecting errors while writing code, and providing contextual suggestions for language keywords, functions, variables, and types.
-
 ---
+
+💡The extension significantly improves developer productivity by reducing typing, detecting errors while writing code, and providing contextual suggestions for language keywords, functions, variables, and types.
+
