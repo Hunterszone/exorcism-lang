@@ -268,7 +268,7 @@ def analyze_command(
     diagnostics = compiler.analyze_file(
         source_file
     )
-
+    
     if json_output:
 
         print(
@@ -290,7 +290,6 @@ def analyze_command(
         location = diagnostic.location
 
         print(
-            f"{source_file}:"
             f"{location.line}:"
             f"{location.column}: "
             f"{diagnostic.severity.value}: "
@@ -298,123 +297,7 @@ def analyze_command(
         )
 
     return 1 if diagnostics.has_errors else 0
-
-
-    # ---------------------------------
-    # LLVM / Clang
-    # ---------------------------------
-
-    with tempfile.TemporaryDirectory() as temp_dir:
-
-        builder = WasmBuilder(
-            output_dir=temp_dir
-        )
-
-        try:
-
-            clang = builder.find_clang()
-
-            print(
-                "✓ LLVM/Clang: found"
-            )
-
-        except BuildError:
-
-            print(
-                "✗ LLVM/Clang: not found"
-            )
-
-            clang = None
-
-
-    # ---------------------------------
-    # Node.js
-    # ---------------------------------
-
-    node = shutil.which(
-        "node"
-    )
-
-    if node:
-
-        print(
-            "✓ Node.js: found"
-        )
-
-    else:
-
-        print(
-            "✗ Node.js: not found"
-        )
-
-
-    # ---------------------------------
-    # WebAssembly target
-    # ---------------------------------
-
-    wasm_available = False
-
-    if clang:
-
-        try:
-
-            result = subprocess.run(
-                [
-                    clang,
-                    "--print-targets"
-                ],
-                capture_output=True,
-                text=True
-            )
-
-            if result.returncode == 0:
-
-                targets = result.stdout.lower()
-
-                wasm_available = (
-                    "wasm32" in targets
-                )
-
-        except Exception:
-
-            wasm_available = False
-
-
-    if wasm_available:
-
-        print(
-            "✓ WebAssembly target: available"
-        )
-
-    else:
-
-        print(
-            "✗ WebAssembly target: unavailable"
-        )
-
-
-    print()
-
-
-    if (
-        clang
-        and node
-        and wasm_available
-    ):
-
-        print(
-            "Environment is ready."
-        )
-
-        return 0
-
-
-    print(
-        "Environment is not ready."
-    )
-
-    return 1
-
+    
 
 # ========================================================
 # Analyze STDIN Command
@@ -443,7 +326,7 @@ def analyze_stdin_command(
     if diagnostics.is_empty:
 
         print(
-            "No diagnostics."
+            "No errors found."
         )
 
         return 0
@@ -462,122 +345,173 @@ def analyze_stdin_command(
     return 1 if diagnostics.has_errors else 0
 
 
+# ========================================================
+# Main function
+# ========================================================
+
 def main():
-    
+
+    # ========================================================
     # No command
+    # ========================================================
 
     if len(sys.argv) == 1:
-        
-        print(HELP_MSG)
+
+        print(
+            HELP_MSG
+        )
 
         return 0
-         
-    
+
+
     command = sys.argv[1]
-    
-    
+
+
+    # ========================================================
     # Version
-    
-    if len(sys.argv) >= 2 and sys.argv[1] in ("--version", "-v"): 
-        
-        print(f"Exorcism Language {EXORCISM_VERSION}") 
-        
+    # ========================================================
+
+    if command in (
+        "--version",
+        "-v"
+    ):
+
+        print(
+            f"Exorcism Language {EXORCISM_VERSION}"
+        )
+
         return 0
-        
-    
+
+
+    # ========================================================
     # Help
-    
-    if len(sys.argv) >= 2 and sys.argv[1] in ("--help", "-h"): 
-        
-        print(HELP_MSG) 
-        
+    # ========================================================
+
+    if command in (
+        "--help",
+        "-h"
+    ):
+
+        print(
+            HELP_MSG
+        )
+
         return 0
-    
-    
-    # Commands requiring a source file
-    
-    if command not in ("doctor", "--version", "-v") and len(sys.argv) < 3:
-    
-        print(HELP_MSG)
 
-        return 1
 
-   
+    # ========================================================
     # Doctor
-    
+    # ========================================================
+
     if command == "doctor":
 
         return doctor_command()
 
 
-    filename = sys.argv[2]
-  
-
+    # ========================================================
     # Build
-    
+    # ========================================================
+
     if command == "build":
+
+        if len(sys.argv) < 3:
+
+            print(
+                HELP_MSG
+            )
+
+            return 1
+
+        filename = sys.argv[2]
 
         build_command(
             filename
         )
 
+        return 0
 
+
+    # ========================================================
     # Run
-    
+    # ========================================================
+
     if command == "run":
+
+        if len(sys.argv) < 3:
+
+            print(
+                HELP_MSG
+            )
+
+            return 1
+
+        filename = sys.argv[2]
 
         run_command(
             filename
         )
-        
-        
-    source_file = sys.argv[2]
-    
-    
+
+        return 0
+
+
+    # ========================================================
     # Analyze
-    
+    # ========================================================
+
     if command == "analyze":
-        
-        if len(sys.argv) < 3: 
-            print( 
-                HELP_MSG 
-            ) 
-            
-            return 1 
-            
-        
-        if sys.argv[2] == "--stdin": 
-            
-            json_output = ( 
-                len(sys.argv) >= 4 and 
-                sys.argv[3] == "--json" 
+
+        if len(sys.argv) < 3:
+
+            print(
+                HELP_MSG
             )
 
-            return analyze_stdin_command( 
-                json_output 
-            ) 
-                
-        
+            return 1
+
+
+        # ---------------------------------
+        # Analyze current unsaved source
+        # from stdin
+        # ---------------------------------
+
+        if sys.argv[2] == "--stdin":
+
+            json_output = (
+                len(sys.argv) >= 4
+                and sys.argv[3] == "--json"
+            )
+
+            return analyze_stdin_command(
+                json_output
+            )
+
+
+        # ---------------------------------
+        # Analyze source file
+        # ---------------------------------
+
         source_file = sys.argv[2]
-        
-        json_output = ( 
-            len(sys.argv) >= 4 and 
-            sys.argv[3] == "--json" 
-        ) 
-        
-        return analyze_command( 
-            source_file, 
-            json_output 
+
+        json_output = (
+            len(sys.argv) >= 4
+            and sys.argv[3] == "--json"
+        )
+
+        return analyze_command(
+            source_file,
+            json_output
         )
 
 
-    else:
-        
-        print(
-            f"Unknown command '{command}'"
-        )
-        
-        return 1
+    # ========================================================
+    # Unknown command
+    # ========================================================
+
+    print(
+        f"Unknown command '{command}'"
+    )
+
+    return 1
 
 
 if __name__ == "__main__":
