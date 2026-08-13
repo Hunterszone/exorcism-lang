@@ -13,14 +13,14 @@ class FunctionParserMixin:
     # ============================================================
     # Function declaration
     # ============================================================
-
+    
     def parse_function_declaration(
         self,
         return_type
     ):
 
         token = self.current
-        
+
         name_token = self.consume_identifier()
 
         self.expect(
@@ -28,40 +28,21 @@ class FunctionParserMixin:
             "Expected '(' after function name"
         )
 
-
+        
         parameters = self.parse_parameters()
 
-
+        
         self.expect(
             TokenType.RPAREN,
             "Expected ')' after parameters"
         )
 
-
-        self.expect(
-            TokenType.LBRACE,
-            "Expected '{' before function body"
-        )
-
-
-        body = []
-
-
-        while not self.check(TokenType.RBRACE):
-
-            body.append(
-                self.parse_statement()
-            )
-
-
-        self.expect(
-            TokenType.RBRACE,
-            "Expected '}' after function body"
-        )
-
-
-        return FunctionDeclaration(
         
+        body = self.parse_block()
+
+        
+        return FunctionDeclaration(
+
             line=token.line,
 
             column=token.column,
@@ -73,7 +54,7 @@ class FunctionParserMixin:
             parameters=parameters,
 
             body=body,
-            
+
             token=name_token
         )
 
@@ -119,9 +100,9 @@ class FunctionParserMixin:
                         parameter_type,
 
                     name=
-                        name.value
+                        name.value,
                         
-                    # token=name
+                    token=name
                 )
             )
 

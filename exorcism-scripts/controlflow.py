@@ -102,9 +102,7 @@ class ControlFlowParserMixin:
 
 
         if self.match(TokenType.ELSE):
-
-            # else if support preparation
-
+            
             if self.check(TokenType.IF):
 
                 nested_if = self.parse_if_statement()

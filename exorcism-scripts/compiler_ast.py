@@ -162,7 +162,7 @@ class FunctionDeclaration(ASTNode):
 
     parameters: list
 
-    body: list
+    body: Block
     
     token: Token
     
@@ -173,6 +173,8 @@ class Parameter(ASTNode):
     parameter_type: str
 
     name: str
+    
+    token: Token
     
 
 @dataclass

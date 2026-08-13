@@ -283,9 +283,15 @@ class SemanticAnalyzer:
     # Blocks / scopes
     # ========================================================
 
-    def visit_block(self, block):
+    def visit_block(
+        self, 
+        block
+    ):
 
-        self.symbols.enter_scope()
+        self.symbols.enter_scope(
+            start_line=block.line,
+            start_column=block.column,
+        )
 
         try:
 
@@ -294,8 +300,10 @@ class SemanticAnalyzer:
 
         finally:
 
-            self.symbols.exit_scope()
-
+            self.symbols.exit_scope(
+                end_line=block.line,
+                end_column=block.column,
+            )
 
 
     # ========================================================
@@ -368,66 +376,80 @@ class SemanticAnalyzer:
         resolved_return_type = self.resolve_type(
             node.return_type
         )
-        
+
         node.return_type = resolved_return_type
-        
+
+        parameter_symbols = []
+
+        for parameter in node.parameters:
+
+            parameter.parameter_type = (
+                self.resolve_type(
+                    parameter.parameter_type
+                )
+            )
+
+            parameter_symbol = Symbol(
+
+                name=parameter.name,
+
+                token=parameter.token,
+
+                type=parameter.parameter_type,
+
+                initialized=True
+            )
+
+            parameter_symbols.append(
+                parameter_symbol
+            )
+
         symbol = FunctionSymbol(
 
             name=node.name,
-            
+
             token=node.token,
-            
+
             type=resolved_return_type,
 
             return_type=resolved_return_type,
-            
+
             initialized=True,
 
-            parameters=node.parameters
+            parameters=parameter_symbols
         )
 
         self.symbols.current_scope.define(
             symbol
         )
 
-        self.symbols.enter_scope()
+        self.symbols.enter_scope(
+            start_line=node.body.line,
+            start_column=node.body.column,
+        )
 
         self.current_function = symbol
 
+        try:
 
-        # define parameters as normal Symbols
+            for parameter_symbol in parameter_symbols:
 
-        for parameter in node.parameters:
-            
-            parameter.parameter_type = self.resolve_type(
-                parameter.parameter_type
-            )
-
-            self.symbols.current_scope.define(
-
-                Symbol(
-
-                    name=parameter.name,
-
-                    token=node.token,
-
-                    type=parameter.parameter_type,
-
-                    initialized=True
+                self.symbols.current_scope.define(
+                    parameter_symbol
                 )
+
+            for statement in node.body.statements:
+
+                self.visit(statement)
+
+        finally:
+
+            self.current_function = None
+
+            self.symbols.exit_scope(
+                end_line=node.body.line,
+                end_column=node.body.column,
             )
-
-
-        # analyze function body
-        
-        for statement in node.body:
-
-            self.visit(statement)
-
-
-        self.current_function = None
-
-        self.symbols.exit_scope()
 
 
     def visit_function_call(
@@ -438,11 +460,6 @@ class SemanticAnalyzer:
         symbol = self.symbols.current_scope.lookup(
             node.name
         )
-        
-        
-        if symbol.return_type is VOID:
-
-            return VOID
 
 
         if symbol is None:
@@ -477,10 +494,11 @@ class SemanticAnalyzer:
             symbol.parameters
         ):
 
-            argument_type = self.get_type(argument)
+            argument_type = self.get_type(
+                argument
+            )
 
-
-            if argument_type != parameter.parameter_type:
+            if argument_type != parameter.type:
 
                 raise SemanticError(
                     f"Argument type mismatch in '{node.name}'"
@@ -489,6 +507,7 @@ class SemanticAnalyzer:
 
         return symbol.return_type
     
+        
     # ========================================================
     # Assignment
     # ========================================================

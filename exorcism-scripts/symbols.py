@@ -47,12 +47,32 @@ class FunctionSymbol(Symbol):
 
 class Scope:
 
-    def __init__(self, parent: Optional["Scope"] = None):
+    def __init__(
+        self,
+        parent: Optional["Scope"] = None,
+        start_line: int = 0,
+        start_column: int = 0,
+    ):
 
         self.parent = parent
 
         self.symbols: dict[str, Symbol] = {}
 
+        # ----------------------------------------------------
+        # Retained child scopes
+        # ----------------------------------------------------
+
+        self.children: list["Scope"] = []
+
+        # ----------------------------------------------------
+        # Source range
+        # ----------------------------------------------------
+
+        self.start_line = start_line
+        self.start_column = start_column
+
+        self.end_line = 0
+        self.end_column = 0
 
 
     # --------------------------------------------------------
@@ -73,9 +93,7 @@ class Scope:
                 f"{symbol.token.line}:{symbol.token.column}"
             )
 
-
         self.symbols[symbol.name] = symbol
-
 
 
     # --------------------------------------------------------
@@ -85,7 +103,6 @@ class Scope:
     def lookup_local(self, name: str):
 
         return self.symbols.get(name)
-
 
 
     # --------------------------------------------------------
@@ -98,20 +115,74 @@ class Scope:
 
             return self.symbols[name]
 
-
         if self.parent:
 
             return self.parent.lookup(name)
 
-
         return None
 
-    
-    def all_symbols(self): 
-        
-        return list( 
-            self.symbols.values() 
+
+    # --------------------------------------------------------
+    # Visible symbols
+    # --------------------------------------------------------
+
+    def visible_symbols(self):
+
+        visible = {}
+
+        scope = self
+
+        while scope is not None:
+
+            for name, symbol in scope.symbols.items():
+
+                # Keep the nearest definition.
+                # This automatically handles shadowing.
+                if name not in visible:
+                    visible[name] = symbol
+
+            scope = scope.parent
+
+        return list(visible.values())
+
+
+    # --------------------------------------------------------
+    # All symbols in current scope
+    # --------------------------------------------------------
+
+    def all_symbols(self):
+
+        return list(
+            self.symbols.values()
         )
+
+
+    # --------------------------------------------------------
+    # Source position
+    # --------------------------------------------------------
+
+    def contains_position(
+        self,
+        line: int,
+        column: int,
+    ):
+
+        start = (
+            self.start_line,
+            self.start_column,
+        )
+
+        end = (
+            self.end_line,
+            self.end_column,
+        )
+
+        position = (
+            line,
+            column,
+        )
+
+        return start <= position <= end
 
 
 # ============================================================
@@ -120,28 +191,48 @@ class Scope:
 
 class SymbolTable:
 
-
     def __init__(self):
 
         self.global_scope = Scope()
 
-        self.current_scope = self.global_scope
-
+        self.current_scope = (
+            self.global_scope
+        )
 
 
     # ========================================================
     # Scope handling
     # ========================================================
 
-    def enter_scope(self):
+    def enter_scope(
+        self,
+        start_line: int = 0,
+        start_column: int = 0,
+    ):
 
-        self.current_scope = Scope(
-            parent=self.current_scope
+        parent = self.current_scope
+
+        new_scope = Scope(
+            parent=parent,
+            start_line=start_line,
+            start_column=start_column,
         )
 
+        # Retain the scope in the scope tree.
+        parent.children.append(
+            new_scope
+        )
+
+        self.current_scope = new_scope
+
+        return new_scope
 
 
-    def exit_scope(self):
+    def exit_scope(
+        self,
+        end_line: int = 0,
+        end_column: int = 0,
+    ):
 
         if self.current_scope.parent is None:
 
@@ -149,10 +240,19 @@ class SymbolTable:
                 "Cannot exit global scope"
             )
 
+        # Store the source range before
+        # leaving the scope.
+        self.current_scope.end_line = (
+            end_line
+        )
+
+        self.current_scope.end_column = (
+            end_column
+        )
+
         self.current_scope = (
             self.current_scope.parent
         )
-
 
 
     # ========================================================
@@ -177,43 +277,55 @@ class SymbolTable:
             initialized=initialized,
         )
 
-
-        self.current_scope.define(symbol)
-
+        self.current_scope.define(
+            symbol
+        )
 
         return symbol
 
 
+    # ========================================================
+    # Resolve
+    # ========================================================
 
     def resolve(
         self,
         identifier: Token
     ) -> Symbol:
 
-
         symbol = self.current_scope.lookup(
             identifier.value
         )
 
-
         if symbol is None:
 
             raise SymbolError(
-                f"Unknown variable '{identifier.value}'\n"
+                f"Unknown variable "
+                f"'{identifier.value}'\n"
                 f"at {identifier.line}:"
                 f"{identifier.column}"
             )
 
-
-        return symbol
-        
-        
-    def lookup_name(self, name: str):
-
-        symbol = self.current_scope.lookup(name)
-
         return symbol
 
+
+    # ========================================================
+    # Lookup by name
+    # ========================================================
+
+    def lookup_name(
+        self,
+        name: str
+    ):
+
+        return self.current_scope.lookup(
+            name
+        )
+
+
+    # ========================================================
+    # Exists
+    # ========================================================
 
     def exists(
         self,
@@ -224,8 +336,89 @@ class SymbolTable:
             self.current_scope.lookup(name)
             is not None
         )
-        
-        
-    def all_symbols(self): 
-        
+
+
+    # ========================================================
+    # Current scope
+    # ========================================================
+
+    def current(self):
+
+        return self.current_scope
+
+
+    # ========================================================
+    # Visible symbols
+    # ========================================================
+
+    def visible_symbols(self):
+
+        return self.current_scope.visible_symbols()
+
+
+    # ========================================================
+    # All symbols
+    # ========================================================
+
+    def all_symbols(self):
+
         return self.global_scope.all_symbols()
+
+
+    # ========================================================
+    # All scopes
+    # ========================================================
+
+    def all_scopes(self):
+
+        scopes = []
+
+        def visit(scope):
+
+            scopes.append(
+                scope
+            )
+
+            for child in scope.children:
+
+                visit(child)
+
+        visit(
+            self.global_scope
+        )
+
+        return scopes
+
+
+    # ========================================================
+    # Scope at source position
+    # ========================================================
+
+    def scope_at(
+        self,
+        line: int,
+        column: int,
+    ):
+
+        def find_scope(scope):
+
+            if not scope.contains_position(
+                line,
+                column,
+            ):
+                return None
+
+            for child in scope.children:
+
+                result = find_scope(
+                    child
+                )
+
+                if result is not None:
+                    return result
+
+            return scope
+
+        return find_scope(
+            self.global_scope
+        )
