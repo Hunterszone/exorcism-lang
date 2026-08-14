@@ -11,7 +11,19 @@ from exorcism_types import Type, VOID
 from type_system import TypeSystem
 
 class SymbolError(Exception):
-    pass
+
+    def __init__(
+        self,
+        message,
+        token=None,
+        related_token=None
+    ):
+
+        super().__init__(message)
+
+        self.message = message
+        self.token = token
+        self.related_token = related_token
 
 
 
@@ -86,11 +98,9 @@ class Scope:
             existing = self.symbols[symbol.name]
 
             raise SymbolError(
-                f"Variable '{symbol.name}' already defined\n"
-                f"First declaration: "
-                f"{existing.token.line}:{existing.token.column}\n"
-                f"Duplicate declaration: "
-                f"{symbol.token.line}:{symbol.token.column}"
+                f"Variable '{symbol.name}' already defined",
+                token=symbol.token,
+                related_token=existing.token
             )
 
         self.symbols[symbol.name] = symbol
@@ -301,9 +311,8 @@ class SymbolTable:
 
             raise SymbolError(
                 f"Unknown variable "
-                f"'{identifier.value}'\n"
-                f"at {identifier.line}:"
-                f"{identifier.column}"
+                f"'{identifier.value}'",
+                identifier
             )
 
         return symbol

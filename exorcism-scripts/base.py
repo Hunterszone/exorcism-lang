@@ -4,10 +4,19 @@ from tokens import Token, TokenType
 
 
 class ParserError(Exception):
-    """
-    Raised when the parser encounters invalid syntax.
-    """
-    pass
+
+    def __init__(
+        self,
+        message,
+        token=None,
+        related_token=None
+    ):
+
+        super().__init__(message)
+
+        self.message = message
+        self.token = token
+        self.related_token = related_token
 
 
 class ParserBase:
@@ -100,14 +109,15 @@ class ParserBase:
         Example:
 
             expect(TokenType.SEMICOLON)
-
         """
 
         if self.check(token_type):
+
             return self.advance()
 
 
         token = self.current
+
 
         if message is None:
 
@@ -118,11 +128,9 @@ class ParserBase:
 
 
         raise ParserError(
-            f"{message}\n"
-            f"Line {token.line}, "
-            f"Column {token.column}"
+            message,
+            token=token
         )
-
 
     # ========================================================
     # State helpers

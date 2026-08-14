@@ -11,10 +11,20 @@ from controlflow import ControlFlowParserMixin
 from functions import FunctionParserMixin
 
 class ParserError(Exception):
-    """
-    Raised when the parser encounters invalid syntax.
-    """
-    pass
+
+    def __init__(
+        self,
+        message,
+        token=None,
+        related_token=None
+    ):
+
+        super().__init__(message)
+
+        self.message = message
+        self.token = token
+        self.related_token = related_token
+
 
 class Parser(
     ParserBase,

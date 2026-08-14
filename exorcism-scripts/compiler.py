@@ -7,7 +7,7 @@ import os
 from lexer import Lexer
 from parser import Parser
 from diagnostics import DiagnosticBag
-from semantic import SemanticAnalyzer, SemanticError
+from semantic import SemanticAnalyzer, SemanticError, SymbolError
 
 from codegen import (
     LLVMCodeGenerator,
@@ -31,7 +31,19 @@ if sys.platform == "win32":
 
 
 class CompilerError(Exception):
-    pass
+
+    def __init__(
+        self,
+        message,
+        token=None,
+        related_token=None
+    ):
+
+        super().__init__(message)
+
+        self.message = message
+        self.token = token
+        self.related_token = related_token
 
 
 
@@ -125,25 +137,20 @@ class Compiler:
 
             print("[5/5] Building WebAssembly...")
 
-
             output_dir = os.path.dirname(
                 output
             )
 
-            
             builder = WasmBuilder(
                 output_dir=output_dir
             )
 
-            
             result = builder.compile(
                 llvm_ir,
                 os.path.basename(output)
             )
 
-            
             return result
-
 
         except (
             ParserError,
@@ -152,9 +159,18 @@ class Compiler:
             BuildError
         ) as error:
 
-
             raise CompilerError(
-                str(error)
+                str(error),
+                token=getattr(
+                    error,
+                    "token",
+                    None
+                ),
+                related_token=getattr(
+                    error,
+                    "related_token",
+                    None
+                )
             )
 
 
@@ -238,14 +254,16 @@ class Compiler:
         
     
     # ========================================================
-    # Analyze source & file
+    # Analyze source
     # ========================================================
     
     def analyze_source(
         self,
         source: str
     ):
+
         diagnostics = DiagnosticBag()
+
 
         try:
 
@@ -255,11 +273,13 @@ class Compiler:
 
             tokens = lexer.tokenize()
 
+
             parser = Parser(
                 tokens
             )
 
             ast = parser.parse()
+
 
             analyzer = SemanticAnalyzer()
 
@@ -267,35 +287,103 @@ class Compiler:
                 ast
             )
 
+
         except ParserError as error:
 
+            token = getattr(
+                error,
+                "token",
+                None
+            )
+
             diagnostics.error(
-                message=str(error),
-                line=getattr(error, "line", 1),
-                column=getattr(error, "column", 1),
+                message=error.message,
+
+                line=(
+                    token.line
+                    if token is not None
+                    else 1
+                ),
+
+                column=(
+                    token.column
+                    if token is not None
+                    else 1
+                ),
+
                 length=1,
             )
+
 
         except SemanticError as error:
 
+            token = getattr(
+                error,
+                "token",
+                None
+            )
+
             diagnostics.error(
-                message=str(error),
-                line=getattr(error, "line", 1),
-                column=getattr(error, "column", 1),
+                message=error.message,
+
+                line=(
+                    token.line
+                    if token is not None
+                    else 1
+                ),
+
+                column=(
+                    token.column
+                    if token is not None
+                    else 1
+                ),
+
                 length=1,
             )
+
+
+        except SymbolError as error:
+
+            token = getattr(
+                error,
+                "token",
+                None
+            )
+
+            diagnostics.error(
+                message=error.message,
+                line=(
+                    token.line
+                    if token is not None
+                    else 1
+                ),
+                column=(
+                    token.column
+                    if token is not None
+                    else 1
+                ),
+                length=1,
+            )
+
 
         except Exception as error:
 
             diagnostics.error(
                 message=str(error),
+
                 line=1,
                 column=1,
+
                 length=1,
             )
 
+
         return diagnostics
 
+
+    # ========================================================
+    # Analyze source & file
+    # ========================================================
 
     def analyze_file(
         self,

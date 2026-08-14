@@ -52,8 +52,18 @@ from symbols import (
 )
 
 class SemanticError(Exception):
-    pass
 
+    def __init__(
+        self,
+        message,
+        token=None
+    ):
+
+        super().__init__(message)
+
+        self.message = message
+
+        self.token = token
 
 
 # ============================================================
