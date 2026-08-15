@@ -197,7 +197,8 @@ class FunctionParserMixin:
 
         self.expect(
             TokenType.SEMICOLON,
-            "Expected ';'"
+            "Expected ';'",
+            error_token=self.previous
         )
 
 

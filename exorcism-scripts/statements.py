@@ -149,7 +149,8 @@ class StatementParserMixin:
 
         self.expect(
             TokenType.SEMICOLON,
-            "Expected ';' after variable declaration"
+            "Expected ';' after variable declaration",
+            error_token=self.previous
         )
 
 
@@ -187,7 +188,8 @@ class StatementParserMixin:
 
         self.expect(
             TokenType.SEMICOLON,
-            "Expected ';' after assignment"
+            "Expected ';' after assignment",
+            error_token=self.previous
         )
 
 
@@ -214,7 +216,8 @@ class StatementParserMixin:
 
         self.expect(
             TokenType.SEMICOLON,
-            "Expected ';' after expression"
+            "Expected ';' after expression",
+            error_token=self.previous
         )
 
 
@@ -249,7 +252,8 @@ class StatementParserMixin:
 
         self.expect(
             TokenType.SEMICOLON,
-            "Expected ';'"
+            "Expected ';'",
+            error_token=self.previous
         )
 
         return PrintStatement(

@@ -58,6 +58,15 @@ class ParserBase:
         return previous
 
 
+    @property
+    def previous(self) -> Token:
+
+        if self.position == 0:
+            return self.tokens[0]
+
+        return self.tokens[self.position - 1]
+    
+    
     def peek(self, offset: int = 1) -> Token:
         """
         Look ahead without consuming.
@@ -101,29 +110,24 @@ class ParserBase:
     def expect(
         self,
         token_type: TokenType,
-        message: str | None = None
+        message: str | None = None,
+        error_token: Token | None = None
     ) -> Token:
-        """
-        Consume a required token.
-
-        Example:
-
-            expect(TokenType.SEMICOLON)
-        """
 
         if self.check(token_type):
-
             return self.advance()
 
-
-        token = self.current
-
+        token = (
+            error_token
+            if error_token is not None
+            else self.current
+        )
 
         if message is None:
 
             message = (
                 f"Expected {token_type.name}, "
-                f"got {token.type.name}"
+                f"got {self.current.type.name}"
             )
 
 
@@ -165,11 +169,9 @@ class ParserBase:
         if token is None:
             token = self.current
 
-
         raise ParserError(
-            f"{message}\n"
-            f"Line {token.line}, "
-            f"Column {token.column}"
+            message,
+            token=token
         )
 
     
