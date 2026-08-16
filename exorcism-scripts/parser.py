@@ -204,9 +204,4 @@ class Parser(
 
             type_name += "?"
 
-        print(
-            "DEBUG parse_type RESULT:",
-            repr(type_name)
-        )
-
         return type_name

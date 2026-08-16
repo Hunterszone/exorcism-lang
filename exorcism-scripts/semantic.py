@@ -375,27 +375,12 @@ class SemanticAnalyzer:
             final_type = self.resolve_type(
                 node.declared_type.name.value
             )
+            
 
             if node.declared_type.nullable:
 
                 final_type = final_type.make_nullable()
 
-            print(
-                "DEBUG:",
-                repr(node.declared_type.name.value),
-                "=>",
-                repr(final_type),
-                type(final_type)
-            )
-
-            print(
-                "DEBUG assign:",
-                repr(expression_type),
-                type(expression_type),
-                "->",
-                repr(final_type),
-                type(final_type)
-            )
 
             if not self.type_system.is_assignable(
                 expression_type,
