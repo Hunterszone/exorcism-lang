@@ -87,31 +87,59 @@ class SemanticAnalyzer:
     
     def resolve_type(self, type_name):
 
+        is_nullable = type_name.endswith("?")
+
+        if is_nullable:
+            type_name = type_name[:-1]
+
+
+        # ---------------------------------
+        # Base type
+        # ---------------------------------
+
         if type_name == "int":
-            return INT
+            resolved_type = INT
 
-        if type_name == "float":
-            return FLOAT
-            
-        if type_name == "double":
-            return DOUBLE
+        elif type_name == "float":
+            resolved_type = FLOAT
 
-        if type_name == "bool":
-            return BOOL
+        elif type_name == "double":
+            resolved_type = DOUBLE
 
-        if type_name == "char":
-            return CHAR
-            
-        if type_name == "String":
-            return STRING
+        elif type_name == "bool":
+            resolved_type = BOOL
 
-        if type_name == "void":
-            return VOID
+        elif type_name == "char":
+            resolved_type = CHAR
+
+        elif type_name == "String":
+            resolved_type = STRING
+
+        elif type_name == "void":
+            resolved_type = VOID
+
+        else:
+            raise SemanticError(
+                f"Unknown type {type_name}"
+            )
 
 
-        raise SemanticError(
-            f"Unknown type {type_name}"
-        )
+        # ---------------------------------
+        # Nullable modifier
+        # ---------------------------------
+
+        if is_nullable:
+
+            if resolved_type == VOID:
+
+                raise SemanticError(
+                    "void cannot be nullable"
+                )
+
+            return resolved_type.make_nullable()
+
+
+        return resolved_type
 
 
     # ========================================================
@@ -348,6 +376,26 @@ class SemanticAnalyzer:
                 node.declared_type.name.value
             )
 
+            if node.declared_type.nullable:
+
+                final_type = final_type.make_nullable()
+
+            print(
+                "DEBUG:",
+                repr(node.declared_type.name.value),
+                "=>",
+                repr(final_type),
+                type(final_type)
+            )
+
+            print(
+                "DEBUG assign:",
+                repr(expression_type),
+                type(expression_type),
+                "->",
+                repr(final_type),
+                type(final_type)
+            )
 
             if not self.type_system.is_assignable(
                 expression_type,
@@ -358,9 +406,9 @@ class SemanticAnalyzer:
                     f"Cannot assign "
                     f"{expression_type} "
                     f"to "
-                    f"{final_type} "
-                    f"at "
-                    f"{node.line}:{node.column}"
+                    f"{final_type} ",
+                    token=node.identifier
+
                 )
 
 
@@ -548,7 +596,8 @@ class SemanticAnalyzer:
                 f"Cannot assign "
                 f"{value_type} "
                 f"to "
-                f"{symbol.type}"
+                f"{symbol.type}",
+                token=node.identifier
             )
 
 

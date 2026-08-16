@@ -28,23 +28,30 @@ class TypeSystem:
         target: Type
     ) -> bool:
 
-
+        # ====================================================
         # Same type
+        # ====================================================
 
         if source == target:
             return True
 
 
-
+        # ====================================================
         # null assignment
+        #
+        # null can only be assigned to nullable types.
+        # ====================================================
 
         if isinstance(source, NullType):
 
             return target.nullable
 
 
-
-        # Nullable<T>
+        # ====================================================
+        # Nullable target
+        #
+        # T can be assigned to T?
+        # ====================================================
 
         if isinstance(target, NullableType):
 
@@ -54,25 +61,39 @@ class TypeSystem:
             )
 
 
+        # ====================================================
+        # Nullable source
+        #
+        # T? cannot be assigned to T.
+        # ====================================================
 
+        if isinstance(source, NullableType):
+
+            return False
+
+
+        # ====================================================
         # Numeric widening
+        # ====================================================
 
         if self.can_convert_numeric(
             source,
             target
         ):
+
             return True
 
 
-
-        # TODO:
+        # ====================================================
+        # Future type-system features
+        # ====================================================
+        #
         # inheritance
         # interfaces
         # generics
-
+        #
 
         return False
-
 
 
     # ========================================================

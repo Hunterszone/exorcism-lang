@@ -162,37 +162,51 @@ class Parser(
 
             token = self.advance()
 
-            return token.value
-
-
-        if self.check(TokenType.TYPE_FLOAT):
+        elif self.check(TokenType.TYPE_FLOAT):
 
             token = self.advance()
 
-            return token.value
-
-
-        if self.check(TokenType.TYPE_STRING):
+        elif self.check(TokenType.TYPE_DOUBLE):
 
             token = self.advance()
 
-            return token.value
-            
-            
-        if self.check(TokenType.TYPE_BOOL):
+        elif self.check(TokenType.TYPE_BOOL):
 
             token = self.advance()
 
-            return token.value
-            
-        
-        if self.check(TokenType.TYPE_VOID):
+        elif self.check(TokenType.TYPE_CHAR):
 
             token = self.advance()
 
-            return token.value
+        elif self.check(TokenType.TYPE_STRING):
+
+            token = self.advance()
+
+        elif self.check(TokenType.TYPE_VOID):
+
+            token = self.advance()
+
+        else:
+
+            raise ParserError(
+                "Expected type",
+                token=self.current
+            )
 
 
-        raise ParserError(
-            "Expected type"
+        type_name = token.value
+
+        # ---------------------------------
+        # Nullable modifier
+        # ---------------------------------
+
+        if self.match(TokenType.QUESTION):
+
+            type_name += "?"
+
+        print(
+            "DEBUG parse_type RESULT:",
+            repr(type_name)
         )
+
+        return type_name

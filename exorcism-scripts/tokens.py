@@ -20,6 +20,8 @@ class TokenType(Enum):
     # ---------- Types ----------
     TYPE_INT = auto()
     TYPE_FLOAT = auto()
+    TYPE_DOUBLE = auto()
+    TYPE_CHAR = auto()
     TYPE_STRING = auto()
     TYPE_BOOL = auto()
     TYPE_VOID = auto()
@@ -85,6 +87,8 @@ KEYWORDS = {
     # types
     "int": TokenType.TYPE_INT,
     "float": TokenType.TYPE_FLOAT,
+    "double": TokenType.TYPE_DOUBLE,
+    "char": TokenType.TYPE_CHAR,
     "String": TokenType.TYPE_STRING,
     "bool": TokenType.TYPE_BOOL,
     "void": TokenType.TYPE_VOID,
