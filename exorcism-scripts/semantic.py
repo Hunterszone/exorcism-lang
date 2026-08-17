@@ -22,16 +22,12 @@ from compiler_ast import (
     FunctionDeclaration,
     FunctionCall,
     ReturnStatement,
+    TypeName,
 )
 
 from tokens import TokenType
 
 from exorcism_types import (
-    Type,
-    PrimitiveType,
-    ClassType,
-    NullableType,
-
     INT,
     FLOAT,
     DOUBLE,
@@ -45,13 +41,13 @@ from exorcism_types import (
 from type_system import TypeSystem
 
 from symbols import (
-    SymbolTable, 
-    SymbolError,
+    SymbolTable,
     FunctionSymbol,
-    Symbol,
+    Symbol
 )
 
 class SemanticError(Exception):
+    """Exception raised for semantic analysis errors."""
 
     def __init__(
         self,
@@ -71,7 +67,7 @@ class SemanticError(Exception):
 # ============================================================
 
 class SemanticAnalyzer:
-
+    """Analyzes the abstract syntax tree for semantic correctness and type checking."""
 
     def __init__(self):
 
@@ -85,12 +81,29 @@ class SemanticAnalyzer:
     # Type resolver
     # ========================================================
     
-    def resolve_type(self, type_name):
+    def resolve_type(
+        self,
+        type_name
+    ):
+        """Resolves a type name to its corresponding type, handling nullable types."""
 
-        is_nullable = type_name.endswith("?")
+        # ---------------------------------
+        # Extract nullable information
+        # ---------------------------------
 
-        if is_nullable:
-            type_name = type_name[:-1]
+        if isinstance(type_name, TypeName):
+
+            is_nullable = type_name.nullable
+
+            type_name = type_name.name.value
+
+        else:
+
+            is_nullable = type_name.endswith("?")
+
+            if is_nullable:
+
+                type_name = type_name[:-1]
 
 
         # ---------------------------------
@@ -98,27 +111,35 @@ class SemanticAnalyzer:
         # ---------------------------------
 
         if type_name == "int":
+
             resolved_type = INT
 
         elif type_name == "float":
+
             resolved_type = FLOAT
 
         elif type_name == "double":
+
             resolved_type = DOUBLE
 
         elif type_name == "bool":
+
             resolved_type = BOOL
 
         elif type_name == "char":
+
             resolved_type = CHAR
 
         elif type_name == "String":
+
             resolved_type = STRING
 
         elif type_name == "void":
+
             resolved_type = VOID
 
         else:
+
             raise SemanticError(
                 f"Unknown type {type_name}"
             )
@@ -231,7 +252,7 @@ class SemanticAnalyzer:
 
         if isinstance(node, VariableReference):
 
-            symbol = self.symbols.lookup(
+            symbol = self.symbols.current_scope.lookup(
                 node.identifier.value
             )
 
@@ -537,7 +558,7 @@ class SemanticAnalyzer:
             symbol.parameters
         ):
 
-            argument_type = self.get_type(
+            argument_type = self.evaluate_expression(
                 argument
             )
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from compiler_ast import Program, FunctionCall
+from compiler_ast import Program, TypeName
 
 from tokens import TokenType
 
@@ -11,6 +11,7 @@ from controlflow import ControlFlowParserMixin
 from functions import FunctionParserMixin
 
 class ParserError(Exception):
+    """Exception raised for parser errors."""
 
     def __init__(
         self,
@@ -63,12 +64,11 @@ class Parser(
     # ========================================================
 
     def parse(self):
+        """Parse the entire program and return the AST."""
 
         statements = []
 
-
         while not self.is_at_end():
-
 
             try:
 
@@ -82,7 +82,6 @@ class Parser(
                 self.synchronize()
 
                 raise
-
 
 
         return Program(
@@ -107,26 +106,6 @@ class Parser(
             return self.parse_function_declaration(
                 self.parse_type()
             )
-
-        return self.parse_statement()
-
-        # if statement
-
-        if self.check(TokenType.IF):
-
-            return self.parse_if_statement()
-
-
-        # function declaration
-
-        if self.is_function_declaration():
-
-            return self.parse_function_declaration(
-                self.parse_type()
-            )
-
-
-        # normal statement
 
         return self.parse_statement()
         
@@ -194,14 +173,15 @@ class Parser(
             )
 
 
-        type_name = token.value
+        nullable = self.match(
+            TokenType.QUESTION
+        )
 
-        # ---------------------------------
-        # Nullable modifier
-        # ---------------------------------
 
-        if self.match(TokenType.QUESTION):
-
-            type_name += "?"
-
-        return type_name
+        return TypeName(
+            line=token.line,
+            column=token.column,
+            name=token,
+            nullable=nullable,
+        )
+    

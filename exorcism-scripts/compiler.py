@@ -3,11 +3,12 @@ from __future__ import annotations
 import sys
 import os
 
-
-from lexer import Lexer
 from parser import Parser
+from lexer import Lexer
 from diagnostics import DiagnosticBag
-from semantic import SemanticAnalyzer, SemanticError, SymbolError
+from semantic import SemanticAnalyzer, SemanticError
+from symbols import SymbolError
+from base import ParserError
 
 from codegen import (
     LLVMCodeGenerator,
@@ -18,8 +19,6 @@ from build import (
     WasmBuilder,
     BuildError
 )
-
-from base import ParserError
 
 
 if sys.platform == "win32": 

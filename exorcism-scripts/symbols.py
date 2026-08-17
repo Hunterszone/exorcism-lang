@@ -8,9 +8,8 @@ from tokens import Token
 
 from exorcism_types import Type, VOID
 
-from type_system import TypeSystem
-
 class SymbolError(Exception):
+    """Exception raised for symbol-related errors."""
 
     def __init__(
         self,
@@ -33,6 +32,7 @@ class SymbolError(Exception):
 
 @dataclass(slots=True)
 class Symbol:
+    """Represents a symbol with type information."""
 
     name: str
 
@@ -120,7 +120,7 @@ class Scope:
     # --------------------------------------------------------
 
     def lookup(self, name: str):
-
+        """Look up a symbol in this scope and parent scopes."""
         if name in self.symbols:
 
             return self.symbols[name]
@@ -137,7 +137,7 @@ class Scope:
     # --------------------------------------------------------
 
     def visible_symbols(self):
-
+        """Return all visible symbols from this scope and parent scopes."""
         visible = {}
 
         scope = self
@@ -161,7 +161,7 @@ class Scope:
     # --------------------------------------------------------
 
     def all_symbols(self):
-
+        """Return all symbols defined in the current scope."""
         return list(
             self.symbols.values()
         )
@@ -200,6 +200,7 @@ class Scope:
 # ============================================================
 
 class SymbolTable:
+    """Manages symbol tables and scopes for the language."""
 
     def __init__(self):
 
@@ -219,6 +220,7 @@ class SymbolTable:
         start_line: int = 0,
         start_column: int = 0,
     ):
+        """Enter a new scope with the given start position."""
 
         parent = self.current_scope
 
@@ -302,6 +304,7 @@ class SymbolTable:
         self,
         identifier: Token
     ) -> Symbol:
+        """Resolve a symbol by identifier token."""
 
         symbol = self.current_scope.lookup(
             identifier.value
@@ -326,7 +329,7 @@ class SymbolTable:
         self,
         name: str
     ):
-
+        """Look up a symbol by name in the current scope."""
         return self.current_scope.lookup(
             name
         )

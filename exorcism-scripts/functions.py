@@ -8,7 +8,7 @@ from compiler_ast import (
 from tokens import TokenType
 
 class FunctionParserMixin:
-
+    """Mixin class for parsing function declarations, calls, parameters, and return statements."""
 
     # ============================================================
     # Function declaration
@@ -18,7 +18,7 @@ class FunctionParserMixin:
         self,
         return_type
     ):
-
+        """Parse a function declaration with return type, name, parameters, and body."""
         token = self.current
 
         name_token = self.consume_identifier()
@@ -78,7 +78,7 @@ class FunctionParserMixin:
 
 
             parameter_type = (
-                self.parse_type()
+                self.parse_type(self)
             )
 
 
@@ -126,6 +126,8 @@ class FunctionParserMixin:
         self,
         name
     ):
+        """Parse a function call expression."""
+        token = self.current
 
         self.expect(
             TokenType.LPAREN,
@@ -162,6 +164,10 @@ class FunctionParserMixin:
 
         return FunctionCall(
 
+            line=token.line,
+
+            column=token.column,
+
             name=name,
 
             arguments=arguments
@@ -174,7 +180,7 @@ class FunctionParserMixin:
     # ============================================================
 
     def parse_return_statement(self):
-        
+        """Parse a return statement with optional expression."""
         token = self.current
 
         self.expect(

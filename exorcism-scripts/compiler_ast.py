@@ -11,13 +11,14 @@ from tokens import Token
 
 @dataclass(slots=True)
 class ASTNode:
+    """Base class for all AST nodes."""
     line: int
     column: int
 
 
 @dataclass(slots=True)
 class Expression(ASTNode):
-    pass
+    """Base class for all expressions."""
     
 # ============================================================
 # Program Structure
@@ -25,11 +26,13 @@ class Expression(ASTNode):
 
 @dataclass(slots=True)
 class Program(ASTNode):
+    """Represents the root of an AST program."""
     statements: List["ASTNode"] = field(default_factory=list)
 
 
 @dataclass(slots=True)
 class Block(ASTNode):
+    """Represents a block of statements."""
     statements: List["ASTNode"] = field(default_factory=list)
 
 
@@ -39,6 +42,7 @@ class Block(ASTNode):
 
 @dataclass(slots=True)
 class TypeName(ASTNode):
+    """Represents a type name."""
 
     name: Token
 
@@ -51,6 +55,7 @@ class TypeName(ASTNode):
 
 @dataclass(slots=True)
 class VariableDeclaration(ASTNode):
+    """Represents a variable declaration."""
 
     identifier: Token
 
@@ -61,6 +66,7 @@ class VariableDeclaration(ASTNode):
 
 @dataclass(slots=True)
 class Assignment(ASTNode):
+    """Represents an assignment statement."""
 
     identifier: Token
 
@@ -69,12 +75,14 @@ class Assignment(ASTNode):
 
 @dataclass(slots=True)
 class ExpressionStatement(ASTNode):
+    """Represents an expression statement."""
 
     expression: ASTNode
 
 
 @dataclass(slots=True)
 class IfStatement(ASTNode):
+    """Represents an if statement."""
 
     condition: ASTNode
 
@@ -89,6 +97,7 @@ class IfStatement(ASTNode):
 
 @dataclass(slots=True)
 class BinaryExpression(ASTNode):
+    """Represents a binary expression."""
 
     left: ASTNode
 
@@ -99,6 +108,7 @@ class BinaryExpression(ASTNode):
 
 @dataclass(slots=True)
 class UnaryExpression(ASTNode):
+    """Represents a unary expression."""
 
     operator: Token
 
@@ -107,6 +117,7 @@ class UnaryExpression(ASTNode):
 
 @dataclass(slots=True)
 class VariableReference(ASTNode):
+    """Represents a variable reference expression."""
 
     identifier: Token
 
@@ -117,35 +128,40 @@ class VariableReference(ASTNode):
 
 @dataclass(slots=True)
 class IntegerLiteral(ASTNode):
+    """Represents an integer literal."""
 
     value: int
 
 
 @dataclass(slots=True)
 class FloatLiteral(ASTNode):
+    """Represents a float literal."""
 
     value: float
 
 
 @dataclass(slots=True)
 class StringLiteral(ASTNode):
+    """Represents a string literal."""
 
     value: str
 
 
 @dataclass(slots=True)
 class BooleanLiteral(ASTNode):
+    """Represents a boolean literal."""
 
     value: bool
 
 
 @dataclass(slots=True)
 class NullLiteral(ASTNode):
-    pass
+    """Represents a null literal."""
     
     
 @dataclass
 class PrintStatement(ASTNode):
+    """Represents a print statement."""
 
     expression: ASTNode
 
@@ -155,6 +171,7 @@ class PrintStatement(ASTNode):
     
 @dataclass
 class FunctionDeclaration(ASTNode):
+    """Represents a function declaration."""
 
     return_type: str
 
@@ -169,6 +186,7 @@ class FunctionDeclaration(ASTNode):
     
 @dataclass
 class Parameter(ASTNode):
+    """Represents a function parameter."""
 
     parameter_type: str
 
@@ -179,6 +197,7 @@ class Parameter(ASTNode):
 
 @dataclass
 class FunctionCall(Expression):
+    """Represents a function call expression."""
 
     name: str
 
@@ -187,5 +206,6 @@ class FunctionCall(Expression):
     
 @dataclass
 class ReturnStatement(ASTNode):
+    """Represents a return statement."""
 
     expression: ASTNode | None

@@ -3,6 +3,8 @@ from dataclasses import dataclass
 
 
 class TokenType(Enum):
+    """Enumeration of all token kinds recognized by the lexer."""
+
     # ---------- Special ----------
     EOF = auto()
 
@@ -69,6 +71,8 @@ class TokenType(Enum):
 
 @dataclass(slots=True)
 class Token:
+    """Represents a single token produced by the lexer."""
+
     type: TokenType
     value: object
     line: int
