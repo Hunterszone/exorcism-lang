@@ -65,7 +65,7 @@ class FunctionParserMixin:
     # ============================================================
 
     def parse_parameters(self):
-
+        """Parse function parameters from the parameter list."""
         parameters = []
 
 
@@ -78,7 +78,7 @@ class FunctionParserMixin:
 
 
             parameter_type = (
-                self.parse_type(self)
+                self.parse_type()
             )
 
 
@@ -96,11 +96,9 @@ class FunctionParserMixin:
 
                     column=name.column,
 
-                    parameter_type=
-                        parameter_type,
+                    parameter_type=parameter_type,
 
-                    name=
-                        name.value,
+                    name=name.value,
                         
                     token=name
                 )

@@ -150,7 +150,7 @@ class LLVMCodeGenerator:
 
     
     def generate_function(self, node):
-
+        """Generate LLVM function from function node."""
         return_type = self.get_llvm_type(
             node.return_type
         )   

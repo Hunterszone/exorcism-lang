@@ -4,7 +4,7 @@ import sys
 import os
 
 from parser import Parser
-from lexer import Lexer
+from lexer import Lexer, LexerError
 from diagnostics import DiagnosticBag
 from semantic import SemanticAnalyzer, SemanticError
 from symbols import SymbolError
@@ -30,6 +30,7 @@ if sys.platform == "win32":
 
 
 class CompilerError(Exception):
+    """Exception raised for compiler errors."""
 
     def __init__(
         self,
@@ -170,7 +171,7 @@ class Compiler:
                     "related_token",
                     None
                 )
-            )
+            ) from error
 
 
 
@@ -183,6 +184,7 @@ class Compiler:
         filename,
         output=None
     ):
+        """Compile a single .exrc file to bytecode."""
 
         filename = os.path.abspath(
             filename
@@ -260,8 +262,57 @@ class Compiler:
         self,
         source: str
     ):
+        """Analyze source code and perform semantic analysis."""
 
         diagnostics = DiagnosticBag()
+
+
+        def add_error(
+            error,
+            default_line=1,
+            default_column=1
+        ):
+
+            token = getattr(
+                error,
+                "token",
+                None
+            )
+
+
+            if token is not None:
+
+                line = token.line
+                column = token.column
+
+            else:
+
+                line = getattr(
+                    error,
+                    "line",
+                    default_line
+                )
+
+                column = getattr(
+                    error,
+                    "column",
+                    default_column
+                )
+
+
+            diagnostics.error(
+                message=getattr(
+                    error,
+                    "message",
+                    str(error)
+                ),
+
+                line=line,
+
+                column=column,
+
+                length=1,
+            )
 
 
         try:
@@ -287,81 +338,31 @@ class Compiler:
             )
 
 
-        except ParserError as error:
+        except LexerError as error:
 
-            token = getattr(
-                error,
-                "token",
-                None
+            add_error(
+                error
             )
 
-            diagnostics.error(
-                message=error.message,
 
-                line=(
-                    token.line
-                    if token is not None
-                    else 1
-                ),
+        except ParserError as error:
 
-                column=(
-                    token.column
-                    if token is not None
-                    else 1
-                ),
-
-                length=1,
+            add_error(
+                error
             )
 
 
         except SemanticError as error:
 
-            token = getattr(
-                error,
-                "token",
-                None
-            )
-
-            diagnostics.error(
-                message=error.message,
-
-                line=(
-                    token.line
-                    if token is not None
-                    else 1
-                ),
-
-                column=(
-                    token.column
-                    if token is not None
-                    else 1
-                ),
-
-                length=1,
+            add_error(
+                error
             )
 
 
         except SymbolError as error:
 
-            token = getattr(
-                error,
-                "token",
-                None
-            )
-
-            diagnostics.error(
-                message=error.message,
-                line=(
-                    token.line
-                    if token is not None
-                    else 1
-                ),
-                column=(
-                    token.column
-                    if token is not None
-                    else 1
-                ),
-                length=1,
+            add_error(
+                error
             )
 
 
@@ -369,10 +370,8 @@ class Compiler:
 
             diagnostics.error(
                 message=str(error),
-
                 line=1,
                 column=1,
-
                 length=1,
             )
 
@@ -388,6 +387,7 @@ class Compiler:
         self,
         filename
     ):
+        """Analyze a source file and return diagnostics."""
         filename = os.path.abspath(
             filename
         )

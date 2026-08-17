@@ -188,7 +188,7 @@ class FunctionDeclaration(ASTNode):
 class Parameter(ASTNode):
     """Represents a function parameter."""
 
-    parameter_type: str
+    parameter_type: TypeName
 
     name: str
     

@@ -9,6 +9,7 @@ from abc import ABC
 # ============================================================
 
 class Type(ABC):
+    """Base class for all type definitions."""
 
     @property
     def name(self) -> str:
@@ -60,6 +61,7 @@ class Type(ABC):
 
 @dataclass(frozen=True)
 class PrimitiveType(Type):
+    """Represents a primitive type in the Exorcism language."""
 
     primitive_name: str
 

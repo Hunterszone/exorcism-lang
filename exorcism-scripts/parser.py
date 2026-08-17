@@ -136,6 +136,7 @@ class Parser(
             
     
     def parse_type(self):
+        """Parse a type annotation and return a TypeName AST node."""
 
         if self.check(TokenType.TYPE_INT):
 

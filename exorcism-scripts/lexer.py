@@ -2,10 +2,24 @@ from tokens import Token, TokenType, KEYWORDS
 
 
 class LexerError(Exception):
-    pass
+    """Exception raised for lexer errors."""
+
+    def __init__(
+        self,
+        message,
+        line,
+        column
+    ):
+
+        super().__init__(message)
+
+        self.message = message
+        self.line = line
+        self.column = column
 
 
 class Lexer:
+    """Tokenizes source code text into tokens."""
 
     def __init__(self, text: str):
         self.text = text
@@ -44,10 +58,15 @@ class Lexer:
     # Error
     # ---------------------------------------------------------
 
-    def error(self, message):
-
+    def error(
+        self,
+        message: str
+    ):
+        """Raise a LexerError with the given message and current position."""
         raise LexerError(
-            f"{message} at line {self.line}, column {self.column}"
+            message,
+            line=self.line,
+            column=self.column
         )
 
     # ---------------------------------------------------------
@@ -133,6 +152,7 @@ class Lexer:
     # ---------------------------------------------------------
 
     def read_string(self):
+        """Read and tokenize a string literal."""
 
         start_line = self.line
         start_col = self.column
@@ -166,7 +186,7 @@ class Lexer:
                 self.advance()
 
                 if self.current is None:
-                    self.error("Invalid escape sequence")
+                    return self.error("Invalid escape sequence")
 
                 value += escapes.get(self.current, self.current)
                 self.advance()
@@ -183,6 +203,7 @@ class Lexer:
     # ---------------------------------------------------------
 
     def read_identifier(self):
+        """Read and tokenize an identifier or keyword."""
 
         start_line = self.line
         start_col = self.column
