@@ -29,6 +29,8 @@ export function activate(
 		"var",
 		"int",
 		"float",
+		"double",
+		"char",
 		"string",
 		"bool",
 		"void",

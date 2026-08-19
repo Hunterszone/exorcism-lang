@@ -16,7 +16,7 @@
     },
 
     {
-      "include": "#strings"
+      "include": "#literals"
     },
 
     {
@@ -52,7 +52,7 @@
       "patterns": [
 
         {
-          "match": "\\b(int|float|string|bool|void|var)\\b",
+          "match": "\\b(int|float|double|char|string|bool|void|var)\\b",
           "name": "storage.type.exorcism"
         }
 
@@ -61,13 +61,17 @@
     },
 
 
-    "strings": {
+    "literals": {
 
       "patterns": [
 
         {
           "match": "\"([^\"\\\\]|\\\\.)*\"",
           "name": "string.quoted.double.exorcism"
+        },
+        {
+          "match": "'([^'\\\\]|\\\\.)'",
+          "name": "constant.character.exorcism"
         }
 
       ]
