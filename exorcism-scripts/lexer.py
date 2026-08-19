@@ -34,17 +34,20 @@ class Lexer:
 
     @property
     def current(self):
+        """Return the current character, or None if at the end of input."""
         if self.pos >= len(self.text):
             return None
         return self.text[self.pos]
 
     def peek(self, offset=1):
+        """Return the character at the given offset from the current position, or None if out of bounds."""
         index = self.pos + offset
         if index >= len(self.text):
             return None
         return self.text[index]
 
     def advance(self):
+        """Advance the current position by one character."""
 
         if self.current == "\n":
             self.line += 1
@@ -74,16 +77,19 @@ class Lexer:
     # ---------------------------------------------------------
 
     def skip_whitespace(self):
+        """Skip whitespace characters (spaces, tabs, newlines)."""
 
         while self.current is not None and self.current.isspace():
             self.advance()
 
     def skip_single_line_comment(self):
+        """Skip a single-line comment starting with //."""
 
         while self.current not in ("\n", None):
             self.advance()
 
     def skip_block_comment(self):
+        """Skip a block comment starting with /* and ending with */."""
 
         self.advance()  # /
         self.advance()  # *
@@ -383,6 +389,7 @@ class Lexer:
     # ---------------------------------------------------------
 
     def next_token(self):
+        """Return the next token from the input text."""
 
         while self.current is not None:
 
@@ -514,6 +521,7 @@ class Lexer:
     # ---------------------------------------------------------
 
     def tokenize(self):
+        """Tokenize the entire input text and return a list of tokens."""
 
         tokens = []
 

@@ -28,6 +28,7 @@ class ExpressionParserMixin:
     # ========================================================
 
     def parse_expression(self):
+        """Parse an expression, starting with the lowest precedence level (logical OR)."""
 
         return self.parse_or()
 
@@ -37,6 +38,7 @@ class ExpressionParserMixin:
     # ========================================================
 
     def parse_or(self):
+        """Parse logical OR expressions."""
 
         expr = self.parse_and()
 
@@ -62,6 +64,7 @@ class ExpressionParserMixin:
     # ========================================================
 
     def parse_and(self):
+        """Parse logical AND expressions."""
 
         expr = self.parse_equality()
 
@@ -87,6 +90,7 @@ class ExpressionParserMixin:
     # ========================================================
 
     def parse_equality(self):
+        """Parse equality expressions (==, !=)."""
 
         expr = self.parse_comparison()
 
@@ -115,6 +119,7 @@ class ExpressionParserMixin:
     # ========================================================
 
     def parse_comparison(self):
+        """Parse comparison expressions (>, >=, <, <=)."""
 
         expr = self.parse_term()
 
@@ -145,6 +150,7 @@ class ExpressionParserMixin:
     # ========================================================
 
     def parse_term(self):
+        """Parse addition and subtraction expressions."""
 
         expr = self.parse_factor()
 
@@ -173,6 +179,7 @@ class ExpressionParserMixin:
     # ========================================================
 
     def parse_factor(self):
+        """Parse multiplication and division expressions."""
 
         expr = self.parse_unary()
 
@@ -201,6 +208,7 @@ class ExpressionParserMixin:
     # ========================================================
 
     def parse_unary(self):
+        """Parse unary expressions (negation, logical NOT)."""
 
         if self.match(
             TokenType.NOT,
@@ -227,14 +235,9 @@ class ExpressionParserMixin:
     # ========================================================
 
     def parse_primary(self):
+        """Parse a primary expression (literals, identifiers, function calls, parenthesized expressions)."""
         
         token = self.current
-
-        print(
-            "DEBUG PRIMARY:",
-            self.current.type,
-            repr(self.current.value)
-        )
 
         # integer
 

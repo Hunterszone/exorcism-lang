@@ -9,12 +9,12 @@ from compiler import Compiler
 from symbols import FunctionSymbol
 from build import WasmBuilder, BuildError
 
-# Force UTF-8 output on Windows 
-if sys.platform == "win32": 
+# Force UTF-8 output on Windows
+if sys.platform == "win32":
     try: 
         sys.stdout.reconfigure(encoding="utf-8")
-        sys.stderr.reconfigure(encoding="utf-8") 
-    except AttributeError: 
+        sys.stderr.reconfigure(encoding="utf-8")
+    except AttributeError:
         pass
 
 EXORCISM_VERSION = "0.1.0"
@@ -78,7 +78,7 @@ def build_command(source_file):
 
 # ========================================================
 # Run Command
-# ========================================================    
+# ========================================================
 
 def run_command(source_file):
     """Build the source file and execute the generated runner with Node."""
@@ -266,12 +266,15 @@ def analyze_command(
     json_output=False
 ):
     """Analyze a source file and report diagnostics."""
+
     compiler = Compiler()
+
 
     diagnostics = compiler.analyze_file(
         source_file
     )
     
+
     if json_output:
 
         print(
@@ -280,6 +283,7 @@ def analyze_command(
 
         return 1 if diagnostics.has_errors else 0
 
+
     if diagnostics.is_empty:
 
         print(
@@ -287,6 +291,7 @@ def analyze_command(
         )
 
         return 0
+
 
     for diagnostic in diagnostics.diagnostics:
 
@@ -298,6 +303,7 @@ def analyze_command(
             f"{diagnostic.severity.value}: "
             f"{diagnostic.message}"
         )
+
 
     return 1 if diagnostics.has_errors else 0
     
@@ -310,13 +316,17 @@ def analyze_stdin_command(
     json_output=False
 ):
     """Analyze source code from STDIN and report diagnostics."""
+
     source = sys.stdin.read()
 
+
     compiler = Compiler()
+
 
     diagnostics = compiler.analyze_source(
         source
     )
+
 
     if json_output:
 
@@ -326,6 +336,7 @@ def analyze_stdin_command(
 
         return 1 if diagnostics.has_errors else 0
 
+
     if diagnostics.is_empty:
 
         print(
@@ -333,6 +344,7 @@ def analyze_stdin_command(
         )
 
         return 0
+
 
     for diagnostic in diagnostics.diagnostics:
 
@@ -345,6 +357,7 @@ def analyze_stdin_command(
             f"{diagnostic.message}"
         )
 
+
     return 1 if diagnostics.has_errors else 0
 
 
@@ -354,6 +367,7 @@ def analyze_stdin_command(
 
 def symbol_to_json(symbol):
     """Convert a symbol into a JSON-serializable dictionary."""
+
 
     result = {
         "name": symbol.name,
@@ -366,6 +380,7 @@ def symbol_to_json(symbol):
         "line": symbol.token.line,
         "column": symbol.token.column,
     }
+
 
     if isinstance(symbol, FunctionSymbol):
         result["returnType"] = str(symbol.return_type)
@@ -388,6 +403,7 @@ def symbol_to_json(symbol):
     
 def symbols_command(source_file):
     """Extract and print symbol information from a source file."""
+
     
     with open(
         source_file,
@@ -396,16 +412,20 @@ def symbols_command(source_file):
     ) as file:
         source = file.read()
 
+
     compiler = Compiler()
+
 
     symbol_table = compiler.analyze_symbols(
         source
     )
 
+
     symbols = [
         symbol_to_json(symbol)
         for symbol in symbol_table.all_symbols()
     ]
+
 
     print(
         json.dumps(
@@ -413,6 +433,7 @@ def symbols_command(source_file):
             indent=4,
         )
     )
+
 
     return 0
     
@@ -422,6 +443,7 @@ def symbols_command(source_file):
 # ========================================================
 
 def main():
+    """Main entry point for the Exorcism command-line tool."""
 
     # ========================================================
     # No command

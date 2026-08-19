@@ -44,14 +44,14 @@ from compiler_ast import (
 from tokens import TokenType
 
 
-
 class CodeGenerationError(Exception):
+    """Custom exception for code generation errors."""
     pass
 
 
 
 class LLVMCodeGenerator:
-
+    """LLVM code generator for the MiniCompiler."""
 
     def __init__(self):
 
@@ -98,7 +98,7 @@ class LLVMCodeGenerator:
 
 
     def generate(self, program: Program):
-
+        """Generate LLVM IR for the given program AST."""
 
         # ============================================================
         # Create program entry point
@@ -258,6 +258,7 @@ class LLVMCodeGenerator:
 
 
     def get_llvm_type(self, type_obj: Type):
+        """Map a MiniCompiler type to an LLVM type."""
 
         # ---------------------------------
         # Nullable types
@@ -336,6 +337,7 @@ class LLVMCodeGenerator:
     # ========================================================
 
     def visit(self, node):
+        """Dispatch to the appropriate visit method based on the node type."""
 
 
         if isinstance(node, Program):
@@ -399,6 +401,7 @@ class LLVMCodeGenerator:
     # ========================================================
     
     def visit_print(self, node):
+        """Handle print statements, generating code to print the evaluated expression."""
 
         value = self.generate_expression(
             node.expression
@@ -432,7 +435,7 @@ class LLVMCodeGenerator:
     # ========================================================
     
     def visit_return(self, node):
-
+        """Handle return statements, generating code to return the evaluated expression or void."""
 
         # return;
 
@@ -460,6 +463,7 @@ class LLVMCodeGenerator:
     # ========================================================
 
     def llvm_type(self, value):
+        """Return the LLVM type for a given literal value."""
 
         if isinstance(value, IntegerLiteral):
 
@@ -484,6 +488,7 @@ class LLVMCodeGenerator:
         self,
         node
     ):
+        """Handle variable declarations, allocating space and initializing the variable."""
 
         value = self.generate_expression(
             node.initializer
@@ -515,6 +520,7 @@ class LLVMCodeGenerator:
         self,
         node
     ):
+        """Handle assignment statements, ensuring the variable exists and the assigned value is compatible with its type."""
 
         if node.identifier.value not in self.variables:
 
@@ -549,6 +555,7 @@ class LLVMCodeGenerator:
         self,
         node
     ):
+        """Handle if statements, ensuring the condition is boolean and visiting the then and else blocks."""
 
 
         condition = self.generate_expression(
@@ -642,6 +649,7 @@ class LLVMCodeGenerator:
         self,
         node
     ):
+        """Generate LLVM IR for the given expression AST node."""
 
 
         # integer
@@ -995,5 +1003,6 @@ class LLVMCodeGenerator:
     # ========================================================
 
     def get_ir(self):
+        """Return the generated LLVM IR as a string."""
 
         return str(self.module)

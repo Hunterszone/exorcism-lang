@@ -179,6 +179,7 @@ class SemanticAnalyzer:
     # ========================================================
 
     def visit(self, node):
+        """Dispatch to the appropriate visit method based on the node type."""
 
         if isinstance(node, Program):
 
@@ -239,12 +240,7 @@ class SemanticAnalyzer:
 
 
     def visit_expression(self, node):
-
-        print(
-            "SEMANTIC NODE:",
-            type(node).__name__,
-            node
-        )
+        """Evaluate the type of an expression node and return its semantic type."""
         
         if isinstance(node, IntegerLiteral):
 
@@ -294,6 +290,7 @@ class SemanticAnalyzer:
         
     
     def visit_return(self, node):
+        """Handle return statements, ensuring they match the current function's return type."""
 
         if self.current_function is None:
 
@@ -347,6 +344,7 @@ class SemanticAnalyzer:
         self, 
         block
     ):
+        """Visit a block of statements, creating a new scope for variable declarations."""
 
         self.symbols.enter_scope(
             start_line=block.line,
@@ -374,6 +372,7 @@ class SemanticAnalyzer:
         self,
         node: VariableDeclaration
     ):
+        """Handle variable declarations, resolving types and checking initializers."""
 
 
         expression_type = (
@@ -437,14 +436,17 @@ class SemanticAnalyzer:
         self,
         node
     ):
+        """Handle function declarations, resolving return types, parameter types, and managing scopes."""
 
         resolved_return_type = self.resolve_type(
             node.return_type
         )
 
+
         node.return_type = resolved_return_type
 
         parameter_symbols = []
+
 
         for parameter in node.parameters:
 
@@ -469,6 +471,7 @@ class SemanticAnalyzer:
                 parameter_symbol
             )
 
+
         symbol = FunctionSymbol(
 
             name=node.name,
@@ -484,14 +487,17 @@ class SemanticAnalyzer:
             parameters=parameter_symbols
         )
 
+
         self.symbols.current_scope.define(
             symbol
         )
+
 
         self.symbols.enter_scope(
             start_line=node.body.line,
             start_column=node.body.column,
         )
+
 
         self.current_function = symbol
 
@@ -521,6 +527,7 @@ class SemanticAnalyzer:
         self,
         node
     ):
+        """Handle function calls, resolving the function symbol and checking argument types."""
 
         symbol = self.symbols.current_scope.lookup(
             node.name
@@ -581,6 +588,7 @@ class SemanticAnalyzer:
         self,
         node: Assignment
     ):
+        """Handle assignment statements, ensuring the variable exists and the assigned value is compatible with its type."""
 
         symbol = self.symbols.resolve(
             node.identifier
@@ -617,6 +625,7 @@ class SemanticAnalyzer:
         self,
         node: IfStatement
     ):
+        """Handle if statements, ensuring the condition is boolean and visiting the then and else blocks."""
 
 
         condition_type = (
