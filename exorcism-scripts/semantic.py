@@ -443,12 +443,15 @@ class SemanticAnalyzer:
         )
 
 
+        node.return_type = resolved_return_type
+
+
         parameter_symbols = []
 
 
         for parameter in node.parameters:
 
-            resolved_parameter_type = self.resolve_type(
+            parameter.resolved_type = self.resolve_type(
                 parameter.parameter_type
             )
 
@@ -459,7 +462,7 @@ class SemanticAnalyzer:
 
                 token=parameter.token,
 
-                type=resolved_parameter_type,
+                type=parameter.resolved_type,
 
                 initialized=True
             )
@@ -498,6 +501,7 @@ class SemanticAnalyzer:
 
 
         self.current_function = symbol
+
 
         try:
 

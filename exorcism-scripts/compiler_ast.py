@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, Type
 
 from tokens import Token, TokenType
 
@@ -201,6 +201,8 @@ class Parameter(ASTNode):
     name: str
     
     token: Token
+
+    resolved_type: Type | None = None
     
 
 @dataclass

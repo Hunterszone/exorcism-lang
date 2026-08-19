@@ -148,22 +148,24 @@ class LLVMCodeGenerator:
 
         return self.module
 
+
+    # Generate function
     
     def generate_function(self, node):
         """Generate LLVM function from function node."""
+
         return_type = self.get_llvm_type(
             node.return_type
-        )   
+        )
 
 
         arguments = []
-
 
         for parameter in node.parameters:
 
             arguments.append(
                 self.get_llvm_type(
-                    parameter.parameter_type
+                    parameter.resolved_type
                 )
             )
 
@@ -174,38 +176,48 @@ class LLVMCodeGenerator:
         )
 
 
-        function = self.functions.get(node.name)
-
-
         function = ir.Function(
-                self.module,
-                function_type,
-                name=node.name
-            )
-
+            self.module,
+            function_type,
+            name=node.name
+        )
 
         self.functions[node.name] = function
 
+
+        # ---------------------------------
+        # Save generator state
+        # ---------------------------------
+
+        old_builder = self.builder
+        old_variables = self.variables
+        old_function = self.function
+
+
+        # ---------------------------------
+        # Enter function
+        # ---------------------------------
+
+        self.function = function
 
         block = function.append_basic_block(
             name="entry"
         )
 
-
-        old_builder = self.builder
-
-
         self.builder = ir.IRBuilder(
             block
         )
 
-        old_variables = self.variables
-
         self.variables = {}
 
-        # create local parameters
 
-        for index, parameter in enumerate(node.parameters):
+        # ---------------------------------
+        # Parameters
+        # ---------------------------------
+
+        for index, parameter in enumerate(
+            node.parameters
+        ):
 
             llvm_parameter = function.args[index]
 
@@ -214,7 +226,7 @@ class LLVMCodeGenerator:
 
             pointer = self.builder.alloca(
                 llvm_parameter.type,
-                name=parameter.name
+                name=f"{parameter.name}_addr"
             )
 
 
@@ -224,17 +236,23 @@ class LLVMCodeGenerator:
             )
 
 
-            self.variables[parameter.name] = pointer
+            self.variables[
+                parameter.name
+            ] = pointer
 
 
+        # ---------------------------------
+        # Function body
+        # ---------------------------------
 
-        for statement in node.body:
+        for statement in node.body.statements:
 
             self.visit(statement)
 
 
-
-        # safety return
+        # ---------------------------------
+        # Safety return
+        # ---------------------------------
 
         if not self.builder.block.is_terminated:
 
@@ -252,10 +270,16 @@ class LLVMCodeGenerator:
                 )
 
 
-        self.builder = old_builder
-        
-        self.variables = old_variables
+        # ---------------------------------
+        # Restore state
+        # ---------------------------------
 
+        self.builder = old_builder
+        self.variables = old_variables
+        self.function = old_function
+
+
+    # Get LLVM type
 
     def get_llvm_type(self, type_obj: Type):
         """Map a MiniCompiler type to an LLVM type."""
@@ -483,6 +507,7 @@ class LLVMCodeGenerator:
         return ir.IntType(32)
 
 
+    # Variable Declarations and Assignments
 
     def visit_variable(
         self,
@@ -760,6 +785,8 @@ class LLVMCodeGenerator:
 
         if isinstance(node, VariableReference):
 
+            variable_name = node.identifier.value
+
             ptr = self.variables.get(
                 node.identifier.value
             )
@@ -769,13 +796,13 @@ class LLVMCodeGenerator:
 
                 raise CodeGenerationError(
                     f"Unknown variable "
-                    f"{node.identifier.value}"
+                    f"{variable_name}"
                 )
 
 
             return self.builder.load(
                 ptr,
-                name="loadtmp"
+                name=f"{variable_name}_value"
             )
 
 
@@ -939,24 +966,6 @@ class LLVMCodeGenerator:
                     left,
                     right
                 )
-
-            
-        if isinstance(node, VariableReference):
-
-            if node.name not in self.variables:
-
-                raise Exception(
-                    f"Unknown variable '{node.name}'"
-                )
-
-
-            pointer = self.variables[node.name]
-
-
-            return self.builder.load(
-                pointer,
-                name=f"{node.name}_value"
-            )    
 
         
         if isinstance(node, FunctionCall):
