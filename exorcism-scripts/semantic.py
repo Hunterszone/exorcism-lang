@@ -436,25 +436,22 @@ class SemanticAnalyzer:
         self,
         node
     ):
-        """Handle function declarations, resolving return types, parameter types, and managing scopes."""
+        """Handle function declarations, resolving return and parameter types."""
 
         resolved_return_type = self.resolve_type(
             node.return_type
         )
 
 
-        node.return_type = resolved_return_type
-
         parameter_symbols = []
 
 
         for parameter in node.parameters:
 
-            parameter.parameter_type = (
-                self.resolve_type(
-                    parameter.parameter_type
-                )
+            resolved_parameter_type = self.resolve_type(
+                parameter.parameter_type
             )
+
 
             parameter_symbol = Symbol(
 
@@ -462,10 +459,11 @@ class SemanticAnalyzer:
 
                 token=parameter.token,
 
-                type=parameter.parameter_type,
+                type=resolved_parameter_type,
 
                 initialized=True
             )
+
 
             parameter_symbols.append(
                 parameter_symbol
@@ -509,6 +507,7 @@ class SemanticAnalyzer:
                     parameter_symbol
                 )
 
+
             for statement in node.body.statements:
 
                 self.visit(statement)
@@ -522,6 +521,10 @@ class SemanticAnalyzer:
                 end_column=node.body.column,
             )
 
+
+    # ========================================================
+    # Function calls
+    # ========================================================
 
     def visit_function_call(
         self,
@@ -570,10 +573,14 @@ class SemanticAnalyzer:
                 argument
             )
 
-            if argument_type != parameter.type:
+            if not self.type_system.is_assignable(
+                argument_type,
+                parameter.type
+            ):
 
                 raise SemanticError(
-                    f"Argument type mismatch in '{node.name}'"
+                    f"Argument type mismatch in "
+                    f"'{node.name}'"
                 )
 
 
@@ -778,11 +785,14 @@ class SemanticAnalyzer:
                 )
 
 
-                if argument_type != parameter.parameter_type:
+                if not self.type_system.is_assignable(
+                    argument_type,
+                    parameter.type
+                ):
 
                     raise SemanticError(
                         f"Argument type mismatch in "
-                        f"function '{node.name}'"
+                        f"'{node.name}'"
                     )
 
 
