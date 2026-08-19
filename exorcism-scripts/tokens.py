@@ -11,6 +11,8 @@ class TokenType(Enum):
     # ---------- Literals ----------
     INTEGER = auto()
     FLOAT = auto()
+    DOUBLE = auto()
+    CHAR = auto()
     STRING = auto()
     NULL = auto()
     TRUE = auto()

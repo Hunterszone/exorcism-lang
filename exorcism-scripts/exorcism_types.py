@@ -91,9 +91,7 @@ class PrimitiveType(Type):
 
             "int",
             "float",
-            "double",
-            "bool",
-            "char"
+            "double"
         }
 
 
@@ -104,6 +102,7 @@ class PrimitiveType(Type):
 
 @dataclass(frozen=True)
 class ClassType(Type):
+    """Represent a class type."""
 
     class_name: str
 
@@ -127,6 +126,7 @@ class ClassType(Type):
 
 @dataclass(frozen=True)
 class InterfaceType(Type):
+    """Represent an interface type."""
 
     interface_name: str
 
@@ -150,6 +150,7 @@ class InterfaceType(Type):
 
 @dataclass(frozen=True)
 class ArrayType(Type):
+    """Represent an array type with an element type."""
 
     element_type: Type
 
@@ -173,6 +174,7 @@ class ArrayType(Type):
 
 @dataclass(frozen=True)
 class FunctionType(Type):
+    """Represent a function type with parameter and return types."""
 
     parameters: tuple[Type, ...]
 
@@ -240,6 +242,7 @@ class GenericInstanceType(Type):
 
 @dataclass(frozen=True)
 class NullableType(Type):
+    """A type that permits a null value."""
 
     base_type: Type
 

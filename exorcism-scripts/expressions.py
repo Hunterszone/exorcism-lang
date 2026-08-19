@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from compiler_ast import (
     BinaryExpression,
+    CharLiteral,
     UnaryExpression,
     VariableReference,
     IntegerLiteral,
@@ -9,7 +10,7 @@ from compiler_ast import (
     StringLiteral,
     BooleanLiteral,
     NullLiteral,
-    FunctionCall,
+    FunctionCall
 )
 
 from tokens import TokenType
@@ -229,6 +230,12 @@ class ExpressionParserMixin:
         
         token = self.current
 
+        print(
+            "DEBUG PRIMARY:",
+            self.current.type,
+            repr(self.current.value)
+        )
+
         # integer
 
         if self.match(TokenType.INTEGER):
@@ -244,10 +251,27 @@ class ExpressionParserMixin:
 
         if self.match(TokenType.FLOAT):
 
+            token = self.previous
+
             return FloatLiteral(
                 line=token.line,
                 column=token.column,
                 value=token.value,
+                token_type=TokenType.FLOAT,
+            )
+
+
+        # double
+
+        if self.match(TokenType.DOUBLE):
+
+            token = self.previous
+
+            return FloatLiteral(
+                line=token.line,
+                column=token.column,
+                value=token.value,
+                token_type=TokenType.DOUBLE,
             )
 
 
@@ -256,6 +280,19 @@ class ExpressionParserMixin:
         if self.match(TokenType.STRING):
 
             return StringLiteral(
+                line=token.line,
+                column=token.column,
+                value=token.value,
+            )
+
+
+        # character
+
+        if self.match(TokenType.CHAR):
+
+            token = self.previous
+
+            return CharLiteral(
                 line=token.line,
                 column=token.column,
                 value=token.value,

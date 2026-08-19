@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-from tokens import Token
+from tokens import Token, TokenType
 
 # ============================================================
 # Base AST Node
@@ -138,6 +138,14 @@ class FloatLiteral(ASTNode):
     """Represents a float literal."""
 
     value: float
+    token_type: TokenType
+
+
+@dataclass(slots=True)
+class CharLiteral(ASTNode):
+    """Represents a character literal."""
+
+    value: str
 
 
 @dataclass(slots=True)

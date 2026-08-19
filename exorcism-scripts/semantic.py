@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from compiler_ast import (
+    CharLiteral,
     Program,
     Block,
     VariableDeclaration,
@@ -119,20 +120,20 @@ class SemanticAnalyzer:
             resolved_type = FLOAT
 
         elif type_name == "double":
-
+        
             resolved_type = DOUBLE
 
         elif type_name == "bool":
 
             resolved_type = BOOL
 
-        elif type_name == "char":
-
-            resolved_type = CHAR
-
         elif type_name == "String":
 
             resolved_type = STRING
+
+        elif type_name == "char":
+
+            resolved_type = CHAR
 
         elif type_name == "void":
 
@@ -649,7 +650,7 @@ class SemanticAnalyzer:
         self,
         node
     ):
-
+        """Return the semantic type of an expression."""
 
         # -----------------------------
         # literals
@@ -662,8 +663,26 @@ class SemanticAnalyzer:
 
         if isinstance(node, FloatLiteral):
 
-            return FLOAT
-            
+            if node.token_type == TokenType.FLOAT:
+
+                return FLOAT
+
+
+            if node.token_type == TokenType.DOUBLE:
+
+                return DOUBLE
+
+
+            raise SemanticError(
+                f"Unknown floating-point literal "
+                f"type: {node.token_type}"
+            )
+
+
+        if isinstance(node, CharLiteral):
+
+            return CHAR
+
 
         if isinstance(node, StringLiteral):
 
@@ -705,11 +724,6 @@ class SemanticAnalyzer:
             symbol = self.symbols.lookup_name(
                 node.name
             )
-            
-            if symbol.return_type is VOID:
-
-                return VOID
-                
 
             if symbol is None:
 
@@ -726,6 +740,11 @@ class SemanticAnalyzer:
                 raise SemanticError(
                     f"'{node.name}' is not a function"
                 )
+
+
+            if symbol.return_type is VOID:
+
+                return VOID
 
 
             if len(node.arguments) != len(

@@ -74,15 +74,17 @@ class StatementParserMixin:
     # ========================================================
 
     def check_type_start(self):
+        """Return whether the current token starts a type declaration."""
 
         return self.current.type in (
             TokenType.TYPE_INT,
             TokenType.TYPE_FLOAT,
+            TokenType.TYPE_DOUBLE,
+            TokenType.TYPE_CHAR,
             TokenType.TYPE_STRING,
             TokenType.TYPE_BOOL,
             TokenType.TYPE_VOID,
         )
-
 
 
     # ========================================================
@@ -90,28 +92,21 @@ class StatementParserMixin:
     # ========================================================
 
     def parse_variable_declaration(self):
-        
-        type_token = None
+        """Parse a variable declaration statement."""
 
         declared_type = None
 
 
-        # -------------------------
+        # ---------------------------------
         # var x = expression;
-        # -------------------------
+        # ---------------------------------
 
         if self.match(TokenType.VAR):
-
-            type_token = self.tokens[self.position - 1]
 
             declared_type = None
 
 
         else:
-
-            # ---------------------
-            # int x
-            # ---------------------
 
             type_token = self.current
 
@@ -119,7 +114,6 @@ class StatementParserMixin:
 
 
             nullable = False
-
 
             if self.match(TokenType.QUESTION):
 
@@ -129,12 +123,16 @@ class StatementParserMixin:
             declared_type = TypeName(
                 line=type_token.line,
                 column=type_token.column,
+
                 name=type_token,
+
                 nullable=nullable,
             )
 
 
+        # ---------------------------------
         # identifier
+        # ---------------------------------
 
         identifier = self.consume_identifier()
 
@@ -143,6 +141,11 @@ class StatementParserMixin:
             TokenType.ASSIGN,
             "Expected '=' after variable name"
         )
+
+
+        # ---------------------------------
+        # initializer
+        # ---------------------------------
 
         initializer = self.parse_expression()
 
@@ -167,12 +170,12 @@ class StatementParserMixin:
         )
 
 
-
     # ========================================================
     # Assignment
     # ========================================================
 
     def parse_assignment(self):
+        """Parse an assignment statement."""
 
         identifier = self.consume_identifier()
 

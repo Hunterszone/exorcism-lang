@@ -104,46 +104,95 @@ class Lexer:
     # ---------------------------------------------------------
 
     def read_number(self):
+        """Read a numeric literal from the current input position."""
 
         start_line = self.line
         start_col = self.column
-
         text = ""
-
         has_decimal = False
 
         while self.current is not None:
 
             if self.current.isdigit():
+
                 text += self.current
+
                 self.advance()
+
                 continue
+
 
             if self.current == ".":
 
                 if has_decimal:
+
                     break
 
                 has_decimal = True
+
                 text += "."
+
                 self.advance()
+
                 continue
+
 
             break
 
-        if has_decimal:
+
+        # ---------------------------------
+        # Integer
+        # ---------------------------------
+
+        if not has_decimal:
 
             return Token(
-                TokenType.FLOAT,
-                float(text),
+
+                TokenType.INTEGER,
+
+                int(text),
+
                 start_line,
+
                 start_col,
             )
 
+
+        # ---------------------------------
+        # Float suffix
+        # ---------------------------------
+
+        if (
+            self.current is not None
+            and self.current in ("f", "F")
+        ):
+
+            self.advance()
+
+            return Token(
+
+                TokenType.FLOAT,
+
+                float(text),
+
+                start_line,
+
+                start_col,
+            )
+
+
+        # ---------------------------------
+        # Double
+        # ---------------------------------
+
         return Token(
-            TokenType.INTEGER,
-            int(text),
+
+            TokenType.DOUBLE,
+
+            float(text),
+
             start_line,
+
             start_col,
         )
 
@@ -197,6 +246,103 @@ class Lexer:
             self.advance()
 
         self.error("Unterminated string literal")
+
+
+    # ---------------------------------------------------------
+    # Characters
+    # ---------------------------------------------------------
+
+    def read_char(self):
+        """Read and tokenize a character literal."""
+
+        start_line = self.line
+        start_col = self.column
+
+        self.advance()  # opening quote
+
+
+        if self.current is None:
+
+            self.error(
+                "Unterminated character literal"
+            )
+
+
+        escapes = {
+            "n": "\n",
+            "t": "\t",
+            "r": "\r",
+            "0": "\0",
+            "'": "'",
+            '"': '"',
+            "\\": "\\",
+        }
+
+
+        # ---------------------------------
+        # Escape sequence
+        # ---------------------------------
+
+        if self.current == "\\":
+
+            self.advance()
+
+
+            if self.current is None:
+
+                self.error(
+                    "Unterminated character literal"
+                )
+
+
+            value = escapes.get(
+                self.current
+            )
+
+
+            if value is None:
+
+                self.error(
+                    f"Invalid escape sequence "
+                    f"\\{self.current}"
+                )
+
+
+            self.advance()
+
+
+        # ---------------------------------
+        # Normal character
+        # ---------------------------------
+
+        else:
+
+            value = self.current
+
+            self.advance()
+
+
+        # ---------------------------------
+        # Closing quote
+        # ---------------------------------
+
+        if self.current != "'":
+
+            self.error(
+                "Character literal must "
+                "contain exactly one character"
+            )
+
+
+        self.advance()
+
+
+        return Token(
+            TokenType.CHAR,
+            value,
+            start_line,
+            start_col,
+        )
 
     # ---------------------------------------------------------
     # Identifiers / keywords
@@ -273,6 +419,11 @@ class Lexer:
 
             if self.current == '"':
                 return self.read_string()
+
+            # character
+
+            if self.current == "'":
+                return self.read_char()
 
             line = self.line
             column = self.column

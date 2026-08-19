@@ -6,8 +6,8 @@ import tempfile
 import json
 
 from compiler import Compiler
-from build import WasmBuilder, BuildError
 from symbols import FunctionSymbol
+from build import WasmBuilder, BuildError
 
 # Force UTF-8 output on Windows 
 if sys.platform == "win32": 
@@ -47,9 +47,8 @@ HELP_MSG = '''
 # ========================================================
 
 def build_command(source_file):
-    
-    # Resolve source file independently of the
-    # location of exorcism.exe.
+    """Compile an Exorcism source file to a WASM artifact and runner."""
+
     source_file = os.path.abspath(
         source_file
     )
@@ -82,6 +81,7 @@ def build_command(source_file):
 # ========================================================    
 
 def run_command(source_file):
+    """Build the source file and execute the generated runner with Node."""
 
     result = build_command(
         source_file
@@ -110,6 +110,7 @@ def run_command(source_file):
 # ========================================================
         
 def doctor_command():
+    """Display Exorcism environment information."""
 
     print("Exorcism environment")
     print()
@@ -264,7 +265,7 @@ def analyze_command(
     source_file,
     json_output=False
 ):
-
+    """Analyze a source file and report diagnostics."""
     compiler = Compiler()
 
     diagnostics = compiler.analyze_file(
@@ -308,7 +309,7 @@ def analyze_command(
 def analyze_stdin_command(
     json_output=False
 ):
-
+    """Analyze source code from STDIN and report diagnostics."""
     source = sys.stdin.read()
 
     compiler = Compiler()
@@ -352,7 +353,8 @@ def analyze_stdin_command(
 # ========================================================
 
 def symbol_to_json(symbol):
-    
+    """Convert a symbol into a JSON-serializable dictionary."""
+
     result = {
         "name": symbol.name,
         "kind": (
@@ -385,6 +387,7 @@ def symbol_to_json(symbol):
 # ========================================================
     
 def symbols_command(source_file):
+    """Extract and print symbol information from a source file."""
     
     with open(
         source_file,

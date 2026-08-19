@@ -1,21 +1,17 @@
 from exorcism_types import (
     Type,
     PrimitiveType,
-    ClassType,
     NullableType,
-    ArrayType,
     NullType,
-    FunctionType,
-
     INT,
     FLOAT,
-    DOUBLE,
-    NULL
+    DOUBLE
 )
 
 
 
 class TypeSystem:
+    """Provide type compatibility and relationship checks."""
 
 
     # ========================================================
@@ -27,6 +23,7 @@ class TypeSystem:
         source: Type,
         target: Type
     ) -> bool:
+        """Return whether a value of ``source`` type can be assigned to ``target``."""
 
         # ====================================================
         # Same type
@@ -104,8 +101,8 @@ class TypeSystem:
         self,
         source: Type,
         target: Type
-    ):
-
+    ) -> bool:
+        """Return whether ``source`` can be widened to ``target`` numerically."""
 
         if not (
             isinstance(source, PrimitiveType)
@@ -114,44 +111,32 @@ class TypeSystem:
             return False
 
 
-
         conversions = {
 
-
             "char": [
-
                 "int",
                 "float",
-                "double"
+                "double",
             ],
-
 
             "int": [
-
                 "float",
-                "double"
+                "double",
             ],
 
-
             "float": [
-
-                "double"
-            ]
-
+                "double",
+            ],
         }
 
 
         return (
-
             target.name
-
             in conversions.get(
                 source.name,
                 []
             )
-
         )
-
 
 
     # ========================================================
@@ -163,6 +148,7 @@ class TypeSystem:
         left: Type,
         right: Type
     ):
+        """Return whether two types can be compared for equality."""
 
 
         if left == right:
@@ -233,6 +219,7 @@ class TypeSystem:
         self,
         t: Type
     ):
+        """Return the underlying type for a nullable type."""
 
         if isinstance(
             t,
@@ -249,5 +236,6 @@ class TypeSystem:
         self,
         t: Type
     ):
+        """Return whether ``type`` is nullable."""
 
         return t.nullable

@@ -154,11 +154,11 @@ class Parser(
 
             token = self.advance()
 
-        elif self.check(TokenType.TYPE_CHAR):
+        elif self.check(TokenType.TYPE_STRING):
 
             token = self.advance()
 
-        elif self.check(TokenType.TYPE_STRING):
+        elif self.check(TokenType.TYPE_CHAR):
 
             token = self.advance()
 

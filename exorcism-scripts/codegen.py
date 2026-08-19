@@ -4,7 +4,6 @@ from llvmlite import ir
 
 from exorcism_types import (
     Type,
-    PrimitiveType,
     ClassType,
     NullableType,
 
@@ -33,6 +32,7 @@ from compiler_ast import (
     FloatLiteral,
     BooleanLiteral,
     StringLiteral,
+    CharLiteral,
     NullLiteral,
     PrintStatement,
     
@@ -654,16 +654,30 @@ class LLVMCodeGenerator:
             )
 
 
-
-        # float
+        # float & double
 
         if isinstance(node, FloatLiteral):
 
-            return ir.Constant(
-                ir.FloatType(),
-                node.value
-            )
+            if node.token_type == TokenType.FLOAT:
 
+                return ir.Constant(
+                    ir.FloatType(),
+                    node.value
+                )
+
+
+            if node.token_type == TokenType.DOUBLE:
+
+                return ir.Constant(
+                    ir.DoubleType(),
+                    node.value
+                )
+
+
+            raise CodeGenerationError(
+                f"Unknown floating-point literal "
+                f"type: {node.token_type}"
+            )
 
 
         # bool
@@ -673,6 +687,16 @@ class LLVMCodeGenerator:
             return ir.Constant(
                 ir.IntType(1),
                 1 if node.value else 0
+            )
+
+
+        # character literal
+
+        if isinstance(node, CharLiteral):
+
+            return ir.Constant(
+                ir.IntType(8),
+                ord(node.value)
             )
 
 
