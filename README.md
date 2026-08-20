@@ -101,6 +101,13 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 - ✅ Function calls (`add(int a, int b);`)
 - ✅ Function calls in expressions (`var x = add(int a, int b);`)
 - ✅ Void functions
+- 🛠️ Sequential conditional statements (`IF ELSE`) - WIP
+- 🛠️ SWITCH-CASE support - WIP
+- 🛠️ Logical operators (`AND`, `OR`) - WIP
+- 🛠️ Relational operators (`childof`) - WIP
+- 🛠️ Exception handling - WIP
+- 🛠️ Assignment operators (`= += -= *= /= %= &= ^= |= <<= >>= >>>=`) - WIP
+- 🛠️ Bitwise operators (`XOR`, `BITSHIFT`) - WIP
 - 🛠️ Access modifiers (`public`, `private`, etc.) - WIP
 - 🛠️ String concatenation - WIP
 - 🛠️ User input handling - WIP
@@ -117,7 +124,7 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 
 ## Tooling
 
-- ✅ Language installer (`ExorcismSetup.exe`)
+- ✅ Exorcism CLI (`exorcism.exe`)
 - ✅ Perquisites checker (`exorcism doctor`)
 - 🛠️ Formatter (`exorcism fmt`)
 - 🛠️ Linter (`exorcism lint`)
