@@ -4,6 +4,7 @@ from tokens import Token, TokenType
 
 
 class ParserError(Exception):
+    """Error raised when parsing fails."""
 
     def __init__(
         self,
@@ -60,6 +61,7 @@ class ParserBase:
 
     @property
     def previous(self) -> Token:
+        """Return the previously consumed token."""
 
         if self.position == 0:
             return self.tokens[0]
@@ -113,6 +115,7 @@ class ParserBase:
         message: str | None = None,
         error_token: Token | None = None
     ) -> Token:
+        """Consume the current token if it matches the expected type."""
 
         if self.check(token_type):
             return self.advance()
@@ -141,6 +144,7 @@ class ParserBase:
     # ========================================================
 
     def is_at_end(self) -> bool:
+        """Return whether the current token is the end-of-file marker."""
 
         return self.current.type == TokenType.EOF
 
@@ -165,6 +169,7 @@ class ParserBase:
         message: str,
         token: Token | None = None
     ):
+        """Raise a parser error for the specified message and token."""
 
         if token is None:
             token = self.current
@@ -176,6 +181,7 @@ class ParserBase:
 
     
     def save(self):
+        """Return the current parser position for later restoration."""
 
         return self.position
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 from llvmlite import ir
 
 from exorcism_types import (
-    Type,
+    TypeProperties,
     ClassType,
     NullableType,
 
@@ -46,8 +46,6 @@ from tokens import TokenType
 
 class CodeGenerationError(Exception):
     """Custom exception for code generation errors."""
-    pass
-
 
 
 class LLVMCodeGenerator:
@@ -281,7 +279,7 @@ class LLVMCodeGenerator:
 
     # Get LLVM type
 
-    def get_llvm_type(self, type_obj: Type):
+    def get_llvm_type(self, type_obj: TypeProperties):
         """Map a MiniCompiler type to an LLVM type."""
 
         # ---------------------------------
@@ -336,7 +334,7 @@ class LLVMCodeGenerator:
         if type_obj is STRING:
 
             # temporary representation
-            # until you introduce %String runtime object
+            # until %String runtime object is introduced
 
             return ir.IntType(8).as_pointer()
 

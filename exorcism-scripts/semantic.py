@@ -259,7 +259,7 @@ class SemanticAnalyzer:
                     f"Undefined variable '{node.identifier.value}'"
                 )
 
-            return symbol.type
+            return symbol.type_properties
 
 
         # binary operation
@@ -462,7 +462,7 @@ class SemanticAnalyzer:
 
                 token=parameter.token,
 
-                type=parameter.resolved_type,
+                type_properties=parameter.resolved_type,
 
                 initialized=True
             )
@@ -479,7 +479,7 @@ class SemanticAnalyzer:
 
             token=node.token,
 
-            type=resolved_return_type,
+            type_properties=resolved_return_type,
 
             return_type=resolved_return_type,
 
@@ -579,7 +579,7 @@ class SemanticAnalyzer:
 
             if not self.type_system.is_assignable(
                 argument_type,
-                parameter.type
+                parameter.type_properties
             ):
 
                 raise SemanticError(
@@ -615,14 +615,14 @@ class SemanticAnalyzer:
 
         if not self.type_system.is_assignable(
             value_type,
-            symbol.type
+            symbol.type_properties
         ):
 
             raise SemanticError(
                 f"Cannot assign "
                 f"{value_type} "
                 f"to "
-                f"{symbol.type}",
+                f"{symbol.type_properties}",
                 token=node.identifier
             )
 
@@ -731,7 +731,7 @@ class SemanticAnalyzer:
             )
 
             return (
-                symbol.type
+                symbol.type_properties
             )
 
         
@@ -791,7 +791,7 @@ class SemanticAnalyzer:
 
                 if not self.type_system.is_assignable(
                     argument_type,
-                    parameter.type
+                    parameter.type_properties
                 ):
 
                     raise SemanticError(

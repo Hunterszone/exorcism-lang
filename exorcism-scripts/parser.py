@@ -5,10 +5,15 @@ from compiler_ast import Program, TypeName
 from tokens import TokenType
 
 from base import ParserBase
+
 from expressions import ExpressionParserMixin
+
 from statements import StatementParserMixin
+
 from controlflow import ControlFlowParserMixin
+
 from functions import FunctionParserMixin
+
 
 class ParserError(Exception):
     """Exception raised for parser errors."""
@@ -100,6 +105,7 @@ class Parser(
     # ========================================================
 
     def parse_top_level_statement(self):
+        """Parse and return the next top-level statement."""
         
         if self.is_function_declaration():
             
@@ -115,6 +121,7 @@ class Parser(
     # ========================================================
     
     def is_function_declaration(self):
+        """Return whether the next top-level construct is a function declaration."""
 
         saved = self.save()
 

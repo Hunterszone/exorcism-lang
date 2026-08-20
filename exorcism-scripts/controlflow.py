@@ -35,6 +35,7 @@ class ControlFlowParserMixin:
     # ========================================================
 
     def parse_block(self):
+        """Parse a braced block and return its statements."""
 
         opening = self.expect(
             TokenType.LBRACE,
@@ -74,6 +75,7 @@ class ControlFlowParserMixin:
     # ========================================================
 
     def parse_if_statement(self):
+        """Parse an if statement, including optional else branches."""
 
         if_token = self.expect(
             TokenType.IF

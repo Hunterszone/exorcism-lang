@@ -1,5 +1,5 @@
 from exorcism_types import (
-    Type,
+    TypeProperties,
     PrimitiveType,
     NullableType,
     NullType,
@@ -7,7 +7,6 @@ from exorcism_types import (
     FLOAT,
     DOUBLE
 )
-
 
 
 class TypeSystem:
@@ -20,8 +19,8 @@ class TypeSystem:
 
     def is_assignable(
         self,
-        source: Type,
-        target: Type
+        source: TypeProperties,
+        target: TypeProperties
     ) -> bool:
         """Return whether a value of ``source`` type can be assigned to ``target``."""
 
@@ -99,8 +98,8 @@ class TypeSystem:
 
     def can_convert_numeric(
         self,
-        source: Type,
-        target: Type
+        source: TypeProperties,
+        target: TypeProperties
     ) -> bool:
         """Return whether ``source`` can be widened to ``target`` numerically."""
 
@@ -145,8 +144,8 @@ class TypeSystem:
 
     def comparable(
         self,
-        left: Type,
-        right: Type
+        left: TypeProperties,
+        right: TypeProperties
     ):
         """Return whether two types can be compared for equality."""
 
@@ -172,9 +171,10 @@ class TypeSystem:
 
     def common_type(
         self,
-        left: Type,
-        right: Type
-    ) -> Type:
+        left: TypeProperties,
+        right: TypeProperties
+    ) -> TypeProperties:
+        """Return the common type for two compatible operand types."""
 
 
         if left == right:
@@ -217,7 +217,7 @@ class TypeSystem:
 
     def unwrap_nullable(
         self,
-        t: Type
+        t: TypeProperties
     ):
         """Return the underlying type for a nullable type."""
 
@@ -234,7 +234,7 @@ class TypeSystem:
 
     def is_nullable(
         self,
-        t: Type
+        t: TypeProperties
     ):
         """Return whether ``type`` is nullable."""
 

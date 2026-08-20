@@ -76,6 +76,7 @@ class Compiler:
         source: str,
         output="program"
     ):
+        """Compile WORM source text into the requested output."""
 
 
         try:
@@ -422,6 +423,7 @@ class Compiler:
         self,
         source: str
     ):
+        """Analyze the symbols in the provided source code."""
 
         lexer = Lexer(
             source

@@ -6,7 +6,9 @@ import tempfile
 import json
 
 from compiler import Compiler
+
 from symbols import FunctionSymbol
+
 from build import WasmBuilder, BuildError
 
 # Force UTF-8 output on Windows
@@ -376,7 +378,7 @@ def symbol_to_json(symbol):
             if isinstance(symbol, FunctionSymbol)
             else "variable"
         ),
-        "type": str(symbol.type),
+        "type": str(symbol.type_properties),
         "line": symbol.token.line,
         "column": symbol.token.column,
     }

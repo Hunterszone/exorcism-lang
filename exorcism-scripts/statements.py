@@ -27,46 +27,42 @@ class StatementParserMixin:
     # ========================================================
 
     def parse_statement(self):
-        
+        """Parse and return the next statement."""
+
+        parser = self.parse_expression_statement
+
         # variable declaration
         if self.check(TokenType.VAR):
-            
-            return self.parse_variable_declaration()
-        
+
+            parser = self.parse_variable_declaration
+
         # typed variable declarations
-        if self.check_type_start():
+        elif self.check_type_start():
 
-            return self.parse_variable_declaration()
-            
-            
+            parser = self.parse_variable_declaration
+
         # if statements    
-        if self.check(TokenType.IF):
-            
-            return self.parse_if_statement()
+        elif self.check(TokenType.IF):
 
+            parser = self.parse_if_statement
 
         # print statements
-        if self.check(TokenType.PRINT):
+        elif self.check(TokenType.PRINT):
 
-            return self.parse_print_statement()
-            
-            
+            parser = self.parse_print_statement
+
         # return statements
-        if self.check(TokenType.RETURN):
+        elif self.check(TokenType.RETURN):
 
-            return self.parse_return_statement()
+            parser = self.parse_return_statement
 
-        
         # assignment
-        if self.check(TokenType.IDENTIFIER):
+        elif (self.check(TokenType.IDENTIFIER)
+              and self.peek().type == TokenType.ASSIGN):
 
-            if self.peek().type == TokenType.ASSIGN:
+            parser = self.parse_assignment
 
-                return self.parse_assignment()
-
-
-        # fallback: expression statement
-        return self.parse_expression_statement()
+        return parser()
 
 
     # ========================================================
@@ -213,6 +209,7 @@ class StatementParserMixin:
     # ========================================================
 
     def parse_expression_statement(self):
+        """Parse an expression statement terminated by a semicolon."""
 
         expression = self.parse_expression()
 
@@ -238,6 +235,7 @@ class StatementParserMixin:
     # ========================================================
     
     def parse_print_statement(self):
+        """Parse a print statement terminated by a semicolon."""
 
         token = self.expect(TokenType.PRINT)
 

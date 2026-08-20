@@ -6,10 +6,8 @@ import subprocess
 import platform
 
 
-
 class BuildError(Exception):
-    pass
-
+    """Raised when the WebAssembly build pipeline fails."""
 
 
 class WasmBuilder:
@@ -22,9 +20,7 @@ class WasmBuilder:
     """
 
 
-
     TARGET = "wasm32-unknown-unknown"
-
 
 
     def __init__(
@@ -49,6 +45,7 @@ class WasmBuilder:
     # ========================================================
 
     def find_clang(self):
+        """Locate a usable clang installation for the WebAssembly build."""
 
         clang = shutil.which(
             "clang"
@@ -116,6 +113,7 @@ class WasmBuilder:
         llvm_ir: str,
         name="program"
     ):
+        """Write LLVM IR to a file in the output directory."""
 
         path = os.path.join(
             self.output_dir,
@@ -147,6 +145,7 @@ class WasmBuilder:
         llvm_ir: str,
         name="program"
     ):
+        """Build LLVM IR into a WebAssembly module."""
 
 
         clang = self.find_clang()
@@ -214,6 +213,7 @@ class WasmBuilder:
         self,
         wasm_file
     ):
+        """Create the JavaScript launcher for the generated WebAssembly file."""
 
 
         runner = os.path.join(
@@ -305,6 +305,7 @@ WebAssembly.instantiate(wasmBuffer, {
         llvm_ir,
         name="program"
     ):
+        """Compile LLVM IR and create its WebAssembly runner."""
 
 
         wasm = self.build_wasm(

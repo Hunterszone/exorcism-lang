@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+
 from enum import Enum
+
 from typing import Optional
 
 
 class DiagnosticSeverity(Enum):
+    """Severity levels for compiler diagnostics."""
+
     ERROR = "error"
     WARNING = "warning"
     INFO = "info"
@@ -74,6 +78,7 @@ class DiagnosticBag:
         severity: DiagnosticSeverity = DiagnosticSeverity.ERROR,
         code: Optional[str] = None,
     ):
+        """Add a diagnostic to the bag."""
         diagnostic = Diagnostic(
             message=message,
             location=SourceLocation(
@@ -95,6 +100,7 @@ class DiagnosticBag:
         length: int = 1,
         code: Optional[str] = None,
     ):
+        """Add an error diagnostic to the bag."""
         self.add(
             message=message,
             line=line,
@@ -112,6 +118,7 @@ class DiagnosticBag:
         length: int = 1,
         code: Optional[str] = None,
     ):
+        """Add a warning diagnostic to the bag."""
         self.add(
             message=message,
             line=line,
@@ -129,6 +136,7 @@ class DiagnosticBag:
         length: int = 1,
         code: Optional[str] = None,
     ):
+        """Add an informational diagnostic to the bag."""
         self.add(
             message=message,
             line=line,
@@ -151,6 +159,7 @@ class DiagnosticBag:
 
     @property
     def has_warnings(self) -> bool:
+        """Return whether the diagnostic bag contains any warnings."""
         return any(
             diagnostic.severity == DiagnosticSeverity.WARNING
             for diagnostic in self._diagnostics
@@ -158,18 +167,22 @@ class DiagnosticBag:
 
     @property
     def is_empty(self) -> bool:
+        """Return whether the diagnostic bag contains no diagnostics."""
         return len(self._diagnostics) == 0
 
     def clear(self):
+        """Remove all diagnostics from the bag."""
         self._diagnostics.clear()
 
     def to_list(self):
+        """Convert all diagnostics to JSON-compatible dictionaries."""
         return [
             diagnostic.to_dict()
             for diagnostic in self._diagnostics
         ]
 
     def to_json(self):
+        """Convert all diagnostics to a formatted JSON string."""
         import json
 
         return json.dumps(

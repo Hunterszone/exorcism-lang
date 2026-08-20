@@ -6,7 +6,7 @@ from typing import Optional
 
 from tokens import Token
 
-from exorcism_types import Type, VOID
+from exorcism_types import TypeProperties, VOID
 
 class SymbolError(Exception):
     """Exception raised for symbol-related errors."""
@@ -38,7 +38,7 @@ class Symbol:
 
     token: Token
 
-    type: Type
+    type_properties: TypeProperties
 
     initialized: bool = False
 
@@ -50,7 +50,7 @@ class FunctionSymbol(Symbol):
         default_factory=list
     )
 
-    return_type: Type = VOID
+    return_type: TypeProperties = VOID
 
 
 # ============================================================
@@ -58,6 +58,7 @@ class FunctionSymbol(Symbol):
 # ============================================================
 
 class Scope:
+    """Represents a lexical scope containing symbols and child scopes."""
 
     def __init__(
         self,
@@ -92,6 +93,7 @@ class Scope:
     # --------------------------------------------------------
 
     def define(self, symbol: Symbol):
+        """Define a symbol in the current scope."""
 
         if symbol.name in self.symbols:
 
@@ -111,6 +113,7 @@ class Scope:
     # --------------------------------------------------------
 
     def lookup_local(self, name: str):
+        """Look up a symbol in the current scope only."""
 
         return self.symbols.get(name)
 
@@ -176,6 +179,7 @@ class Scope:
         line: int,
         column: int,
     ):
+        """Return whether a source position falls within this scope."""
 
         start = (
             self.start_line,
@@ -274,9 +278,10 @@ class SymbolTable:
     def declare(
         self,
         identifier: Token,
-        type: Type,
+        type_properties: TypeProperties,
         initialized: bool = False,
     ):
+        """Declare a symbol in the current scope."""
 
         symbol = Symbol(
 
@@ -284,7 +289,7 @@ class SymbolTable:
 
             token=identifier,
 
-            type=type,
+            type_properties=type_properties,
 
             initialized=initialized,
         )
