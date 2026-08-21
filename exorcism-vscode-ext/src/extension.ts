@@ -36,6 +36,7 @@ export function activate(
 		"void",
 		"if",
 		"else",
+		"option",
 		"while",
 		"for",
 		"return",
