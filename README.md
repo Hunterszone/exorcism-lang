@@ -36,7 +36,7 @@ The LLVM backend provides:
 - Efficient low-level representations
 - A foundation used by many production languages
 
-## The Exorcism Environment
+## The Runtime Environment
 
 ### No Exorcism VM
 - Programs compile to native targets or WebAssembly
@@ -53,9 +53,9 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 - provide memory access
 - call exported functions
 
-## The Exorcism Commands
+## The Exorcism CLI
 
-**NOTE**: The Exorcism Setup Installer adds `exorcism.exe` to PATH, so that .exrc programs could be executed from any location.
+**NOTE**: The Exorcism Setup Installer adds `exorcism.exe` to PATH, so that `.exrc` programs could be executed from any location.
 
 ```console
     Usage:
@@ -83,7 +83,7 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 
 <br>
 
-# II. Exorcism Features & Tooling
+# II. The Exorcism Features & Tooling
 
 ## Compiler Features
 
