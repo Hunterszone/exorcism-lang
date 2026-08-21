@@ -59,7 +59,7 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 
 ```console
     Usage:
-      exorcism <command> [options]
+      exrc <command> [options]
 
     Commands:
       build <file.exrc>       Compile an Exorcism source file to WebAssembly
@@ -72,13 +72,13 @@ WebAssembly is a portable binary format, but it needs a host environment to:
       -v, --version           Show the Exorcism version
 
     Examples:
-      exorcism build hello.exrc
-      exorcism run hello.exrc
-	  exorcism analyze file.exrc
-      exorcism analyze file.exrc --json
-	  exorcism doctor
-      exorcism --version
-      exorcism --help						 
+      exrc build hello.exrc
+      exrc run hello.exrc
+	  exrc analyze file.exrc
+      exrc analyze file.exrc --json
+	  exrc doctor
+      exrc --version
+      exrc --help						 
 ```
 
 <br>
@@ -92,7 +92,7 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 - ✅ Automatic type inference (`var`)
 - ✅ Mathematical operator precedence
 - ✅ Cross-platform execution
-- ✅ Syntax analysis & validation (`exorcism analyze file.exrc`)
+- ✅ Syntax analysis & validation (`exrc analyze file.exrc`)
 - 🛠️ Memory management - WIP
 
 ## Language Features
@@ -127,11 +127,12 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 ## Tooling
 
 - ✅ Exorcism CLI (`exorcism.exe`)
-- ✅ Perquisites checker (`exorcism doctor`)
-- 🛠️ Formatter (`exorcism fmt`)
-- 🛠️ Linter (`exorcism lint`)
-- 🛠️ Documentation generator (`exorcism docs`)
-- 🛠️ Package manager (`exorcism install`)
+- ✅ Perquisites checker (`exrc doctor`)
+- ✅ Code analyzer (`exrc analyze`)
+- 🛠️ Formatter (`exrc format`)
+- 🛠️ Linter (`exrc lint`)
+- 🛠️ Documentation generator (`exrc docs`)
+- 🛠️ Package manager (`exrc install`)
 
 <br>
 
