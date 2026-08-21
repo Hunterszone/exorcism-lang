@@ -22,7 +22,7 @@ if sys.platform == "win32":
 EXORCISM_VERSION = "0.1.0"
 HELP_MSG = '''
     Usage:
-      exorcism <command> [options]
+      exrc <command> [options]
 
     Commands:
       build <file.exrc>       Compiles an Exorcism source file to WebAssembly
@@ -35,13 +35,13 @@ HELP_MSG = '''
       -v, --version           Show the Exorcism version
 
     Examples:
-      exorcism build hello.exrc
-      exorcism run hello.exrc
-      exorcism analyze file.exrc
-      exorcism analyze file.exrc --json
-      exorcism doctor
-      exorcism --version
-      exorcism --help		
+      exrc build hello.exrc
+      exrc run hello.exrc
+      exrc analyze file.exrc
+      exrc analyze file.exrc --json
+      exrc doctor
+      exrc --version
+      exrc --help		
 '''
   
 # ========================================================

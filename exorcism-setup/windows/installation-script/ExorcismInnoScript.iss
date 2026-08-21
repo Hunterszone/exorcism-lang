@@ -58,6 +58,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "C:\Users\kdren\Downloads\EXORCISM_LANG_PROJ\exorcism-scripts\dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\kdren\Downloads\EXORCISM_LANG_PROJ\exorcism-scripts\dist\exrc.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\kdren\Downloads\EXORCISM_LANG_PROJ\exorcism-logo\logo.ico"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
