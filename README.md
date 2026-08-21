@@ -104,7 +104,9 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 - 🛠️ Sequential conditional statements (`IF ELSE`) - WIP
 - 🛠️ SWITCH-CASE support - WIP
 - 🛠️ Logical operators (`AND`, `OR`) - WIP
-- 🛠️ Relational operators (`childof`) - WIP
+- 🛠️ Coalesce operator (`isX?.isY`) - WIP
+- 🛠️ Relational operator (`childof`) - WIP
+- 🛠️ Casting & ClassCastException - WIP
 - 🛠️ Exception handling - WIP
 - 🛠️ Assignment operators (`= += -= *= /= %= &= ^= |= <<= >>= >>>=`) - WIP
 - 🛠️ Bitwise operators (`XOR`, `BITSHIFT`) - WIP
