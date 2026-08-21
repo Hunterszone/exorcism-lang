@@ -33,6 +33,7 @@ class TokenType(Enum):
 
     # ---------- Keywords ----------
     IF = auto()
+    OPTION = auto()
     ELSE = auto()
     PRINT = auto()
     RETURN = auto()
@@ -102,6 +103,7 @@ KEYWORDS = {
 
     # keywords
     "if": TokenType.IF,
+    "option": TokenType.OPTION,
     "else": TokenType.ELSE,
     "print": TokenType.PRINT,
     "return": TokenType.RETURN,

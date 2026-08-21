@@ -89,6 +89,8 @@ class IfStatement(ASTNode):
 
     then_block: Block
 
+    alternatives: list[tuple[ASTNode, Block]]
+
     else_block: Optional[Block] = None
 
 

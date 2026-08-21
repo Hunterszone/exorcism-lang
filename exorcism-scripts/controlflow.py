@@ -75,12 +75,16 @@ class ControlFlowParserMixin:
     # ========================================================
 
     def parse_if_statement(self):
-        """Parse an if statement, including optional else branches."""
+        """Parse an if/option/else conditional chain."""
 
         if_token = self.expect(
             TokenType.IF
         )
 
+
+        # ---------------------------------
+        # IF condition
+        # ---------------------------------
 
         self.expect(
             TokenType.LPAREN,
@@ -97,40 +101,77 @@ class ControlFlowParserMixin:
         )
 
 
+        # ---------------------------------
+        # IF block
+        # ---------------------------------
+
         then_block = self.parse_block()
 
+
+        # ---------------------------------
+        # OPTION branches
+        # ---------------------------------
+
+        alternatives = []
+
+
+        while self.match(TokenType.OPTION):
+
+            self.expect(
+                TokenType.LPAREN,
+                "Expected '(' after option"
+            )
+
+
+            option_condition = (
+                self.parse_expression()
+            )
+
+
+            self.expect(
+                TokenType.RPAREN,
+                "Expected ')' after option condition"
+            )
+
+
+            option_block = self.parse_block()
+
+
+            alternatives.append(
+                (
+                    option_condition,
+                    option_block
+                )
+            )
+
+
+        # ---------------------------------
+        # ELSE
+        # ---------------------------------
 
         else_block = None
 
 
         if self.match(TokenType.ELSE):
-            
-            if self.check(TokenType.IF):
 
-                nested_if = self.parse_if_statement()
-
-                else_block = Block(
-                    line=nested_if.line,
-                    column=nested_if.column,
-                    statements=[
-                        nested_if
-                    ],
-                )
-
-            else:
-
-                else_block = self.parse_block()
+            else_block = self.parse_block()
 
 
+        # ---------------------------------
+        # AST
+        # ---------------------------------
 
         return IfStatement(
 
             line=if_token.line,
+
             column=if_token.column,
 
             condition=condition,
 
             then_block=then_block,
+
+            alternatives=alternatives,
 
             else_block=else_block,
         )

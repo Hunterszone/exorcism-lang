@@ -571,34 +571,18 @@ class LLVMCodeGenerator:
 
 
     # ========================================================
-    # If / Else
+    # If / Option / Else
     # ========================================================
 
     def visit_if(
         self,
         node
     ):
-        """Handle if statements, ensuring the condition is boolean and visiting the then and else blocks."""
+        """Generate LLVM IR for an if/option/else conditional chain."""
 
-
-        condition = self.generate_expression(
-            node.condition
-        )
-
-
-        then_block = (
-            self.function.append_basic_block(
-                "then"
-            )
-        )
-
-
-        else_block = (
-            self.function.append_basic_block(
-                "else"
-            )
-        )
-
+        # =====================================================
+        # MERGE
+        # =====================================================
 
         merge_block = (
             self.function.append_basic_block(
@@ -607,20 +591,92 @@ class LLVMCodeGenerator:
         )
 
 
+        # =====================================================
+        # THEN
+        # =====================================================
+
+        then_block = (
+            self.function.append_basic_block(
+                "then"
+            )
+        )
+
+
+        # =====================================================
+        # OPTION CONDITION BLOCKS
+        # =====================================================
+
+        option_condition_blocks = []
+
+
+        for index in range(
+            len(node.alternatives)
+        ):
+
+            option_condition_blocks.append(
+                self.function.append_basic_block(
+                    f"option_{index}"
+                )
+            )
+
+
+        # =====================================================
+        # ELSE
+        # =====================================================
+
+        else_block = None
+
+
+        if node.else_block:
+
+            else_block = (
+                self.function.append_basic_block(
+                    "else"
+                )
+            )
+
+
+        # =====================================================
+        # FIRST IF CONDITION
+        # =====================================================
+
+        condition = (
+            self.generate_expression(
+                node.condition
+            )
+        )
+
+
+        if node.alternatives:
+
+            false_block = (
+                option_condition_blocks[0]
+            )
+
+        elif else_block:
+
+            false_block = else_block
+
+        else:
+
+            false_block = merge_block
+
+
         self.builder.cbranch(
             condition,
             then_block,
-            else_block
+            false_block
         )
 
 
-        # --------------------
+        # =====================================================
         # THEN
-        # --------------------
+        # =====================================================
 
-        self.builder.position_at_start(
+        self.builder.position_at_end(
             then_block
         )
+
 
         self.visit(
             node.then_block
@@ -634,34 +690,130 @@ class LLVMCodeGenerator:
             )
 
 
+        # =====================================================
+        # OPTIONS
+        # =====================================================
 
-        # --------------------
+        for index, (
+            option_condition,
+            option_body
+        ) in enumerate(
+            node.alternatives
+        ):
+
+            option_condition_block = (
+                option_condition_blocks[index]
+            )
+
+
+            option_then_block = (
+                self.function.append_basic_block(
+                    f"option_{index}_then"
+                )
+            )
+
+
+            # ---------------------------------------------
+            # Determine false destination
+            # ---------------------------------------------
+
+            if index + 1 < len(
+                option_condition_blocks
+            ):
+
+                next_false_block = (
+                    option_condition_blocks[
+                        index + 1
+                    ]
+                )
+
+            elif else_block:
+
+                next_false_block = (
+                    else_block
+                )
+
+            else:
+
+                next_false_block = (
+                    merge_block
+                )
+
+
+            # ---------------------------------------------
+            # OPTION CONDITION
+            # ---------------------------------------------
+
+            self.builder.position_at_end(
+                option_condition_block
+            )
+
+
+            option_value = (
+                self.generate_expression(
+                    option_condition
+                )
+            )
+
+
+            self.builder.cbranch(
+                option_value,
+                option_then_block,
+                next_false_block
+            )
+
+
+            # ---------------------------------------------
+            # OPTION BODY
+            # ---------------------------------------------
+
+            self.builder.position_at_end(
+                option_then_block
+            )
+
+
+            self.visit(
+                option_body
+            )
+
+
+            if not self.builder.block.is_terminated:
+
+                self.builder.branch(
+                    merge_block
+                )
+
+
+        # =====================================================
         # ELSE
-        # --------------------
+        # =====================================================
 
-        self.builder.position_at_start(
-            else_block
-        )
+        if else_block:
 
+            self.builder.position_at_end(
+                else_block
+            )
 
-        if node.else_block:
 
             self.visit(
                 node.else_block
             )
 
 
-        if not self.builder.block.is_terminated:
+            if not self.builder.block.is_terminated:
 
-            self.builder.branch(
-                merge_block
-            )
+                self.builder.branch(
+                    merge_block
+                )
 
 
-        self.builder.position_at_start(
+        # =====================================================
+        # MERGE
+        # =====================================================
+
+        self.builder.position_at_end(
             merge_block
         )
-
 
 
     # ========================================================

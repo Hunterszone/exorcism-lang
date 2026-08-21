@@ -636,8 +636,11 @@ class SemanticAnalyzer:
         self,
         node: IfStatement
     ):
-        """Handle if statements, ensuring the condition is boolean and visiting the then and else blocks."""
+        """Handle if/option/else conditional chains."""
 
+        # ---------------------------------
+        # IF condition
+        # ---------------------------------
 
         condition_type = (
             self.evaluate_expression(
@@ -653,12 +656,47 @@ class SemanticAnalyzer:
             )
 
 
-        self.visit(node.then_block)
+        self.visit(
+            node.then_block
+        )
 
+
+        # ---------------------------------
+        # OPTION conditions
+        # ---------------------------------
+
+        for option_condition, option_block in (
+            node.alternatives
+        ):
+
+            option_type = (
+                self.evaluate_expression(
+                    option_condition
+                )
+            )
+
+
+            if option_type != BOOL:
+
+                raise SemanticError(
+                    "Option condition must be boolean"
+                )
+
+
+            self.visit(
+                option_block
+            )
+
+
+        # ---------------------------------
+        # ELSE
+        # ---------------------------------
 
         if node.else_block:
 
-            self.visit(node.else_block)
+            self.visit(
+                node.else_block
+            )
 
 
 
