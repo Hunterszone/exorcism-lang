@@ -274,6 +274,17 @@ class SemanticAnalyzer:
             )
 
 
+            # ---------------------------------
+            # String concatenation
+            # ---------------------------------
+
+            if node.operator.type == TokenType.PLUS:
+
+                if left_type == STRING and right_type == STRING:
+
+                    return STRING
+
+
             if left_type != right_type:
 
                 raise SemanticError(
@@ -869,7 +880,8 @@ class SemanticAnalyzer:
 
                 if operand_type not in (
                     INT,
-                    FLOAT
+                    FLOAT,
+                    DOUBLE
                 ):
 
                     raise SemanticError(
@@ -903,19 +915,31 @@ class SemanticAnalyzer:
             operator = node.operator.type
 
 
-
             # arithmetic
 
-            if operator in (
-                TokenType.PLUS,
-                TokenType.MINUS,
-                TokenType.STAR,
-                TokenType.SLASH,
-            ):
+            # ---------------------------------
+            # Addition
+            # ---------------------------------
+
+            if operator == TokenType.PLUS:
+
+                # String concatenation
+
+                if (
+                    left_type == STRING
+                    and
+                    right_type == STRING
+                ):
+
+                    return STRING
+
+
+                # Numeric addition
 
                 if left_type not in (
                     INT,
-                    FLOAT
+                    FLOAT,
+                    DOUBLE,
                 ):
 
                     raise SemanticError(
@@ -925,7 +949,8 @@ class SemanticAnalyzer:
 
                 if right_type not in (
                     INT,
-                    FLOAT
+                    FLOAT,
+                    DOUBLE,
                 ):
 
                     raise SemanticError(
@@ -933,16 +958,42 @@ class SemanticAnalyzer:
                     )
 
 
-                if (
-                    left_type == FLOAT
-                    or right_type == FLOAT
+                return left_type
+
+
+            # ---------------------------------
+            # Other arithmetic
+            # ---------------------------------
+
+            if operator in (
+                TokenType.MINUS,
+                TokenType.STAR,
+                TokenType.SLASH,
+            ):
+
+                if left_type not in (
+                    INT,
+                    FLOAT,
+                    DOUBLE,
                 ):
 
-                    return FLOAT
+                    raise SemanticError(
+                        "Left side must be numeric"
+                    )
 
 
-                return INT
+                if right_type not in (
+                    INT,
+                    FLOAT,
+                    DOUBLE,
+                ):
 
+                    raise SemanticError(
+                        "Right side must be numeric"
+                    )
+
+
+                return left_type
 
 
             # comparisons

@@ -226,46 +226,282 @@ class WasmBuilder:
 const fs = require("fs");
 const path = require("path");
 
-const wasmFile = path.join(__dirname, "__WASM_FILE__");
 
-const wasmBuffer = fs.readFileSync(wasmFile);
+const wasmFile = path.join(
+    __dirname,
+    "hello.wasm"
+);
+
+
+const wasmBuffer = fs.readFileSync(
+    wasmFile
+);
+
 
 let instance;
 
-WebAssembly.instantiate(wasmBuffer, {
 
-    env: {
+/*
+ * Simple runtime heap.
+ *
+ * We start allocating at the end of the
+ * currently allocated WebAssembly memory.
+ *
+ * This avoids interfering with the memory
+ * already used by the generated program.
+ */
 
-        print_int: (value) => {
-            console.log(value);
-        },
-        
-        print_string: (ptr) => {
+let heapPointer = 0;
 
-            const memory =
-                new Uint8Array(
-                    instance.exports.memory.buffer
-                );
 
-            let text = "";
+/*
+ * Allocate memory inside WebAssembly memory.
+ */
 
-            while (memory[ptr] !== 0) {
+function allocate(size) {
 
-                text += String.fromCharCode(
-                    memory[ptr]
-                );
+    const memory =
+        new Uint8Array(
+            instance.exports.memory.buffer
+        );
 
-                ptr++;
-            }
 
-            console.log(text);
-        }
+    /*
+     * First allocation:
+     * start at the current end of memory.
+     */
+
+    if (heapPointer === 0) {
+
+        heapPointer = memory.byteLength;
     }
 
-})
+
+    const pointer = heapPointer;
+
+    const requiredEnd =
+        pointer + size;
+
+
+    /*
+     * WebAssembly memory grows in
+     * 64 KiB pages.
+     */
+
+    const pageSize = 64 * 1024;
+
+
+    if (requiredEnd > memory.byteLength) {
+
+        const additionalBytes =
+            requiredEnd - memory.byteLength;
+
+
+        const additionalPages =
+            Math.ceil(
+                additionalBytes / pageSize
+            );
+
+
+        instance.exports.memory.grow(
+            additionalPages
+        );
+    }
+
+
+    heapPointer += size;
+
+
+    return pointer;
+}
+
+
+/*
+ * Concatenate two null-terminated strings.
+ *
+ * concat_strings(left, right) -> pointer
+ */
+
+function concatStrings(
+    leftPtr,
+    rightPtr
+) {
+
+    /*
+     * Get the current WebAssembly memory.
+     */
+    let memory =
+        new Uint8Array(
+            instance.exports.memory.buffer
+        );
+
+
+    /*
+     * Find the length of the first string.
+     */
+    let leftLength = 0;
+
+    while (
+        memory[leftPtr + leftLength] !== 0
+    ) {
+
+        leftLength++;
+    }
+
+
+    /*
+     * Find the length of the second string.
+     */
+    let rightLength = 0;
+
+    while (
+        memory[rightPtr + rightLength] !== 0
+    ) {
+
+        rightLength++;
+    }
+
+
+    /*
+     * Allocate enough space for:
+     *
+     * left string
+     * + right string
+     * + null terminator
+     */
+    const totalLength =
+        leftLength +
+        rightLength +
+        1;
+
+
+    const resultPtr =
+        allocate(totalLength);
+
+
+    /*
+     * IMPORTANT:
+     *
+     * allocate() may have grown WebAssembly
+     * memory, so the old Uint8Array is no
+     * longer safe to use.
+     *
+     * Get a fresh view.
+     */
+    memory =
+        new Uint8Array(
+            instance.exports.memory.buffer
+        );
+
+
+    /*
+     * Copy the first string.
+     */
+    for (
+        let i = 0;
+        i < leftLength;
+        i++
+    ) {
+
+        memory[
+            resultPtr + i
+        ] = memory[
+            leftPtr + i
+        ];
+    }
+
+
+    /*
+     * Copy the second string.
+     */
+    for (
+        let i = 0;
+        i < rightLength;
+        i++
+    ) {
+
+        memory[
+            resultPtr +
+            leftLength +
+            i
+        ] = memory[
+            rightPtr + i
+        ];
+    }
+
+
+    /*
+     * Null terminator.
+     */
+    memory[
+        resultPtr +
+        leftLength +
+        rightLength
+    ] = 0;
+
+
+    return resultPtr;
+}
+
+
+WebAssembly.instantiate(
+    wasmBuffer,
+    {
+
+        env: {
+
+            print_int: (value) => {
+
+                console.log(value);
+            },
+
+
+            print_string: (ptr) => {
+
+                const memory =
+                    new Uint8Array(
+                        instance.exports.memory.buffer
+                    );
+
+
+                let text = "";
+
+
+                while (
+                    memory[ptr] !== 0
+                ) {
+
+                    text += String.fromCharCode(
+                        memory[ptr]
+                    );
+
+
+                    ptr++;
+                }
+
+
+                console.log(text);
+            },
+
+
+            concat_strings: (
+                leftPtr,
+                rightPtr
+            ) => {
+
+                return concatStrings(
+                    leftPtr,
+                    rightPtr
+                );
+            }
+        }
+
+    }
+)
 .then(result => {
 
     instance = result.instance;
+
 
     instance.exports.main();
 

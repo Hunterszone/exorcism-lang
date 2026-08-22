@@ -102,24 +102,26 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 - ✅ Function calls in expressions (`var x = add(int a, int b);`)
 - ✅ Void functions
 - ✅ Sequential conditional statements (`if-option-option-...else`)
-- 🛠️ SWITCH-CASE statements - WIP
 - 🛠️ String concatenation - WIP
+- 🛠️ User input handling - WIP
+- 🛠️ Main entry point - WIP
+- 🛠️ SWITCH-CASE statements - WIP
 - 🛠️ Loops (`for`, `foreach`, `while`, `do-while`) - WIP
 - 🛠️ Jump statements (`break`, `continue`) - WIP
-- 🛠️ Access modifiers (`public`, `private`, etc.) - WIP
 - 🛠️ Logical operators (`AND`, `OR`) - WIP
 - 🛠️ Coalesce operator (`isX?.isY`) - WIP
 - 🛠️ Relational operator (`memberof`) - WIP
 - 🛠️ Assignment operators (`= += -= *= /= %= &= ^= |= <<= >>= >>>=`) - WIP
 - 🛠️ Bitwise operators (`XOR`, `BITSHIFT`) - WIP
 - 🛠️ Lambda expressions (`() -> doSmth()`) - WIP
+- 🛠️ OOP features (`classes, structs, interfaces`) - WIP
+- 🛠️ OOP concepts (`abstraction/polymorphism/inheritance`) - WIP
+- 🛠️ Generics support - WIP
+- 🛠️ Access modifiers (`public`, `private`, etc.) - WIP
 - 🛠️ Casting & ClassCastException - WIP
+- 🛠️ Exception hierarchy - WIP
 - 🛠️ Exception handling - WIP
-- 🛠️ User input handling - WIP
-- 🛠️ Main entry point - WIP
 - 🛠️ Data structures / Collections - WIP
-- 🛠️ Generics support
-- 🛠️ OOP features - WIP
 - 🛠️ Getter/Setter API - WIP
 - 🛠️ Async/Concurrency - WIP
 - 🛠️ Standard library - WIP

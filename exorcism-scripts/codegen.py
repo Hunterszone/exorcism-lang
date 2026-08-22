@@ -60,7 +60,12 @@ class LLVMCodeGenerator:
         self.module.add_named_metadata(
             "wasm.memory"
         )
-        
+
+
+        #---------------------------------
+        # Print function
+        #---------------------------------
+
         self.print_string = ir.Function(
             self.module,
             ir.FunctionType(
@@ -71,7 +76,29 @@ class LLVMCodeGenerator:
             ),
             name="print_string"
         )
+
+
+        #---------------------------------
+        # String concatenation function
+        #---------------------------------
+
+        self.concat_strings = ir.Function(
+            self.module,
+            ir.FunctionType(
+                ir.IntType(8).as_pointer(),
+                [
+                    ir.IntType(8).as_pointer(),
+                    ir.IntType(8).as_pointer()
+                ]
+            ),
+            name="concat_strings"
+        )
         
+
+        #---------------------------------
+        # Print integer function
+        #---------------------------------
+
         self.print_int = ir.Function(
             self.module,
             ir.FunctionType(
@@ -1003,10 +1030,30 @@ class LLVMCodeGenerator:
             op = node.operator.type
 
 
-
-            # arithmetic
+            # Addition
 
             if op == TokenType.PLUS:
+
+
+                # String concatenation
+
+                if (
+                    isinstance(left.type, ir.PointerType)
+                    and
+                    isinstance(right.type, ir.PointerType)
+                ):
+
+                    return self.builder.call(
+                        self.concat_strings,
+                        [
+                            left,
+                            right
+                        ],
+                        name="concat"
+                    )
+
+
+                # Numeric addition
 
                 return self.builder.add(
                     left,
@@ -1014,6 +1061,8 @@ class LLVMCodeGenerator:
                     "addtmp"
                 )
 
+
+            # Subtraction
 
             if op == TokenType.MINUS:
 
@@ -1024,6 +1073,8 @@ class LLVMCodeGenerator:
                 )
 
 
+            # Multiplication
+
             if op == TokenType.STAR:
 
                 return self.builder.mul(
@@ -1032,6 +1083,8 @@ class LLVMCodeGenerator:
                     "multmp"
                 )
 
+
+            # Division
 
             if op == TokenType.SLASH:
 
@@ -1043,7 +1096,7 @@ class LLVMCodeGenerator:
 
 
 
-            # comparisons
+            # Comparisons
 
             if op == TokenType.EQUAL:
 
@@ -1100,7 +1153,7 @@ class LLVMCodeGenerator:
 
 
 
-            # logical
+            # Logical
 
             if op == TokenType.AND:
 
