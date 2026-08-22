@@ -1,0 +1,87 @@
+{
+    "functions": {
+        "print": {
+            "signature": "print(value)",
+            "description": "Prints a value to the standard output."
+        }
+    },
+    "types": {
+        "int": {
+            "description": "A 32-bit signed integer type."
+        },
+        "float": {
+            "description": "A single-precision floating-point type."
+        },
+        "double": {
+            "description": "A double-precision floating-point type."
+        },
+        "char": {
+            "description": "A single character type."
+        },
+        "string": {
+            "description": "A sequence of characters."
+        },
+        "bool": {
+            "description": "A boolean type representing true or false."
+        },
+        "void": {
+            "description": "A type indicating that a function does not return a value."
+        }
+    },
+    "keywords": {
+        "var": {
+            "description": "Declares a variable with its type inferred from the initializer."
+        },
+        "int": {
+            "description": "Declares a variable or parameter of type int, a 32-bit signed integer."
+        },
+        "float": {
+            "description": "Declares a variable or parameter of type float, a single-precision floating-point number."
+        },
+        "double": {
+            "description": "Declares a variable or parameter of type double, a double-precision floating-point number."
+        },
+        "char": {
+            "description": "Declares a variable or parameter containing a single character."
+        },
+        "string": {
+            "description": "Declares a variable or parameter containing a sequence of characters."
+        },
+        "bool": {
+            "description": "Declares a boolean variable or parameter that can hold true or false."
+        },
+        "void": {
+            "description": "Specifies that a function does not return a value."
+        },
+        "if": {
+            "description": "Begins a conditional statement. Its block executes when the condition evaluates to true."
+        },
+        "else": {
+            "description": "Defines the block executed when the preceding if and all option conditions evaluate to false."
+        },
+        "option": {
+            "description": "Defines an additional conditional branch of an if statement. Options are evaluated in order after the initial if condition fails."
+        },
+        "while": {
+            "description": "Begins a loop that repeatedly executes its block while the condition evaluates to true."
+        },
+        "for": {
+            "description": "Begins a for loop for repeated execution based on an iteration condition."
+        },
+        "return": {
+            "description": "Terminates the current function and optionally returns a value to its caller."
+        },
+        "break": {
+            "description": "Immediately terminates the innermost loop."
+        },
+        "continue": {
+            "description": "Skips the remainder of the current loop iteration and continues with the next iteration."
+        },
+        "function": {
+            "description": "Declares a function with a name, parameters, return type, and body."
+        },
+        "struct": {
+            "description": "Declares a structure type that groups related data fields into a single type."
+        }
+    }
+}

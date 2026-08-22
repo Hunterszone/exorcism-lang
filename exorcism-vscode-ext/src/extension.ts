@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
 import { execFile } from "child_process";
-
+import {
+    ExorcismHoverProvider
+} from "./hoverProvider";
 
 const LANGUAGE_ID = "exorcism";
 const DIAGNOSTIC_SOURCE = "exorcism";
@@ -20,6 +22,16 @@ interface ExorcismDiagnostic {
 export function activate(
 	context: vscode.ExtensionContext
 ) {
+
+	// ========================================================
+	// Hover provider
+	// ========================================================
+	context.subscriptions.push(
+		vscode.languages.registerHoverProvider(
+			{ language: "exorcism" },
+			new ExorcismHoverProvider()
+		)
+	);
 
 	// ========================================================
 	// Keyword completion
