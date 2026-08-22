@@ -102,7 +102,7 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 - ✅ Function calls in expressions (`var x = add(int a, int b);`)
 - ✅ Void functions
 - ✅ Sequential conditional statements (`if-option-option-...else`)
-- 🛠️ String concatenation - WIP
+- ✅ String concatenation
 - 🛠️ User input handling - WIP
 - 🛠️ Main entry point - WIP
 - 🛠️ SWITCH-CASE statements - WIP
@@ -507,6 +507,7 @@ https://marketplace.visualstudio.com/items?itemName=exorcism-dev.exorcism-lang
 - ✅ Native support for `.exrc` files
 - ✅ Exorcism language icon and file association
 - ✅ Real-time syntax validation
+- ✅ Keywords documentation support
 - 🛠️ Code auto-completion - WIP
 - 🛠️ Automatic code corrections - WIP
 - 🛠️ Smart code suggestions - WIP
