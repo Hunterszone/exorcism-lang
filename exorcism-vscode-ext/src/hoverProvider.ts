@@ -79,6 +79,36 @@ export class ExorcismHoverProvider
             );
         }
 
+        
+        // -----------------------------
+        // Builtin keywords
+        // -----------------------------
+
+        const keyword =
+            builtinDocs.keywords[
+                word as keyof typeof builtinDocs.keywords
+            ];
+
+
+        if (keyword) {
+
+            const markdown = new vscode.MarkdownString();
+
+            markdown.appendCodeblock(
+                word,
+                "exorcism"
+            );
+
+            markdown.appendMarkdown(
+                `\n${keyword.description}`
+            );
+
+            return new vscode.Hover(
+                markdown,
+                range
+            );
+        }
+
 
         return undefined;
     }
