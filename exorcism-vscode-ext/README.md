@@ -5,8 +5,11 @@ Official Visual Studio Code extension providing syntax support, file association
 ## Features
 
 - **File Association**: Automatically recognizes all `.exrc` configuration and source files.
-- **Custom Iconography**: Integrated high-contrast programming layout icon for the file explorer tree view.
 - **Language Mode**: Registers the dedicated `Exorcism` language mode inside the IDE.
+- **Real-time syntax validation**: Exorcism syntax errors are now reported directly in the VS Code editor.
+- **Editor command menu for .exrc context**: `Build`/`Run` commands are now available in the VS Code editor context menu.
+- **Keywords documentation support**: Adds Exorcism keywords documentation, displayed on-hover.
+- **Custom Iconography**: Integrated high-contrast programming layout icon for the file explorer tree view.
 
 ## Installation
 
