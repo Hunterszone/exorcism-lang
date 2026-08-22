@@ -508,6 +508,7 @@ https://marketplace.visualstudio.com/items?itemName=exorcism-dev.exorcism-lang
 - ✅ Exorcism language icon and file association
 - ✅ Real-time syntax validation
 - ✅ Keywords documentation support
+- 🛠️ Lang context CLI menu
 - 🛠️ Code auto-completion - WIP
 - 🛠️ Automatic code corrections - WIP
 - 🛠️ Smart code suggestions - WIP

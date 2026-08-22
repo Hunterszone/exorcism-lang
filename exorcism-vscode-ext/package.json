@@ -2,7 +2,7 @@
   "name": "exorcism-lang",
   "displayName": "Exorcism Language Support",
   "description": "Official syntax support for the Exorcism programming language.",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "publisher": "exorcism-dev",
   "icon": "logo.png",
   "engines": {
@@ -34,6 +34,20 @@
         "title": "Exorcism: Doctor"
       }
     ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "exorcism.run",
+          "when": "editorLangId == exorcism",
+          "group": "exorcism@1"
+        },
+        {
+          "command": "exorcism.build",
+          "when": "editorLangId == exorcism",
+          "group": "exorcism@2"
+        }
+      ]
+    },
     "configuration": {
       "title": "Exorcism",
       "properties": {

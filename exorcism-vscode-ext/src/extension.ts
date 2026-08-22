@@ -24,14 +24,77 @@ export function activate(
 ) {
 
 	// ========================================================
-	// Hover provider
+	// Run Exorcism command
 	// ========================================================
+
+	async function runExorcismCommand(command: string) {
+
+		const editor = vscode.window.activeTextEditor;
+
+		if (!editor) {
+			return;
+		}
+
+		const document = editor.document;
+
+		if (document.languageId !== "exorcism") {
+			return;
+		}
+
+		if (!document.fileName.toLowerCase().endsWith(".exrc")) {
+			return;
+		}
+
+		await document.save();
+
+		const terminal = vscode.window.createTerminal(
+			"Exorcism"
+		);
+
+		terminal.show();
+
+		terminal.sendText(
+			`exrc ${command} "${document.fileName}"`
+		);
+	}
+
+	
+	// ========================================================
+	// Register commands
+	// ========================================================
+	
+	const runCommand = vscode.commands.registerCommand(
+		"exorcism.run",
+		() => runExorcismCommand("run")
+	);
+
+	const buildCommand = vscode.commands.registerCommand(
+		"exorcism.build",
+		() => runExorcismCommand("build")
+	);
+
+
+	// ========================================================
+	// Push commands to subscriptions
+	// ========================================================
+
+	context.subscriptions.push(
+		runCommand,
+        buildCommand
+	);
+
+
+	// ========================================================
+	// Push hover provider to subscriptions
+	// ========================================================
+	
 	context.subscriptions.push(
 		vscode.languages.registerHoverProvider(
 			{ language: "exorcism" },
 			new ExorcismHoverProvider()
 		)
 	);
+
 
 	// ========================================================
 	// Keyword completion
