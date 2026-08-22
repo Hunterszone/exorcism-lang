@@ -2,6 +2,14 @@
 
 All notable changes to the Exorcism VS Code Extension will be documented in this file.
 
+## [1.7.0]
+
+### Added
+
+- Added auto-completion for the Exorcism code syntax.
+
+---
+
 ## [1.6.0]
 
 ### Added

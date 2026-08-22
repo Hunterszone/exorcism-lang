@@ -122,27 +122,30 @@ export function activate(
 	];
 
 
+	// ========================================================
+	// Register completion item provider
+	// ========================================================
+	
 	const completionProvider =
 		vscode.languages.registerCompletionItemProvider(
 			LANGUAGE_ID,
 
 			{
-
 				provideCompletionItems() {
 
-					return keywords.map(
-						keyword => {
+					return keywords.map(keyword => {
 
-							return new vscode.CompletionItem(
+						const item =
+							new vscode.CompletionItem(
 								keyword,
 								vscode.CompletionItemKind.Keyword
 							);
 
-						}
-					);
+						item.detail = "Exorcism keyword";
 
+						return item;
+					});
 				}
-
 			}
 		);
 
