@@ -936,29 +936,21 @@ class SemanticAnalyzer:
 
                 # Numeric addition
 
-                if left_type not in (
-                    INT,
-                    FLOAT,
-                    DOUBLE,
+                if (
+                    self.is_numeric_type(left_type)
+                    and
+                    self.is_numeric_type(right_type)
                 ):
 
-                    raise SemanticError(
-                        "Left side must be numeric"
+                    return self.promote_numeric_types(
+                        left_type,
+                        right_type
                     )
 
 
-                if right_type not in (
-                    INT,
-                    FLOAT,
-                    DOUBLE,
-                ):
-
-                    raise SemanticError(
-                        "Right side must be numeric"
-                    )
-
-
-                return left_type
+                raise SemanticError(
+                    "Operands must be numeric or both strings"
+                )
 
 
             # ---------------------------------
@@ -971,10 +963,8 @@ class SemanticAnalyzer:
                 TokenType.SLASH,
             ):
 
-                if left_type not in (
-                    INT,
-                    FLOAT,
-                    DOUBLE,
+                if not self.is_numeric_type(
+                    left_type
                 ):
 
                     raise SemanticError(
@@ -982,10 +972,8 @@ class SemanticAnalyzer:
                     )
 
 
-                if right_type not in (
-                    INT,
-                    FLOAT,
-                    DOUBLE,
+                if not self.is_numeric_type(
+                    right_type
                 ):
 
                     raise SemanticError(
@@ -993,10 +981,15 @@ class SemanticAnalyzer:
                     )
 
 
-                return left_type
+                return self.promote_numeric_types(
+                    left_type,
+                    right_type
+                )
 
 
-            # comparisons
+            # ---------------------------------
+            # Comparisons
+            # ---------------------------------
 
             if operator in (
                 TokenType.EQUAL,
@@ -1007,8 +1000,86 @@ class SemanticAnalyzer:
                 TokenType.GREATER_EQUAL,
             ):
 
-                return BOOL
+                equality_operator = operator in (
+                    TokenType.EQUAL,
+                    TokenType.NOT_EQUAL,
+                )
 
+
+                # ---------------------------------
+                # Numeric comparison
+                # ---------------------------------
+
+                if (
+                    self.is_numeric_type(left_type)
+                    and
+                    self.is_numeric_type(right_type)
+                ):
+
+                    self.promote_numeric_types(
+                        left_type,
+                        right_type
+                    )
+
+                    return BOOL
+
+
+                # ---------------------------------
+                # Character comparison
+                # ---------------------------------
+
+                if (
+                    left_type == CHAR
+                    and
+                    right_type == CHAR
+                ):
+
+                    return BOOL
+
+
+                # ---------------------------------
+                # String equality
+                # ---------------------------------
+
+                if (
+                    left_type == STRING
+                    and
+                    right_type == STRING
+                ):
+
+                    if equality_operator:
+
+                        return BOOL
+
+
+                    raise SemanticError(
+                        "String ordering is not supported"
+                    )
+
+
+                # ---------------------------------
+                # Boolean equality
+                # ---------------------------------
+
+                if (
+                    left_type == BOOL
+                    and
+                    right_type == BOOL
+                ):
+
+                    if equality_operator:
+
+                        return BOOL
+
+
+                    raise SemanticError(
+                        "Boolean ordering is not supported"
+                    )
+
+
+                raise SemanticError(
+                    "Incompatible types for comparison"
+                )
 
 
             # logical
@@ -1034,3 +1105,78 @@ class SemanticAnalyzer:
         raise SemanticError(
             "Unknown expression type"
         )
+
+
+    #========================================================
+    # Numeric type handling
+    #========================================================
+
+    def is_numeric_type(
+        self,
+        type_
+    ):
+        """Return True when the type is numeric."""
+
+        return type_ in (
+            INT,
+            FLOAT,
+            DOUBLE,
+        )
+
+
+    #========================================================
+    # Numeric type promotion
+    #========================================================
+
+    def promote_numeric_types(
+        self,
+        left_type,
+        right_type
+    ):
+        """Return the common numeric type for two numeric operands."""
+
+        if not self.is_numeric_type(
+            left_type
+        ):
+
+            raise SemanticError(
+                f"Expected numeric type, "
+                f"got {left_type}"
+            )
+
+
+        if not self.is_numeric_type(
+            right_type
+        ):
+
+            raise SemanticError(
+                f"Expected numeric type, "
+                f"got {right_type}"
+            )
+
+
+        # DOUBLE has highest precedence.
+
+        if (
+            left_type == DOUBLE
+            or
+            right_type == DOUBLE
+        ):
+
+            return DOUBLE
+
+
+        # FLOAT has second-highest precedence.
+
+        if (
+            left_type == FLOAT
+            or
+            right_type == FLOAT
+        ):
+
+            return FLOAT
+
+
+        # Both operands are INT.
+
+        return INT

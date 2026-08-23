@@ -122,6 +122,136 @@ class LLVMCodeGenerator:
         self.functions = {}
 
 
+    def promote_numeric_values(
+        self,
+        left,
+        right
+    ):
+        """Convert numeric LLVM values to a common type."""
+
+        left_type = left.type
+        right_type = right.type
+
+
+        # ---------------------------------
+        # Already identical
+        # ---------------------------------
+
+        if left_type == right_type:
+
+            return left, right
+
+
+        # ---------------------------------
+        # DOUBLE
+        # ---------------------------------
+
+        if isinstance(
+            left_type,
+            ir.DoubleType
+        ):
+
+            if isinstance(
+                right_type,
+                ir.FloatType
+            ):
+
+                right = self.builder.fpext(
+                    right,
+                    ir.DoubleType()
+                )
+
+            elif isinstance(
+                right_type,
+                ir.IntType
+            ):
+
+                right = self.builder.sitofp(
+                    right,
+                    ir.DoubleType()
+                )
+
+
+            return left, right
+
+
+        if isinstance(
+            right_type,
+            ir.DoubleType
+        ):
+
+            if isinstance(
+                left_type,
+                ir.FloatType
+            ):
+
+                left = self.builder.fpext(
+                    left,
+                    ir.DoubleType()
+                )
+
+            elif isinstance(
+                left_type,
+                ir.IntType
+            ):
+
+                left = self.builder.sitofp(
+                    left,
+                    ir.DoubleType()
+                )
+
+
+            return left, right
+
+
+        # ---------------------------------
+        # FLOAT
+        # ---------------------------------
+
+        if isinstance(
+            left_type,
+            ir.FloatType
+        ):
+
+            if isinstance(
+                right_type,
+                ir.IntType
+            ):
+
+                right = self.builder.sitofp(
+                    right,
+                    ir.FloatType()
+                )
+
+
+            return left, right
+
+
+        if isinstance(
+            right_type,
+            ir.FloatType
+        ):
+
+            if isinstance(
+                left_type,
+                ir.IntType
+            ):
+
+                left = self.builder.sitofp(
+                    left,
+                    ir.FloatType()
+                )
+
+
+            return left, right
+
+
+        raise CodeGenerationError(
+            "Unable to promote numeric values"
+        )
+
+
+
     def generate(self, program: Program):
         """Generate LLVM IR for the given program AST."""
 
@@ -174,7 +304,65 @@ class LLVMCodeGenerator:
         return self.module
 
 
-    # Generate function
+    # Creates a safety default value for a type
+
+    def create_default_value(
+        self,
+        llvm_type
+    ):
+        """Create a safe LLVM default value for a type."""
+
+        if isinstance(
+            llvm_type,
+            ir.PointerType
+        ):
+
+            return ir.Constant(
+                llvm_type,
+                None
+            )
+
+
+        if isinstance(
+            llvm_type,
+            ir.IntType
+        ):
+
+            return ir.Constant(
+                llvm_type,
+                0
+            )
+
+
+        if isinstance(
+            llvm_type,
+            ir.FloatType
+        ):
+
+            return ir.Constant(
+                llvm_type,
+                0.0
+            )
+
+
+        if isinstance(
+            llvm_type,
+            ir.DoubleType
+        ):
+
+            return ir.Constant(
+                llvm_type,
+                0.0
+            )
+
+
+        raise CodeGenerationError(
+            f"Cannot create default value "
+            f"for LLVM type {llvm_type}"
+        )
+
+
+    # Generates function
     
     def generate_function(self, node):
         """Generate LLVM function from function node."""
@@ -288,9 +476,8 @@ class LLVMCodeGenerator:
             else:
 
                 self.builder.ret(
-                    ir.Constant(
-                        return_type,
-                        0
+                    self.create_default_value(
+                        return_type
                     )
                 )
 
@@ -1030,6 +1217,46 @@ class LLVMCodeGenerator:
             op = node.operator.type
 
 
+            # ---------------------------------
+            # String concatenation
+            # ---------------------------------
+
+            if op == TokenType.PLUS:
+
+                if (
+                    isinstance(left.type, ir.PointerType)
+                    and
+                    isinstance(right.type, ir.PointerType)
+                ):
+
+                    return self.builder.call(
+                        self.concat_strings,
+                        [
+                            left,
+                            right,
+                        ],
+                        name="concat"
+                    )
+
+            # ---------------------------------
+            # Numeric promotion
+            # ---------------------------------
+
+            if op in (
+                TokenType.PLUS,
+                TokenType.MINUS,
+                TokenType.STAR,
+                TokenType.SLASH,
+            ):
+
+                left, right = (
+                    self.promote_numeric_values(
+                        left,
+                        right
+                    )
+                )
+
+
             # Addition
 
             if op == TokenType.PLUS:
@@ -1095,62 +1322,29 @@ class LLVMCodeGenerator:
                 )
 
 
-
             # Comparisons
 
-            if op == TokenType.EQUAL:
+            if op in (
+                TokenType.EQUAL,
+                TokenType.NOT_EQUAL,
+                TokenType.LESS,
+                TokenType.LESS_EQUAL,
+                TokenType.GREATER,
+                TokenType.GREATER_EQUAL,
+            ):
 
-                return self.builder.icmp_signed(
-                    "==",
+                left, right = (
+                    self.promote_numeric_values(
+                        left,
+                        right
+                    )
+                )
+                
+                return self.generate_comparison(
+                    op,
                     left,
                     right
                 )
-
-
-            if op == TokenType.NOT_EQUAL:
-
-                return self.builder.icmp_signed(
-                    "!=",
-                    left,
-                    right
-                )
-
-
-            if op == TokenType.LESS:
-
-                return self.builder.icmp_signed(
-                    "<",
-                    left,
-                    right
-                )
-
-
-            if op == TokenType.LESS_EQUAL:
-
-                return self.builder.icmp_signed(
-                    "<=",
-                    left,
-                    right
-                )
-
-
-            if op == TokenType.GREATER:
-
-                return self.builder.icmp_signed(
-                    ">",
-                    left,
-                    right
-                )
-
-
-            if op == TokenType.GREATER_EQUAL:
-
-                return self.builder.icmp_signed(
-                    ">=",
-                    left,
-                    right
-                )
-
 
 
             # Logical
@@ -1208,6 +1402,64 @@ class LLVMCodeGenerator:
             "Unsupported AST node"
         )
 
+
+    #========================================================
+    # Comparisons
+    #=======================================================
+
+    def generate_comparison(
+        self,
+        operator,
+        left,
+        right
+    ):
+        """Generate an integer or floating-point comparison."""
+
+        floating_point = isinstance(
+            left.type,
+            (
+                ir.FloatType,
+                ir.DoubleType,
+            )
+        )
+
+
+        if floating_point:
+
+            predicates = {
+
+                TokenType.EQUAL: "==",
+                TokenType.NOT_EQUAL: "!=",
+                TokenType.LESS: "<",
+                TokenType.LESS_EQUAL: "<=",
+                TokenType.GREATER: ">",
+                TokenType.GREATER_EQUAL: ">=",
+            }
+
+
+            return self.builder.fcmp_ordered(
+                predicates[operator],
+                left,
+                right
+            )
+
+
+        predicates = {
+
+            TokenType.EQUAL: "==",
+            TokenType.NOT_EQUAL: "!=",
+            TokenType.LESS: "<",
+            TokenType.LESS_EQUAL: "<=",
+            TokenType.GREATER: ">",
+            TokenType.GREATER_EQUAL: ">=",
+        }
+
+
+        return self.builder.icmp_signed(
+            predicates[operator],
+            left,
+            right
+        )
 
 
     # ========================================================
