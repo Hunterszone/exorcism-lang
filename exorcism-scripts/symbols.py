@@ -45,6 +45,7 @@ class Symbol:
 
 @dataclass(slots=True)
 class FunctionSymbol(Symbol):
+    """Represents a function symbol with parameters and a return type."""
     
     parameters: list["Symbol"] = field(
         default_factory=list

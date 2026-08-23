@@ -390,7 +390,7 @@ def symbol_to_json(symbol):
         result["parameters"] = [
             {
                 "name": parameter.name,
-                "type": str(parameter.parameter_type),
+                "type": str(parameter.type_properties),
             }
             for parameter in symbol.parameters
         ]

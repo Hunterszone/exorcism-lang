@@ -7,6 +7,55 @@ and multiple output targets including **WebAssembly (`.wasm`)** and **intermedia
 
 ## The Compiler
 
+                  EXORCISM LANGUAGE
+                         │
+                         ▼
+                    SOURCE TEXT
+                         │
+                         ▼
+                    ┌─────────┐
+                    │  LEXER  │
+                    └────┬────┘
+                         │
+                       Tokens
+                         │
+                         ▼
+                    ┌─────────┐
+                    │ PARSER  │
+                    └────┬────┘
+                         │
+                        AST
+                         │
+                         ▼
+				  Semantic Analyzer
+                   │           │
+                   ▼           ▼
+               Symbol Table  Type System
+                   │           │
+                   └────┬──────┘
+                        │
+                        ▼
+                   Validated AST
+                        │
+                        ▼
+                ┌────────────────┐
+                │ LLVM CODEGEN   │
+                └───────┬────────┘
+                        │
+                     LLVM IR
+                        │
+                        ▼
+                   LLVM / Clang
+                        │
+                      WASM
+                        │
+                        ▼
+                     run.js
+                        │
+                        ▼
+                     Node.js
+
+
 ### Python Frontend
 
 The Exorcism compiler frontend is implemented in Python, handling:
@@ -36,6 +85,7 @@ The LLVM backend provides:
 - Efficient low-level representations
 - A foundation used by many production languages
 
+
 ## The Runtime Environment
 
 ### No Exorcism VM
@@ -52,6 +102,7 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 - provide imported functions
 - provide memory access
 - call exported functions
+
 
 ## The Exorcism CLI
 
@@ -95,6 +146,7 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 - ✅ Syntax analysis & validation (`exrc analyze file.exrc`)
 - 🛠️ Memory management - WIP
 
+
 ## Language Features
 
 - ✅ Statically typed
@@ -126,6 +178,7 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 - 🛠️ Async/Concurrency - WIP
 - 🛠️ Standard library - WIP
 - 🛠️ Unit testing - WIP
+
 
 ## Tooling
 
@@ -474,6 +527,7 @@ By targeting WebAssembly, Exorcism programs can run in multiple environments:
 
 💡A compiled Exorcism program is not tied to a single operating system or CPU architecture.
 
+
 ## Rich language features support
 
 Exorcism provides a platform for exploring advanced language concepts, including:
@@ -501,6 +555,7 @@ Exorcism includes its own Visual Studio Code extension, providing a modern devel
 ## Extension URL: 
 https://marketplace.visualstudio.com/items?itemName=exorcism-dev.exorcism-lang
 
+
 ## Features
 
 - ✅ Syntax highlighting
@@ -517,4 +572,3 @@ https://marketplace.visualstudio.com/items?itemName=exorcism-dev.exorcism-lang
 ---
 
 💡The extension significantly improves developer productivity by reducing typing, detecting errors while writing code, and providing contextual suggestions for language keywords, functions, variables, and types.
-
