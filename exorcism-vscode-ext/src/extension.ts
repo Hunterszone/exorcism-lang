@@ -95,7 +95,10 @@ export function activate(
     const symbolProcesses =
         new Map<
             string,
-            ChildProcess
+            {
+                process: ChildProcess;
+                cancelled: boolean;
+            }
         >();
 
 
@@ -109,7 +112,10 @@ export function activate(
     const diagnosticProcesses =
         new Map<
             string,
-            ChildProcess
+            {
+                process: ChildProcess;
+                cancelled: boolean;
+            }
         >();
 
 
@@ -258,6 +264,101 @@ export function activate(
 
 
     // ========================================================
+    // Create punctuation completion items
+    // ========================================================
+
+    function createPunctuationCompletion(
+        character: string,
+        detail: string
+    ): vscode.CompletionItem {
+
+        const item =
+            new vscode.CompletionItem(
+                character,
+                vscode.CompletionItemKind.Text
+            );
+
+        item.detail = detail;
+
+        item.insertText = character;
+
+        return item;
+    }
+
+
+    // ========================================================
+    // Create semicolon completion items
+    // ========================================================
+
+    function createSemicolonCompletion(
+        document: vscode.TextDocument,
+        position: vscode.Position
+    ): vscode.CompletionItem | undefined {
+
+        const line =
+            document.lineAt(position.line).text;
+
+        const textBeforeCursor =
+            line.substring(0, position.character);
+
+        const textAfterCursor =
+            line.substring(position.character);
+
+
+        // ---------------------------------------------
+        // Don't suggest if semicolon already exists
+        // ---------------------------------------------
+
+        if (
+            textBeforeCursor.trimEnd().endsWith(";")
+        ) {
+            return undefined;
+        }
+
+
+        // ---------------------------------------------
+        // Don't suggest if the next non-whitespace
+        // character is already a semicolon.
+        // ---------------------------------------------
+
+        if (
+            textAfterCursor.trimStart().startsWith(";")
+        ) {
+            return undefined;
+        }
+
+
+        // ---------------------------------------------
+        // Don't suggest on an empty line
+        // ---------------------------------------------
+
+        if (
+            textBeforeCursor.trim().length === 0
+        ) {
+            return undefined;
+        }
+
+
+        const item =
+            new vscode.CompletionItem(
+                ";",
+                vscode.CompletionItemKind.Keyword
+            );
+
+
+        item.detail =
+            "Exorcism statement terminator";
+
+
+        item.insertText =
+            new vscode.SnippetString(";");
+
+
+        return item;
+    }
+
+
+    // ========================================================
     // Create symbol completion item
     // ========================================================
 
@@ -325,6 +426,32 @@ export function activate(
     }
 
 
+    function shouldSuggestClosingParenthesis(
+        document: vscode.TextDocument,
+        position: vscode.Position,
+        textBeforeCursor: string
+    ): boolean {
+
+        let open = 0;
+        let close = 0;
+
+
+        for (const character of textBeforeCursor) {
+
+            if (character === "(") {
+                open++;
+            }
+
+            if (character === ")") {
+                close++;
+            }
+        }
+
+
+        return open > close;
+    }
+
+
     // ========================================================
     // Completion provider
     //
@@ -373,6 +500,58 @@ export function activate(
                         items.push(
                             createKeywordCompletion(
                                 keyword
+                            )
+                        );
+                    }
+
+                    
+                    // -----------------------------------------
+                    // Semicolon
+                    // -----------------------------------------
+
+                    const semicolon =
+                        createSemicolonCompletion(
+                            document,
+                            _position
+                        );
+
+                    if (semicolon) {
+                        items.push(semicolon);
+                    }
+
+
+                    // -----------------------------------------
+                    // Punctuation
+                    // -----------------------------------------
+
+                    const line =
+                        document.lineAt(
+                            _position.line
+                        ).text;
+
+                    const textBeforeCursor =
+                        line.substring(
+                            0,
+                            _position.character
+                        );
+
+
+                    // -----------------------------------------
+                    // Closing parenthesis
+                    // -----------------------------------------
+
+                    if (
+                        shouldSuggestClosingParenthesis(
+                            document,
+                            _position,
+                            textBeforeCursor
+                        )
+                    ) {
+
+                        items.push(
+                            createPunctuationCompletion(
+                                ")",
+                                "Close parenthesis"
                             )
                         );
                     }
@@ -455,29 +634,35 @@ export function activate(
         documentKey: string
     ) {
 
-        const process =
+        const entry =
             diagnosticProcesses.get(
                 documentKey
             );
 
+        if (!entry) {
+            return;
+        }
 
-        if (process) {
 
-            try {
+        // Mark as intentionally cancelled
+        // before killing the process.
+        entry.cancelled = true;
 
-                if (!process.killed) {
-                    process.kill();
-                }
 
-            } catch {
-                // Process may already have exited.
+        try {
+
+            if (!entry.process.killed) {
+                entry.process.kill();
             }
 
-
-            diagnosticProcesses.delete(
-                documentKey
-            );
+        } catch {
+            // Process may already have exited.
         }
+
+
+        diagnosticProcesses.delete(
+            documentKey
+        );
     }
 
 
@@ -596,6 +781,13 @@ export function activate(
         // Start analyzer
         // -----------------------------------------------
 
+        let processEntry:
+            {
+                process: ChildProcess;
+                cancelled: boolean;
+            };
+
+
         const child =
             execFile(
                 "exorcism",
@@ -613,17 +805,33 @@ export function activate(
                     stderr
                 ) => {
 
+                    const entry =
+                        diagnosticProcesses.get(
+                            documentKey
+                        );
+
+
+                    // -----------------------------------------
+                    // Process was intentionally cancelled.
+                    // Don't report it as an error.
+                    // -----------------------------------------
+
+                    if (
+                        !entry ||
+                        entry.cancelled
+                    ) {
+                        return;
+                    }
+
+
                     diagnosticProcesses.delete(
                         documentKey
                     );
 
 
-                    if (
-                        document.isClosed
-                    ) {
-                        return;
-                    }
-
+                    // -----------------------------------------
+                    // Real failure
+                    // -----------------------------------------
 
                     if (
                         error &&
@@ -639,6 +847,10 @@ export function activate(
                         return;
                     }
 
+
+                    // -----------------------------------------
+                    // Parse diagnostics
+                    // -----------------------------------------
 
                     try {
 
@@ -679,9 +891,6 @@ export function activate(
                                 );
 
 
-                            // Prevent invalid ranges
-                            // from crashing VS Code.
-
                             const safeLine =
                                 Math.min(
                                     line,
@@ -709,8 +918,7 @@ export function activate(
 
                             const safeEndColumn =
                                 Math.min(
-                                    safeColumn +
-                                    length,
+                                    safeColumn + length,
                                     lineLength
                                 );
 
@@ -798,15 +1006,20 @@ export function activate(
                             "Failed to parse Exorcism diagnostics:",
                             parseError
                         );
-
                     }
                 }
             );
 
 
+        processEntry = {
+            process: child,
+            cancelled: false
+        };
+
+
         diagnosticProcesses.set(
             documentKey,
-            child
+            processEntry
         );
 
 
@@ -847,24 +1060,29 @@ export function activate(
                 // Kill previous symbol process
                 // -----------------------------------------
 
-                const existingProcess =
+                const existingEntry =
                     symbolProcesses.get(
                         documentKey
                     );
 
 
-                if (existingProcess) {
+                if (existingEntry) {
+
+                    // Mark as intentionally cancelled
+                    // BEFORE killing the process.
+                    existingEntry.cancelled = true;
+
 
                     try {
 
                         if (
-                            !existingProcess.killed
+                            !existingEntry.process.killed
                         ) {
-                            existingProcess.kill();
+                            existingEntry.process.kill();
                         }
 
                     } catch {
-                        // Already exited.
+                        // Process may already have exited.
                     }
 
 
@@ -895,10 +1113,41 @@ export function activate(
                             stderr
                         ) => {
 
+                            // ---------------------------------
+                            // Get the current process entry
+                            // ---------------------------------
+
+                            const entry =
+                                symbolProcesses.get(
+                                    documentKey
+                                );
+
+
+                            // ---------------------------------
+                            // Process was cancelled or replaced
+                            // ---------------------------------
+
+                            if (
+                                !entry ||
+                                entry.process !== child ||
+                                entry.cancelled
+                            ) {
+                                return;
+                            }
+
+
+                            // ---------------------------------
+                            // Process completed normally
+                            // ---------------------------------
+
                             symbolProcesses.delete(
                                 documentKey
                             );
 
+
+                            // ---------------------------------
+                            // Real process error
+                            // ---------------------------------
 
                             if (error) {
 
@@ -918,9 +1167,14 @@ export function activate(
 
 
                                 resolve([]);
+
                                 return;
                             }
 
+
+                            // ---------------------------------
+                            // Parse JSON
+                            // ---------------------------------
 
                             try {
 
@@ -961,9 +1215,16 @@ export function activate(
                     );
 
 
+                // -----------------------------------------
+                // Store process
+                // -----------------------------------------
+
                 symbolProcesses.set(
                     documentKey,
-                    child
+                    {
+                        process: child,
+                        cancelled: false
+                    }
                 );
             }
         );
@@ -1280,26 +1541,24 @@ export function activate(
                 }
 
 
-                const symbolProcess =
+                const existing =
                     symbolProcesses.get(
                         documentKey
                     );
 
+                if (existing) {
 
-                if (symbolProcess) {
+                    existing.cancelled = true;
 
                     try {
 
-                        if (
-                            !symbolProcess.killed
-                        ) {
-                            symbolProcess.kill();
+                        if (!existing.process.killed) {
+                            existing.process.kill();
                         }
 
                     } catch {
                         // Already exited.
                     }
-
 
                     symbolProcesses.delete(
                         documentKey
