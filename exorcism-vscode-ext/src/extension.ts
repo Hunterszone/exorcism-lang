@@ -1,23 +1,40 @@
 import * as vscode from "vscode";
-import { execFile } from "child_process";
+import { ChildProcess, execFile } from "child_process";
 import {
     ExorcismHoverProvider
 } from "./hoverProvider";
 
+
 const LANGUAGE_ID = "exorcism";
 const DIAGNOSTIC_SOURCE = "exorcism";
 
-// Diagnostic interface 
+
+// ============================================================
+// Configuration
+// ============================================================
+
+const DIAGNOSTIC_DEBOUNCE_MS = 350;
+const SYMBOL_DEBOUNCE_MS = 500;
+
+
+// ============================================================
+// Diagnostic interfaces
+// ============================================================
+
 interface ExorcismDiagnostic {
-	severity: "error" | "warning" | "info";
-	message: string;
-	line: number;
-	column: number;
-	length: number;
-	code?: string;
+    severity: "error" | "warning" | "info";
+    message: string;
+    line: number;
+    column: number;
+    length: number;
+    code?: string;
 }
 
-// Symbols interfaces
+
+// ============================================================
+// Symbol interfaces
+// ============================================================
+
 interface ExorcismSymbol {
     name: string;
     kind: "variable" | "function";
@@ -36,473 +53,1303 @@ interface SymbolResponse {
     symbols: ExorcismSymbol[];
 }
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
-export function activate(
-	context: vscode.ExtensionContext
-) {
 
-	// ========================================================
-	// Run Exorcism command
-	// ========================================================
+// ============================================================
+// Cached symbols
+// ============================================================
 
-	async function runExorcismCommand(command: string) {
-
-		const editor = vscode.window.activeTextEditor;
-
-		if (!editor) {
-			return;
-		}
-
-		const document = editor.document;
-
-		if (document.languageId !== "exorcism") {
-			return;
-		}
-
-		if (!document.fileName.toLowerCase().endsWith(".exrc")) {
-			return;
-		}
-
-		await document.save();
-
-		const terminal = vscode.window.createTerminal(
-			"Exorcism"
-		);
-
-		terminal.show();
-
-		terminal.sendText(
-			`exrc ${command} "${document.fileName}"`
-		);
-	}
-
-	
-	// ========================================================
-	// Register commands
-	// ========================================================
-	
-	const runCommand = vscode.commands.registerCommand(
-		"exorcism.run",
-		() => runExorcismCommand("run")
-	);
-
-	const buildCommand = vscode.commands.registerCommand(
-		"exorcism.build",
-		() => runExorcismCommand("build")
-	);
-
-
-	// ========================================================
-	// Push commands to subscriptions
-	// ========================================================
-
-	context.subscriptions.push(
-		runCommand,
-        buildCommand
-	);
-
-
-	// ========================================================
-	// Push hover provider to subscriptions
-	// ========================================================
-	
-	context.subscriptions.push(
-		vscode.languages.registerHoverProvider(
-			{ language: "exorcism" },
-			new ExorcismHoverProvider()
-		)
-	);
-
-
-	// ========================================================
-	// Keyword completion
-	// ========================================================
-
-	const keywords = [
-		"var",
-		"int",
-		"float",
-		"double",
-		"char",
-		"string",
-		"bool",
-		"void",
-		"if",
-		"else",
-		"option",
-		"while",
-		"for",
-		"return",
-		"break",
-		"continue",
-		"function",
-		"struct"
-	];
-
-
-	// ========================================================
-	// Register completion item provider
-	// ========================================================
-	
-	const completionProvider =
-		vscode.languages.registerCompletionItemProvider(
-			LANGUAGE_ID,
-
-			{
-				async provideCompletionItems() {
-
-					const editor =
-						vscode.window.activeTextEditor;
-
-					if (!editor) {
-						return [];
-					}
-
-					const filePath =
-						editor.document.fileName;
-
-					const items: vscode.CompletionItem[] = [];
-
-					// ---------------------------------------------
-					// Keywords
-					// ---------------------------------------------
-
-					for (const keyword of keywords) {
-
-						const item =
-							new vscode.CompletionItem(
-								keyword,
-								vscode.CompletionItemKind.Keyword
-							);
-
-						item.detail = "Exorcism keyword";
-
-						items.push(item);
-					}
-
-					// ---------------------------------------------
-					// Symbols
-					// ---------------------------------------------
-
-					const symbols =
-						await getSymbols(filePath);
-					
-						
-					console.log(
-						"COMPLETION SYMBOLS:",
-						symbols
-					);	
-
-
-					for (const symbol of symbols) {
-
-						let kind =
-							vscode.CompletionItemKind.Variable;
-
-						if (symbol.kind === "function") {
-							kind =
-								vscode.CompletionItemKind.Function;
-						}
-
-						const item =
-							new vscode.CompletionItem(
-								symbol.name,
-								kind
-							);
-
-						item.detail =
-							symbol.kind === "function"
-								? symbol.returnType ?? symbol.type
-								: symbol.type;
-
-						items.push(item);
-					}
-
-					return items;
-				}
-			}
-		);
-
-
-	// ========================================================
-	// Diagnostics
-	// ========================================================
-
-	const diagnosticCollection =
-		vscode.languages.createDiagnosticCollection(
-			DIAGNOSTIC_SOURCE
-		);
-
-
-	// ========================================================
-	// Run Exorcism analyzer
-	// ========================================================
-
-	function analyzeDocument(
-		document: vscode.TextDocument
-	) {
-
-		if (
-			document.languageId !== LANGUAGE_ID
-		) {
-			return;
-		}
-
-
-		if (
-			document.isUntitled
-		) {
-			return;
-		}
-
-
-		const filePath =
-			document.uri.fsPath;
-
-
-		const child = execFile(
-			"exorcism",
-			[
-				"analyze", 
-				"--stdin", 
-				"--json"
-			],
-			{ 
-				windowsHide: true 
-			},
-			(error, stdout, stderr) => {
-				if (!stdout && error) {
-					console.error("Exorcism analyzer failed:", stderr || error.message);
-					return;
-				}
-
-				try {
-					const diagnostics: ExorcismDiagnostic[] = JSON.parse(stdout || "[]");
-					const vscodeDiagnostics: vscode.Diagnostic[] = [];
-					
-					for (const diagnostic of diagnostics) {
-						const line = Math.max(0, diagnostic.line - 1);
-						const column = Math.max(0, diagnostic.column - 1);
-						const length = Math.max(1, diagnostic.length);
-						const start = new vscode.Position(line, column);
-						const end = new vscode.Position(line, column + length);
-						const range = new vscode.Range(start, end);
-						let severity = vscode.DiagnosticSeverity.Error;
-						
-						if (diagnostic.severity === "warning") {
-							severity = vscode.DiagnosticSeverity.Warning;
-						} else if (diagnostic.severity === "info") {
-							severity = vscode.DiagnosticSeverity.Information;
-						}
-						
-						const vscodeDiagnostic = new vscode.Diagnostic(
-							range,
-							diagnostic.message,
-							severity
-						);
-						
-						vscodeDiagnostic.source = DIAGNOSTIC_SOURCE;
-						
-						if (diagnostic.code) {
-							vscodeDiagnostic.code = diagnostic.code;
-						}
-						
-						vscodeDiagnostics.push(vscodeDiagnostic);
-					}
-					
-					diagnosticCollection.set(document.uri, vscodeDiagnostics);
-				} catch (parseError) {
-					console.error("Failed to parse Exorcism diagnostics:", parseError);
-				}
-			}
-		);
-
-		if (child.stdin) { 
-			
-			child.stdin.write(
-				document.getText()
-			); 
-			
-			child.stdin.end(); 
-		}
-
-	}
-
-
-	// ========================================================
-	// Validate currently open document
-	// ========================================================
-
-	if (
-		vscode.window.activeTextEditor
-	) {
-
-		analyzeDocument(
-			vscode.window.activeTextEditor.document
-		);
-
-	}
-
-
-	// ========================================================
-	// Get the symbols output from a .exrc file
-	// ========================================================
-
-	function getSymbols(
-		filePath: string
-	): Promise<ExorcismSymbol[]> {
-
-		return new Promise((resolve) => {
-
-			execFile(
-				"exrc",
-				[
-					"symbols",
-					filePath,
-					"--json"
-				],
-				(error, stdout, stderr) => {
-
-					console.log(
-						"EXORCISM SYMBOLS FILE:",
-						filePath
-					);
-
-					console.log(
-						"EXORCISM SYMBOLS ERROR:",
-						error
-					);
-
-					console.log(
-						"EXORCISM SYMBOLS STDOUT:",
-						stdout
-					);
-
-					console.log(
-						"EXORCISM SYMBOLS STDERR:",
-						stderr
-					);
-
-					if (error) {
-						resolve([]);
-						return;
-					}
-
-					try {
-
-						const result =
-							JSON.parse(stdout) as SymbolResponse;
-
-						console.log(
-							"EXORCISM PARSED SYMBOLS:",
-							result.symbols
-						);
-
-						resolve(
-							result.symbols ?? []
-						);
-
-					} catch (parseError) {
-
-						console.error(
-							"EXORCISM JSON PARSE ERROR:",
-							parseError
-						);
-
-						resolve([]);
-
-					}
-				}
-			);
-		});
-	}
-
-
-	// ========================================================
-	// Validate when document changes
-	// ========================================================
-
-	const changeSubscription =
-		vscode.workspace.onDidChangeTextDocument(
-			event => {
-
-				analyzeDocument(
-					event.document
-				);
-
-			}
-		);
-
-
-	// ========================================================
-	// Validate when document is opened
-	// ========================================================
-
-	const openSubscription =
-		vscode.workspace.onDidOpenTextDocument(
-			document => {
-
-				analyzeDocument(
-					document
-				);
-
-			}
-		);
-
-
-	// ========================================================
-	// Clear diagnostics when document closes
-	// ========================================================
-
-	const closeSubscription =
-		vscode.workspace.onDidCloseTextDocument(
-			document => {
-
-				diagnosticCollection.delete(
-					document.uri
-				);
-
-			}
-		);
-
-
-	// ========================================================
-	// Hello World command
-	// ========================================================
-
-	const disposable =
-		vscode.commands.registerCommand(
-			"exorcism.helloWorld",
-			() => {
-
-				vscode.window.showInformationMessage(
-					"Hello World from exorcism!"
-				);
-
-			}
-		);
-
-
-	// ========================================================
-	// Subscriptions
-	// ========================================================
-
-	context.subscriptions.push(
-		completionProvider,
-		diagnosticCollection,
-		changeSubscription,
-		openSubscription,
-		closeSubscription,
-		disposable
-	);
-
-
-	console.log(
-		'Exorcism extension is now active.'
-	);
-
+interface SymbolCacheEntry {
+    symbols: ExorcismSymbol[];
+    documentVersion: number;
 }
 
 
-export function deactivate() { }
+// ============================================================
+// Extension activation
+// ============================================================
+
+export function activate(
+    context: vscode.ExtensionContext
+) {
+
+    console.log(
+        "Exorcism extension is now active."
+    );
+
+
+    // ========================================================
+    // State
+    // ========================================================
+
+    const symbolCache =
+        new Map<string, SymbolCacheEntry>();
+
+
+    const symbolTimers =
+        new Map<
+            string,
+            ReturnType<typeof setTimeout>
+        >();
+
+
+    const symbolProcesses =
+        new Map<
+            string,
+            ChildProcess
+        >();
+
+
+    const diagnosticTimers =
+        new Map<
+            string,
+            ReturnType<typeof setTimeout>
+        >();
+
+
+    const diagnosticProcesses =
+        new Map<
+            string,
+            ChildProcess
+        >();
+
+
+    // ========================================================
+    // Run / Build Exorcism command
+    // ========================================================
+
+    async function runExorcismCommand(
+        command: string
+    ) {
+
+        const editor =
+            vscode.window.activeTextEditor;
+
+        if (!editor) {
+            return;
+        }
+
+
+        const document =
+            editor.document;
+
+
+        if (
+            document.languageId !==
+            LANGUAGE_ID
+        ) {
+            return;
+        }
+
+
+        if (
+            !document.fileName
+                .toLowerCase()
+                .endsWith(".exrc")
+        ) {
+            return;
+        }
+
+
+        await document.save();
+
+
+        const terminal =
+            vscode.window.createTerminal(
+                "Exorcism"
+            );
+
+
+        terminal.show();
+
+
+        terminal.sendText(
+            `exrc ${command} "${document.fileName}"`
+        );
+    }
+
+
+    // ========================================================
+    // Commands
+    // ========================================================
+
+    const runCommand =
+        vscode.commands.registerCommand(
+            "exorcism.run",
+            () =>
+                runExorcismCommand("run")
+        );
+
+
+    const buildCommand =
+        vscode.commands.registerCommand(
+            "exorcism.build",
+            () =>
+                runExorcismCommand("build")
+        );
+
+
+    context.subscriptions.push(
+        runCommand,
+        buildCommand
+    );
+
+
+    // ========================================================
+    // Hover provider
+    // ========================================================
+
+    context.subscriptions.push(
+        vscode.languages.registerHoverProvider(
+            {
+                language: LANGUAGE_ID
+            },
+            new ExorcismHoverProvider()
+        )
+    );
+
+
+    // ========================================================
+    // Exorcism keywords
+    // ========================================================
+
+    const keywords = [
+        "var",
+        "int",
+        "float",
+        "double",
+        "char",
+        "string",
+        "bool",
+        "void",
+        "if",
+        "else",
+        "option",
+        "while",
+        "for",
+        "return",
+        "break",
+        "continue",
+        "function",
+        "struct"
+    ];
+
+
+    // ========================================================
+    // Create keyword completion items
+    // ========================================================
+
+    function createKeywordCompletion(
+        keyword: string
+    ): vscode.CompletionItem {
+
+        const item =
+            new vscode.CompletionItem(
+                keyword,
+                vscode.CompletionItemKind.Keyword
+            );
+
+
+        item.detail =
+            "Exorcism keyword";
+
+
+        return item;
+    }
+
+
+    // ========================================================
+    // Create symbol completion item
+    // ========================================================
+
+    function createSymbolCompletion(
+        symbol: ExorcismSymbol
+    ): vscode.CompletionItem {
+
+        let kind =
+            vscode.CompletionItemKind.Variable;
+
+
+        if (
+            symbol.kind === "function"
+        ) {
+            kind =
+                vscode.CompletionItemKind.Function;
+        }
+
+
+        const item =
+            new vscode.CompletionItem(
+                symbol.name,
+                kind
+            );
+
+
+        if (
+            symbol.kind === "function"
+        ) {
+
+            item.detail =
+                symbol.returnType ??
+                symbol.type;
+
+
+            if (
+                symbol.parameters &&
+                symbol.parameters.length > 0
+            ) {
+
+                const parameters =
+                    symbol.parameters
+                        .map(
+                            parameter =>
+                                `${parameter.name}: ${parameter.type}`
+                        )
+                        .join(", ");
+
+
+                item.detail =
+                    `(${parameters}) → ${
+                        symbol.returnType ??
+                        symbol.type
+                    }`;
+            }
+
+        } else {
+
+            item.detail =
+                symbol.type;
+        }
+
+
+        return item;
+    }
+
+
+    // ========================================================
+    // Completion provider
+    //
+    // IMPORTANT:
+    // This provider NEVER starts exrc.exe.
+    //
+    // It only returns:
+    //   1. keywords
+    //   2. cached symbols
+    //
+    // This makes completion effectively instantaneous.
+    // ========================================================
+
+    const completionProvider =
+        vscode.languages.registerCompletionItemProvider(
+            LANGUAGE_ID,
+
+            {
+
+                provideCompletionItems(
+                    document,
+                    _position,
+                    token,
+                    _context
+                ) {
+
+                    const items:
+                        vscode.CompletionItem[] = [];
+
+
+                    // -----------------------------------------
+                    // Keywords
+                    // -----------------------------------------
+
+                    for (
+                        const keyword of keywords
+                    ) {
+
+                        if (
+                            token.isCancellationRequested
+                        ) {
+                            return items;
+                        }
+
+
+                        items.push(
+                            createKeywordCompletion(
+                                keyword
+                            )
+                        );
+                    }
+
+
+                    // -----------------------------------------
+                    // Cached symbols
+                    // -----------------------------------------
+
+                    const cache =
+                        symbolCache.get(
+                            document.uri.toString()
+                        );
+
+
+                    if (!cache) {
+
+                        console.log(
+                            "COMPLETION: no symbol cache"
+                        );
+
+                        return items;
+                    }
+
+
+                    for (
+                        const symbol of cache.symbols
+                    ) {
+
+                        if (
+                            token.isCancellationRequested
+                        ) {
+                            return items;
+                        }
+
+
+                        items.push(
+                            createSymbolCompletion(
+                                symbol
+                            )
+                        );
+                    }
+
+
+                    console.log(
+                        "COMPLETION:",
+                        items.length,
+                        "items",
+                        "symbols:",
+                        cache.symbols.length
+                    );
+
+
+                    return items;
+                }
+            }
+        );
+
+
+    context.subscriptions.push(
+        completionProvider
+    );
+
+
+    // ========================================================
+    // Diagnostics
+    // ========================================================
+
+    const diagnosticCollection =
+        vscode.languages.createDiagnosticCollection(
+            DIAGNOSTIC_SOURCE
+        );
+
+
+    // ========================================================
+    // Kill previous diagnostic process
+    // ========================================================
+
+    function cancelDiagnosticProcess(
+        documentKey: string
+    ) {
+
+        const process =
+            diagnosticProcesses.get(
+                documentKey
+            );
+
+
+        if (process) {
+
+            try {
+
+                if (!process.killed) {
+                    process.kill();
+                }
+
+            } catch {
+                // Process may already have exited.
+            }
+
+
+            diagnosticProcesses.delete(
+                documentKey
+            );
+        }
+    }
+
+
+    // ========================================================
+    // Analyze document
+    // ========================================================
+
+    function analyzeDocument(
+        document: vscode.TextDocument
+    ) {
+
+        if (
+            document.languageId !==
+            LANGUAGE_ID
+        ) {
+            return;
+        }
+
+
+        if (
+            document.isUntitled
+        ) {
+            return;
+        }
+
+
+        const documentKey =
+            document.uri.toString();
+
+
+        // -----------------------------------------------
+        // Cancel previous debounce timer
+        // -----------------------------------------------
+
+        const existingTimer =
+            diagnosticTimers.get(
+                documentKey
+            );
+
+
+        if (existingTimer) {
+
+            clearTimeout(
+                existingTimer
+            );
+        }
+
+
+        // -----------------------------------------------
+        // Cancel previous analyzer
+        // -----------------------------------------------
+
+        cancelDiagnosticProcess(
+            documentKey
+        );
+
+
+        // -----------------------------------------------
+        // Debounce analysis
+        // -----------------------------------------------
+
+        const timer =
+            setTimeout(
+                () => {
+
+                    diagnosticTimers.delete(
+                        documentKey
+                    );
+
+
+                    runDocumentAnalysis(
+                        document
+                    );
+
+                },
+                DIAGNOSTIC_DEBOUNCE_MS
+            );
+
+
+        diagnosticTimers.set(
+            documentKey,
+            timer
+        );
+    }
+
+
+    // ========================================================
+    // Actually run analyzer
+    // ========================================================
+
+    function runDocumentAnalysis(
+        document: vscode.TextDocument
+    ) {
+
+        if (
+            document.isClosed
+        ) {
+            return;
+        }
+
+
+        const documentKey =
+            document.uri.toString();
+
+
+        // -----------------------------------------------
+        // Cancel any previous process
+        // -----------------------------------------------
+
+        cancelDiagnosticProcess(
+            documentKey
+        );
+
+
+        // -----------------------------------------------
+        // Start analyzer
+        // -----------------------------------------------
+
+        const child =
+            execFile(
+                "exorcism",
+                [
+                    "analyze",
+                    "--stdin",
+                    "--json"
+                ],
+                {
+                    windowsHide: true
+                },
+                (
+                    error,
+                    stdout,
+                    stderr
+                ) => {
+
+                    diagnosticProcesses.delete(
+                        documentKey
+                    );
+
+
+                    if (
+                        document.isClosed
+                    ) {
+                        return;
+                    }
+
+
+                    if (
+                        error &&
+                        !stdout
+                    ) {
+
+                        console.error(
+                            "Exorcism analyzer failed:",
+                            stderr ||
+                            error.message
+                        );
+
+                        return;
+                    }
+
+
+                    try {
+
+                        const diagnostics:
+                            ExorcismDiagnostic[] =
+                                JSON.parse(
+                                    stdout || "[]"
+                                );
+
+
+                        const vscodeDiagnostics:
+                            vscode.Diagnostic[] = [];
+
+
+                        for (
+                            const diagnostic
+                            of diagnostics
+                        ) {
+
+                            const line =
+                                Math.max(
+                                    0,
+                                    diagnostic.line - 1
+                                );
+
+
+                            const column =
+                                Math.max(
+                                    0,
+                                    diagnostic.column - 1
+                                );
+
+
+                            const length =
+                                Math.max(
+                                    1,
+                                    diagnostic.length
+                                );
+
+
+                            // Prevent invalid ranges
+                            // from crashing VS Code.
+
+                            const safeLine =
+                                Math.min(
+                                    line,
+                                    Math.max(
+                                        0,
+                                        document.lineCount - 1
+                                    )
+                                );
+
+
+                            const lineLength =
+                                document
+                                    .lineAt(
+                                        safeLine
+                                    )
+                                    .text.length;
+
+
+                            const safeColumn =
+                                Math.min(
+                                    column,
+                                    lineLength
+                                );
+
+
+                            const safeEndColumn =
+                                Math.min(
+                                    safeColumn +
+                                    length,
+                                    lineLength
+                                );
+
+
+                            const start =
+                                new vscode.Position(
+                                    safeLine,
+                                    safeColumn
+                                );
+
+
+                            const end =
+                                new vscode.Position(
+                                    safeLine,
+                                    safeEndColumn
+                                );
+
+
+                            const range =
+                                new vscode.Range(
+                                    start,
+                                    end
+                                );
+
+
+                            let severity =
+                                vscode.DiagnosticSeverity.Error;
+
+
+                            if (
+                                diagnostic.severity ===
+                                "warning"
+                            ) {
+
+                                severity =
+                                    vscode.DiagnosticSeverity.Warning;
+
+                            } else if (
+                                diagnostic.severity ===
+                                "info"
+                            ) {
+
+                                severity =
+                                    vscode.DiagnosticSeverity.Information;
+                            }
+
+
+                            const vscodeDiagnostic =
+                                new vscode.Diagnostic(
+                                    range,
+                                    diagnostic.message,
+                                    severity
+                                );
+
+
+                            vscodeDiagnostic.source =
+                                DIAGNOSTIC_SOURCE;
+
+
+                            if (
+                                diagnostic.code
+                            ) {
+
+                                vscodeDiagnostic.code =
+                                    diagnostic.code;
+                            }
+
+
+                            vscodeDiagnostics.push(
+                                vscodeDiagnostic
+                            );
+                        }
+
+
+                        diagnosticCollection.set(
+                            document.uri,
+                            vscodeDiagnostics
+                        );
+
+                    } catch (
+                        parseError
+                    ) {
+
+                        console.error(
+                            "Failed to parse Exorcism diagnostics:",
+                            parseError
+                        );
+
+                    }
+                }
+            );
+
+
+        diagnosticProcesses.set(
+            documentKey,
+            child
+        );
+
+
+        // -----------------------------------------------
+        // Send current editor contents
+        // -----------------------------------------------
+
+        if (child.stdin) {
+
+            child.stdin.write(
+                document.getText()
+            );
+
+            child.stdin.end();
+        }
+    }
+
+
+    // ========================================================
+    // Get symbols from Exorcism CLI
+    //
+    // IMPORTANT:
+    // This function is only called by the background
+    // symbol refresh mechanism.
+    //
+    // Completion itself NEVER calls this.
+    // ========================================================
+
+    function getSymbols(
+        filePath: string,
+        documentKey: string
+    ): Promise<ExorcismSymbol[]> {
+
+        return new Promise(
+            resolve => {
+
+                // -----------------------------------------
+                // Kill previous symbol process
+                // -----------------------------------------
+
+                const existingProcess =
+                    symbolProcesses.get(
+                        documentKey
+                    );
+
+
+                if (existingProcess) {
+
+                    try {
+
+                        if (
+                            !existingProcess.killed
+                        ) {
+                            existingProcess.kill();
+                        }
+
+                    } catch {
+                        // Already exited.
+                    }
+
+
+                    symbolProcesses.delete(
+                        documentKey
+                    );
+                }
+
+
+                // -----------------------------------------
+                // Start symbol process
+                // -----------------------------------------
+
+                const child =
+                    execFile(
+                        "exrc",
+                        [
+                            "symbols",
+                            filePath,
+                            "--json"
+                        ],
+                        {
+                            windowsHide: true
+                        },
+                        (
+                            error,
+                            stdout,
+                            stderr
+                        ) => {
+
+                            symbolProcesses.delete(
+                                documentKey
+                            );
+
+
+                            if (error) {
+
+                                console.error(
+                                    "EXORCISM SYMBOLS ERROR:",
+                                    error.message
+                                );
+
+
+                                if (stderr) {
+
+                                    console.error(
+                                        "EXORCISM SYMBOLS STDERR:",
+                                        stderr
+                                    );
+                                }
+
+
+                                resolve([]);
+                                return;
+                            }
+
+
+                            try {
+
+                                const result =
+                                    JSON.parse(
+                                        stdout
+                                    ) as SymbolResponse;
+
+
+                                const symbols =
+                                    result.symbols ??
+                                    [];
+
+
+                                console.log(
+                                    "EXORCISM SYMBOLS:",
+                                    symbols.length
+                                );
+
+
+                                resolve(
+                                    symbols
+                                );
+
+                            } catch (
+                                parseError
+                            ) {
+
+                                console.error(
+                                    "EXORCISM SYMBOLS JSON ERROR:",
+                                    parseError
+                                );
+
+
+                                resolve([]);
+                            }
+                        }
+                    );
+
+
+                symbolProcesses.set(
+                    documentKey,
+                    child
+                );
+            }
+        );
+    }
+
+
+    // ========================================================
+    // Refresh symbols
+    //
+    // Symbols are currently file-based, so we only refresh
+    // after the document has been saved.
+    // ========================================================
+
+    function refreshSymbols(
+        document: vscode.TextDocument
+    ) {
+
+        if (
+            document.languageId !==
+            LANGUAGE_ID
+        ) {
+            return;
+        }
+
+
+        if (
+            document.isUntitled
+        ) {
+            return;
+        }
+
+
+        if (
+            !document.fileName
+                .toLowerCase()
+                .endsWith(".exrc")
+        ) {
+            return;
+        }
+
+
+        const documentKey =
+            document.uri.toString();
+
+
+        // -----------------------------------------------
+        // Cancel existing timer
+        // -----------------------------------------------
+
+        const existingTimer =
+            symbolTimers.get(
+                documentKey
+            );
+
+
+        if (existingTimer) {
+
+            clearTimeout(
+                existingTimer
+            );
+        }
+
+
+        // -----------------------------------------------
+        // Debounce symbol extraction
+        // -----------------------------------------------
+
+        const timer =
+            setTimeout(
+                async () => {
+
+                    symbolTimers.delete(
+                        documentKey
+                    );
+
+
+                    if (
+                        document.isClosed
+                    ) {
+                        return;
+                    }
+
+
+                    const symbols =
+                        await getSymbols(
+                            document.uri.fsPath,
+                            documentKey
+                        );
+
+
+                    if (
+                        document.isClosed
+                    ) {
+                        return;
+                    }
+
+
+                    symbolCache.set(
+                        documentKey,
+                        {
+                            symbols,
+                            documentVersion:
+                                document.version
+                        }
+                    );
+
+
+                    console.log(
+                        "SYMBOL CACHE UPDATED:",
+                        symbols.length,
+                        "symbols"
+                    );
+
+                },
+                SYMBOL_DEBOUNCE_MS
+            );
+
+
+        symbolTimers.set(
+            documentKey,
+            timer
+        );
+    }
+
+
+    // ========================================================
+    // Initial document analysis
+    // ========================================================
+
+    if (
+        vscode.window.activeTextEditor
+    ) {
+
+        const document =
+            vscode.window
+                .activeTextEditor
+                .document;
+
+
+        analyzeDocument(
+            document
+        );
+
+
+        // Initial symbols are only useful if the file
+        // is already saved.
+
+        if (
+            !document.isUntitled
+        ) {
+
+            refreshSymbols(
+                document
+            );
+        }
+    }
+
+
+    // ========================================================
+    // Document changed
+    // ========================================================
+
+    const changeSubscription =
+        vscode.workspace.onDidChangeTextDocument(
+            event => {
+
+                const document =
+                    event.document;
+
+
+                if (
+                    document.languageId !==
+                    LANGUAGE_ID
+                ) {
+                    return;
+                }
+
+
+                // -------------------------------------------
+                // Diagnostics
+                // -------------------------------------------
+
+                analyzeDocument(
+                    document
+                );
+
+
+                // -------------------------------------------
+                // IMPORTANT:
+                //
+                // Do NOT run `exrc symbols` here.
+                //
+                // The document may be changing rapidly.
+                //
+                // Symbols will be refreshed after save.
+                // -------------------------------------------
+            }
+        );
+
+
+    // ========================================================
+    // Document opened
+    // ========================================================
+
+    const openSubscription =
+        vscode.workspace.onDidOpenTextDocument(
+            document => {
+
+                analyzeDocument(
+                    document
+                );
+
+
+                if (
+                    !document.isUntitled
+                ) {
+
+                    refreshSymbols(
+                        document
+                    );
+                }
+            }
+        );
+
+
+    // ========================================================
+    // Document saved
+    //
+    // This is where symbol extraction happens.
+    // ========================================================
+
+    const saveSubscription =
+        vscode.workspace.onDidSaveTextDocument(
+            document => {
+
+                if (
+                    document.languageId !==
+                    LANGUAGE_ID
+                ) {
+                    return;
+                }
+
+
+                refreshSymbols(
+                    document
+                );
+            }
+        );
+
+
+    // ========================================================
+    // Document closed
+    // ========================================================
+
+    const closeSubscription =
+        vscode.workspace.onDidCloseTextDocument(
+            document => {
+
+                const documentKey =
+                    document.uri.toString();
+
+
+                // -------------------------------------------
+                // Diagnostics
+                // -------------------------------------------
+
+                diagnosticCollection.delete(
+                    document.uri
+                );
+
+
+                const diagnosticTimer =
+                    diagnosticTimers.get(
+                        documentKey
+                    );
+
+
+                if (diagnosticTimer) {
+
+                    clearTimeout(
+                        diagnosticTimer
+                    );
+
+                    diagnosticTimers.delete(
+                        documentKey
+                    );
+                }
+
+
+                cancelDiagnosticProcess(
+                    documentKey
+                );
+
+
+                // -------------------------------------------
+                // Symbols
+                // -------------------------------------------
+
+                const symbolTimer =
+                    symbolTimers.get(
+                        documentKey
+                    );
+
+
+                if (symbolTimer) {
+
+                    clearTimeout(
+                        symbolTimer
+                    );
+
+                    symbolTimers.delete(
+                        documentKey
+                    );
+                }
+
+
+                const symbolProcess =
+                    symbolProcesses.get(
+                        documentKey
+                    );
+
+
+                if (symbolProcess) {
+
+                    try {
+
+                        if (
+                            !symbolProcess.killed
+                        ) {
+                            symbolProcess.kill();
+                        }
+
+                    } catch {
+                        // Already exited.
+                    }
+
+
+                    symbolProcesses.delete(
+                        documentKey
+                    );
+                }
+
+
+                symbolCache.delete(
+                    documentKey
+                );
+            }
+        );
+
+
+    // ========================================================
+    // Hello World
+    // ========================================================
+
+    const disposable =
+        vscode.commands.registerCommand(
+            "exorcism.helloWorld",
+            () => {
+
+                vscode.window.showInformationMessage(
+                    "Hello World from exorcism!"
+                );
+
+            }
+        );
+
+
+    // ========================================================
+    // Subscriptions
+    // ========================================================
+
+    context.subscriptions.push(
+        diagnosticCollection,
+        changeSubscription,
+        openSubscription,
+        saveSubscription,
+        closeSubscription,
+        disposable
+    );
+}
+
+
+// ============================================================
+// Deactivate
+// ============================================================
+
+export function deactivate() {
+    // VS Code disposes registered subscriptions.
+}
