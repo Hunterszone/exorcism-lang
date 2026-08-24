@@ -418,6 +418,8 @@ class Compiler:
             source
         )
         
+
+    # Analyze symbols
         
     def analyze_symbols(
         self,
@@ -431,19 +433,46 @@ class Compiler:
 
         tokens = lexer.tokenize()
 
-
         parser = Parser(
-            tokens
+            tokens,
+            recover_errors=True
         )
 
         ast = parser.parse()
 
-
         analyzer = SemanticAnalyzer()
 
-        analyzer.analyze(
+        analyzer.collect_symbols(
             ast
         )
 
-        
+        return analyzer.symbols
+
+
+    # Collect symbols 
+
+    def collect_symbols(
+        self,
+        source: str
+    ):
+        """
+        Parse source and collect symbols without requiring
+        full semantic validation to succeed.
+        """
+
+        lexer = Lexer(source)
+
+        tokens = lexer.tokenize()
+
+        parser = Parser(
+            tokens,
+            recover_errors=True
+        )
+
+        ast = parser.parse()
+
+        analyzer = SemanticAnalyzer()
+
+        analyzer.collect_symbols(ast)
+
         return analyzer.symbols

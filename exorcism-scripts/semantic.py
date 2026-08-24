@@ -1180,3 +1180,106 @@ class SemanticAnalyzer:
         # Both operands are INT.
 
         return INT
+
+
+    def collect_symbols(self, ast):
+        """
+        Collect declarations into the symbol table without
+        performing semantic validation.
+        """
+
+        self._collect_symbols(ast)
+
+        return self.symbols
+
+
+    def _collect_symbols(self, node):
+
+        if isinstance(node, Program):
+
+            for statement in node.statements:
+                self._collect_symbols(statement)
+
+            return
+
+
+        # Is Block instance
+
+        if isinstance(node, Block):
+
+            for statement in node.statements:
+                self._collect_symbols(statement)
+
+            return
+
+
+        # Is VariableDeclaration instance
+
+        if isinstance(node, VariableDeclaration):
+
+            symbol = Symbol(
+                name=str(node.identifier.value),
+                token=node.identifier,
+                type_properties=self.resolve_type(
+                    node.declared_type
+                ),
+                initialized=node.initializer is not None,
+            )
+
+            self.symbols.current_scope.define(
+                symbol
+            )
+
+            return
+
+
+        # Is FunctionDeclaration instance
+
+        if isinstance(node, FunctionDeclaration):
+
+            return_type = self.resolve_type(
+                node.return_type
+            )
+
+            function_symbol = FunctionSymbol(
+                name=node.name,
+                token=node.token,
+                type_properties=return_type,
+                return_type=return_type,
+            )
+
+            self.symbols.current_scope.define(
+                function_symbol
+            )
+
+            # Enter function scope
+            self.symbols.enter_scope(
+                start_line=node.token.line,
+                start_column=node.token.column,
+            )
+
+            # Parameters
+            for parameter in node.parameters:
+
+                parameter_symbol = Symbol(
+                    name=parameter.name,
+                    token=parameter.token,
+                    type_properties=self.resolve_type(
+                        parameter.parameter_type
+                    ),
+                    initialized=True,
+                )
+
+                self.symbols.current_scope.define(
+                    parameter_symbol
+                )
+
+            # Function body
+            self._collect_symbols(
+                node.body
+            )
+
+            # Leave function scope
+            self.symbols.exit_scope()
+
+            return

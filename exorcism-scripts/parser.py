@@ -58,10 +58,15 @@ class Parser(
     """
 
 
-    def __init__(self, tokens):
+    def __init__(
+        self,
+        tokens,
+        recover_errors=False
+    ):
 
         super().__init__(tokens)
 
+        self.recover_errors = recover_errors
 
 
     # ========================================================
@@ -79,22 +84,19 @@ class Parser(
 
                 statement = self.parse_top_level_statement()
 
-                statements.append(statement)
-
+                if statement is not None:
+                    statements.append(statement)
 
             except Exception:
 
                 self.synchronize()
 
-                raise
-
+                if not self.recover_errors:
+                    raise
 
         return Program(
-
             line=1,
-
             column=1,
-
             statements=statements,
         )
 

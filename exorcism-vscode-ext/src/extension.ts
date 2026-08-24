@@ -7,7 +7,7 @@ import {
 const LANGUAGE_ID = "exorcism";
 const DIAGNOSTIC_SOURCE = "exorcism";
 
-
+// Diagnostic interface 
 interface ExorcismDiagnostic {
 	severity: "error" | "warning" | "info";
 	message: string;
@@ -15,6 +15,25 @@ interface ExorcismDiagnostic {
 	column: number;
 	length: number;
 	code?: string;
+}
+
+// Symbols interfaces
+interface ExorcismSymbol {
+    name: string;
+    kind: "variable" | "function";
+    type: string;
+    line: number;
+    column: number;
+    returnType?: string;
+    parameters?: {
+        name: string;
+        type: string;
+    }[];
+}
+
+
+interface SymbolResponse {
+    symbols: ExorcismSymbol[];
 }
 
 // This method is called when your extension is activated
@@ -131,9 +150,25 @@ export function activate(
 			LANGUAGE_ID,
 
 			{
-				provideCompletionItems() {
+				async provideCompletionItems() {
 
-					return keywords.map(keyword => {
+					const editor =
+						vscode.window.activeTextEditor;
+
+					if (!editor) {
+						return [];
+					}
+
+					const filePath =
+						editor.document.fileName;
+
+					const items: vscode.CompletionItem[] = [];
+
+					// ---------------------------------------------
+					// Keywords
+					// ---------------------------------------------
+
+					for (const keyword of keywords) {
 
 						const item =
 							new vscode.CompletionItem(
@@ -143,8 +178,48 @@ export function activate(
 
 						item.detail = "Exorcism keyword";
 
-						return item;
-					});
+						items.push(item);
+					}
+
+					// ---------------------------------------------
+					// Symbols
+					// ---------------------------------------------
+
+					const symbols =
+						await getSymbols(filePath);
+					
+						
+					console.log(
+						"COMPLETION SYMBOLS:",
+						symbols
+					);	
+
+
+					for (const symbol of symbols) {
+
+						let kind =
+							vscode.CompletionItemKind.Variable;
+
+						if (symbol.kind === "function") {
+							kind =
+								vscode.CompletionItemKind.Function;
+						}
+
+						const item =
+							new vscode.CompletionItem(
+								symbol.name,
+								kind
+							);
+
+						item.detail =
+							symbol.kind === "function"
+								? symbol.returnType ?? symbol.type
+								: symbol.type;
+
+						items.push(item);
+					}
+
+					return items;
 				}
 			}
 		);
@@ -267,6 +342,80 @@ export function activate(
 			vscode.window.activeTextEditor.document
 		);
 
+	}
+
+
+	// ========================================================
+	// Get the symbols output from a .exrc file
+	// ========================================================
+
+	function getSymbols(
+		filePath: string
+	): Promise<ExorcismSymbol[]> {
+
+		return new Promise((resolve) => {
+
+			execFile(
+				"exrc",
+				[
+					"symbols",
+					filePath,
+					"--json"
+				],
+				(error, stdout, stderr) => {
+
+					console.log(
+						"EXORCISM SYMBOLS FILE:",
+						filePath
+					);
+
+					console.log(
+						"EXORCISM SYMBOLS ERROR:",
+						error
+					);
+
+					console.log(
+						"EXORCISM SYMBOLS STDOUT:",
+						stdout
+					);
+
+					console.log(
+						"EXORCISM SYMBOLS STDERR:",
+						stderr
+					);
+
+					if (error) {
+						resolve([]);
+						return;
+					}
+
+					try {
+
+						const result =
+							JSON.parse(stdout) as SymbolResponse;
+
+						console.log(
+							"EXORCISM PARSED SYMBOLS:",
+							result.symbols
+						);
+
+						resolve(
+							result.symbols ?? []
+						);
+
+					} catch (parseError) {
+
+						console.error(
+							"EXORCISM JSON PARSE ERROR:",
+							parseError
+						);
+
+						resolve([]);
+
+					}
+				}
+			);
+		});
 	}
 
 

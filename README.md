@@ -564,7 +564,7 @@ https://marketplace.visualstudio.com/items?itemName=exorcism-dev.exorcism-lang
 - ✅ Real-time syntax validation
 - ✅ Keywords documentation support
 - ✅ Editor command menu for `.exrc` context
-- 🛠️ Code auto-completion - WIP
+- ✅ Code auto-completion
 - 🛠️ Automatic code corrections - WIP
 - 🛠️ Smart code suggestions - WIP
 - 🛠️ Language Server (IntelliSense) - WIP
