@@ -7,7 +7,7 @@ import json
 
 from compiler import Compiler
 
-from symbols import FunctionSymbol
+from symbols import FunctionSymbol, collect_all_symbols
 
 from build import WasmBuilder, BuildError
 
@@ -397,6 +397,36 @@ def symbol_to_json(symbol):
 
     
     return result
+
+
+# ========================================================
+# Scope to Json
+# ========================================================
+
+def scope_to_json(scope):
+    """Convert a Scope into JSON-compatible data."""
+
+    result = {
+        "kind": "global" if scope.parent is None else "scope",
+
+        "startLine": scope.start_line,
+        "startColumn": scope.start_column,
+
+        "endLine": scope.end_line,
+        "endColumn": scope.end_column,
+
+        "symbols": [
+            symbol.name
+            for symbol in scope.all_symbols()
+        ],
+
+        "children": [
+            scope_to_json(child)
+            for child in scope.children
+        ],
+    }
+
+    return result
     
     
 # ========================================================
@@ -423,15 +453,30 @@ def symbols_command(source_file):
     )
 
 
+    all_symbols = collect_all_symbols(
+        symbol_table.global_scope
+    )
+
+
     symbols = [
         symbol_to_json(symbol)
-        for symbol in symbol_table.all_symbols()
+        for symbol in all_symbols
+    ]
+
+
+    scopes = [
+        scope_to_json(
+            symbol_table.global_scope
+        )
     ]
 
 
     print(
         json.dumps(
-            {"symbols": symbols},
+            {
+                "symbols": symbols,
+                "scopes": scopes,
+            },
             indent=4,
         )
     )

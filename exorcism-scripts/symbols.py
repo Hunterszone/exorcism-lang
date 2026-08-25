@@ -85,8 +85,8 @@ class Scope:
         self.start_line = start_line
         self.start_column = start_column
 
-        self.end_line = 0
-        self.end_column = 0
+        self.end_line = None
+        self.end_column = None
 
 
     # --------------------------------------------------------
@@ -247,9 +247,10 @@ class SymbolTable:
 
     def exit_scope(
         self,
-        end_line: int = 0,
-        end_column: int = 0,
+        end_line: int | None = None,
+        end_column: int | None = None,
     ):
+        """Exit the current scope with the given end position."""
 
         if self.current_scope.parent is None:
 
@@ -349,7 +350,7 @@ class SymbolTable:
         self,
         name: str
     ) -> bool:
-
+        """Check if a symbol exists in the current scope."""
         return (
             self.current_scope.lookup(name)
             is not None
@@ -361,6 +362,7 @@ class SymbolTable:
     # ========================================================
 
     def current(self):
+        """Return the current scope."""
 
         return self.current_scope
 
@@ -370,6 +372,7 @@ class SymbolTable:
     # ========================================================
 
     def visible_symbols(self):
+        """Return all symbols visible in the current scope."""
 
         return self.current_scope.visible_symbols()
 
@@ -379,6 +382,7 @@ class SymbolTable:
     # ========================================================
 
     def all_symbols(self):
+        """Return all symbols defined in the global scope."""
 
         return self.global_scope.all_symbols()
 
@@ -388,6 +392,7 @@ class SymbolTable:
     # ========================================================
 
     def all_scopes(self):
+        """Return all scopes in the symbol table."""
 
         scopes = []
 
@@ -417,7 +422,7 @@ class SymbolTable:
         line: int,
         column: int,
     ):
-
+        """Find the scope at the given source position."""
         def find_scope(scope):
 
             if not scope.contains_position(
@@ -440,3 +445,27 @@ class SymbolTable:
         return find_scope(
             self.global_scope
         )
+
+
+# ============================================================
+# Symbol collection helpers
+# ============================================================
+
+def collect_all_symbols(
+    scope
+):
+    """Collect symbols from this scope and all child scopes."""
+
+    symbols = []
+
+    symbols.extend(
+        scope.all_symbols()
+    )
+
+    for child in scope.children:
+
+        symbols.extend(
+            collect_all_symbols(child)
+        )
+
+    return symbols

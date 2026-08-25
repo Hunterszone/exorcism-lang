@@ -1252,13 +1252,19 @@ class SemanticAnalyzer:
                 function_symbol
             )
 
+            # ---------------------------------------------
             # Enter function scope
+            # ---------------------------------------------
+
             self.symbols.enter_scope(
                 start_line=node.token.line,
                 start_column=node.token.column,
             )
 
+            # ---------------------------------------------
             # Parameters
+            # ---------------------------------------------
+
             for parameter in node.parameters:
 
                 parameter_symbol = Symbol(
@@ -1274,12 +1280,27 @@ class SemanticAnalyzer:
                     parameter_symbol
                 )
 
+            # ---------------------------------------------
             # Function body
+            # ---------------------------------------------
+
             self._collect_symbols(
                 node.body
             )
 
+            # ---------------------------------------------
             # Leave function scope
-            self.symbols.exit_scope()
+            # ---------------------------------------------
+
+            if node.body.end_token is not None:
+
+                self.symbols.exit_scope(
+                    end_line=node.body.end_token.line,
+                    end_column=node.body.end_token.column,
+                )
+
+            else:
+
+                self.symbols.exit_scope()
 
             return

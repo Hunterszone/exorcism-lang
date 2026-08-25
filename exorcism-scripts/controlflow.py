@@ -44,29 +44,24 @@ class ControlFlowParserMixin:
 
         statements = []
 
-
         while (
             not self.check(TokenType.RBRACE)
             and not self.is_at_end()
         ):
-
             statements.append(
                 self.parse_statement()
             )
 
-
-        self.expect(
+        closing = self.expect(
             TokenType.RBRACE,
             "Expected '}' after block"
         )
 
-
         return Block(
-
             line=opening.line,
             column=opening.column,
-
             statements=statements,
+            end_token=closing,
         )
 
 

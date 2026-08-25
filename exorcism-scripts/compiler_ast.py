@@ -34,8 +34,11 @@ class Program(ASTNode):
 @dataclass(slots=True)
 class Block(ASTNode):
     """Represents a block of statements."""
-    statements: List["ASTNode"] = field(default_factory=list)
+    statements: List["ASTNode"] = field(
+        default_factory=list
+    )
 
+    end_token: Token | None = None
 
 # ============================================================
 # Type Information

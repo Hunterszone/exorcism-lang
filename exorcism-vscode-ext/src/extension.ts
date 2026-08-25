@@ -49,8 +49,24 @@ interface ExorcismSymbol {
 }
 
 
+interface ExorcismScope {
+    kind: string;
+    name?: string;
+
+    startLine: number;
+    startColumn: number;
+
+    endLine: number;
+    endColumn: number;
+
+    symbols: string[];
+    children: ExorcismScope[];
+}
+
+
 interface SymbolResponse {
     symbols: ExorcismSymbol[];
+    scopes: ExorcismScope[];
 }
 
 
@@ -60,6 +76,7 @@ interface SymbolResponse {
 
 interface SymbolCacheEntry {
     symbols: ExorcismSymbol[];
+    scopes: ExorcismScope[];
     documentVersion: number;
 }
 
@@ -117,6 +134,63 @@ export function activate(
                 cancelled: boolean;
             }
         >();
+
+    
+    // ---------------------------------------------
+    // Schedule diagnostic analysis
+    // ---------------------------------------------    
+        
+    function scheduleDiagnosticAnalysis(
+        document: vscode.TextDocument
+    ) {
+
+        const documentKey =
+            document.uri.toString();
+
+
+        // ---------------------------------------------
+        // Cancel previously scheduled analysis
+        // ---------------------------------------------
+
+        const existingTimer =
+            diagnosticTimers.get(
+                documentKey
+            );
+
+        if (existingTimer) {
+
+            clearTimeout(
+                existingTimer
+            );
+        }
+
+
+        // ---------------------------------------------
+        // Schedule new analysis
+        // ---------------------------------------------
+
+        const timer =
+            setTimeout(
+                () => {
+
+                    diagnosticTimers.delete(
+                        documentKey
+                    );
+
+                    analyzeDocument(
+                        document
+                    );
+
+                },
+                250
+            );
+
+
+        diagnosticTimers.set(
+            documentKey,
+            timer
+        );
+    }
 
 
     // ========================================================
@@ -466,149 +540,194 @@ export function activate(
     // ========================================================
 
     const completionProvider =
-        vscode.languages.registerCompletionItemProvider(
-            LANGUAGE_ID,
+    vscode.languages.registerCompletionItemProvider(
+        LANGUAGE_ID,
 
-            {
+        {
 
-                provideCompletionItems(
-                    document,
-                    _position,
-                    token,
-                    _context
+            provideCompletionItems(
+                document,
+                _position,
+                token,
+                _context
+            ) {
+
+                const items:
+                    vscode.CompletionItem[] = [];
+
+
+                // -----------------------------------------
+                // Keywords
+                // -----------------------------------------
+
+                for (
+                    const keyword of keywords
                 ) {
 
-                    const items:
-                        vscode.CompletionItem[] = [];
-
-
-                    // -----------------------------------------
-                    // Keywords
-                    // -----------------------------------------
-
-                    for (
-                        const keyword of keywords
-                    ) {
-
-                        if (
-                            token.isCancellationRequested
-                        ) {
-                            return items;
-                        }
-
-
-                        items.push(
-                            createKeywordCompletion(
-                                keyword
-                            )
-                        );
-                    }
-
-                    
-                    // -----------------------------------------
-                    // Semicolon
-                    // -----------------------------------------
-
-                    const semicolon =
-                        createSemicolonCompletion(
-                            document,
-                            _position
-                        );
-
-                    if (semicolon) {
-                        items.push(semicolon);
-                    }
-
-
-                    // -----------------------------------------
-                    // Punctuation
-                    // -----------------------------------------
-
-                    const line =
-                        document.lineAt(
-                            _position.line
-                        ).text;
-
-                    const textBeforeCursor =
-                        line.substring(
-                            0,
-                            _position.character
-                        );
-
-
-                    // -----------------------------------------
-                    // Closing parenthesis
-                    // -----------------------------------------
-
                     if (
-                        shouldSuggestClosingParenthesis(
-                            document,
-                            _position,
-                            textBeforeCursor
-                        )
+                        token.isCancellationRequested
                     ) {
-
-                        items.push(
-                            createPunctuationCompletion(
-                                ")",
-                                "Close parenthesis"
-                            )
-                        );
-                    }
-
-
-                    // -----------------------------------------
-                    // Cached symbols
-                    // -----------------------------------------
-
-                    const cache =
-                        symbolCache.get(
-                            document.uri.toString()
-                        );
-
-
-                    if (!cache) {
-
-                        console.log(
-                            "COMPLETION: no symbol cache"
-                        );
-
                         return items;
                     }
 
-
-                    for (
-                        const symbol of cache.symbols
-                    ) {
-
-                        if (
-                            token.isCancellationRequested
-                        ) {
-                            return items;
-                        }
+                    items.push(
+                        createKeywordCompletion(
+                            keyword
+                        )
+                    );
+                }
 
 
-                        items.push(
-                            createSymbolCompletion(
-                                symbol
-                            )
-                        );
-                    }
+                // -----------------------------------------
+                // Semicolon
+                // -----------------------------------------
+
+                const semicolon =
+                    createSemicolonCompletion(
+                        document,
+                        _position
+                    );
+
+                if (semicolon) {
+                    items.push(semicolon);
+                }
 
 
-                    console.log(
-                        "COMPLETION:",
-                        items.length,
-                        "items",
-                        "symbols:",
-                        cache.symbols.length
+                // -----------------------------------------
+                // Punctuation
+                // -----------------------------------------
+
+                const line =
+                    document.lineAt(
+                        _position.line
+                    ).text;
+
+                const textBeforeCursor =
+                    line.substring(
+                        0,
+                        _position.character
                     );
 
 
+                // -----------------------------------------
+                // Closing parenthesis
+                // -----------------------------------------
+
+                if (
+                    shouldSuggestClosingParenthesis(
+                        document,
+                        _position,
+                        textBeforeCursor
+                    )
+                ) {
+
+                    items.push(
+                        createPunctuationCompletion(
+                            ")",
+                            "Close parenthesis"
+                        )
+                    );
+                }
+
+
+                // -----------------------------------------
+                // Cached symbols
+                // -----------------------------------------
+
+                const cache =
+                    symbolCache.get(
+                        document.uri.toString()
+                    );
+
+
+                if (!cache) {
+
+                    console.log(
+                        "COMPLETION: no symbol cache"
+                    );
+
                     return items;
                 }
+
+
+                // -----------------------------------------
+                // Root scope
+                // -----------------------------------------
+
+                if (
+                    cache.scopes.length === 0
+                ) {
+
+                    console.log(
+                        "COMPLETION: no scopes"
+                    );
+
+                    return items;
+                }
+
+
+                const root =
+                    cache.scopes[0];
+
+
+                // -----------------------------------------
+                // Find innermost scope
+                // -----------------------------------------
+
+                const scope =
+                    findInnermostScope(
+                        _position,
+                        root
+                    );
+
+
+                // -----------------------------------------
+                // Get visible symbols
+                // -----------------------------------------
+
+                const visibleSymbols =
+                    getVisibleSymbols(
+                        _position,
+                        scope ?? root,
+                        cache.symbols
+                    );
+
+
+                // -----------------------------------------
+                // Add visible symbols
+                // -----------------------------------------
+
+                for (
+                    const symbol of visibleSymbols
+                ) {
+
+                    if (
+                        token.isCancellationRequested
+                    ) {
+                        return items;
+                    }
+
+                    items.push(
+                        createSymbolCompletion(
+                            symbol
+                        )
+                    );
+                }
+
+
+                console.log(
+                    "COMPLETION:",
+                    items.length,
+                    "items",
+                    "visible symbols:",
+                    visibleSymbols.length
+                );
+
+
+                return items;
             }
-        );
+        }
+    );
 
 
     context.subscriptions.push(
@@ -1051,7 +1170,14 @@ export function activate(
     function getSymbols(
         filePath: string,
         documentKey: string
-    ): Promise<ExorcismSymbol[]> {
+    ): Promise<SymbolResponse | undefined> {
+
+        console.log(
+            "GET SYMBOLS CALLED:",
+            filePath,
+            "key:",
+            documentKey
+        );
 
         return new Promise(
             resolve => {
@@ -1095,6 +1221,11 @@ export function activate(
                 // -----------------------------------------
                 // Start symbol process
                 // -----------------------------------------
+
+                console.log(
+                    "STARTING EXRC SYMBOL PROCESS:",
+                    filePath
+                );
 
                 const child =
                     execFile(
@@ -1165,8 +1296,7 @@ export function activate(
                                     );
                                 }
 
-
-                                resolve([]);
+                                resolve(undefined);
 
                                 return;
                             }
@@ -1188,6 +1318,11 @@ export function activate(
                                     result.symbols ??
                                     [];
 
+                                
+                                const scopes =
+                                    result.scopes ?? 
+                                    [];    
+
 
                                 console.log(
                                     "EXORCISM SYMBOLS:",
@@ -1196,7 +1331,7 @@ export function activate(
 
 
                                 resolve(
-                                    symbols
+                                    result
                                 );
 
                             } catch (
@@ -1209,7 +1344,7 @@ export function activate(
                                 );
 
 
-                                resolve([]);
+                                resolve(undefined);
                             }
                         }
                     );
@@ -1240,7 +1375,7 @@ export function activate(
 
     function refreshSymbols(
         document: vscode.TextDocument
-    ) {
+    ) {        
 
         if (
             document.languageId !==
@@ -1264,6 +1399,14 @@ export function activate(
         ) {
             return;
         }
+
+        
+        console.log(
+            "REFRESH SYMBOLS CALLED:",
+            document.uri.fsPath,
+            "version:",
+            document.version
+        );
 
 
         const documentKey =
@@ -1301,44 +1444,43 @@ export function activate(
                     );
 
 
-                    if (
-                        document.isClosed
-                    ) {
+                    if (document.isClosed) {
                         return;
                     }
 
-
-                    const symbols =
+                    const result =
                         await getSymbols(
                             document.uri.fsPath,
                             documentKey
                         );
-
-
-                    if (
-                        document.isClosed
-                    ) {
+                       
+                    if (!result || document.isClosed) {
                         return;
                     }
-
-
+                    
+                    const symbols =
+                        result.symbols ?? [];
+    
                     symbolCache.set(
                         documentKey,
                         {
                             symbols,
+
+                            scopes:
+                                result.scopes ?? [],
+
                             documentVersion:
                                 document.version
                         }
                     );
-
 
                     console.log(
                         "SYMBOL CACHE UPDATED:",
                         symbols.length,
                         "symbols"
                     );
-
                 },
+
                 SYMBOL_DEBOUNCE_MS
             );
 
@@ -1346,6 +1488,177 @@ export function activate(
         symbolTimers.set(
             documentKey,
             timer
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // Check whether a position is inside a scope
+    // --------------------------------------------------------
+
+    function positionInScope(
+        position: vscode.Position,
+        scope: ExorcismScope
+    ): boolean {
+
+        const start =
+            new vscode.Position(
+                scope.startLine,
+                scope.startColumn
+            );
+
+
+        // Global scope has no finite end.
+        if (
+            scope.endLine === null ||
+            scope.endColumn === null
+        ) {
+
+            return (
+                position.isAfterOrEqual(
+                    start
+                )
+            );
+        }
+
+
+        const end =
+            new vscode.Position(
+                scope.endLine,
+                scope.endColumn
+            );
+
+
+        return (
+            position.isAfterOrEqual(start) &&
+            position.isBeforeOrEqual(end)
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // Find the deepest scope containing the cursor
+    // --------------------------------------------------------
+
+    function findInnermostScope(
+        position: vscode.Position,
+        root: ExorcismScope
+    ): ExorcismScope | undefined {
+
+        if (
+            !positionInScope(
+                position,
+                root
+            )
+        ) {
+            return undefined;
+        }
+
+
+        for (
+            const child of root.children ?? []
+        ) {
+
+            const nested =
+                findInnermostScope(
+                    position,
+                    child
+                );
+
+
+            if (nested) {
+                return nested;
+            }
+        }
+
+
+        return root;
+    }
+
+
+    // --------------------------------------------------------
+    // Get all visible symbols
+    // --------------------------------------------------------
+
+    function getVisibleSymbols(
+        position: vscode.Position,
+        root: ExorcismScope,
+        allSymbols: ExorcismSymbol[]
+    ): ExorcismSymbol[] {
+
+        const visible =
+            new Map<string, ExorcismSymbol>();
+
+
+        function addScopeSymbols(
+            scope: ExorcismScope
+        ) {
+
+            for (
+                const symbolName of scope.symbols ?? []
+            ) {
+
+                const symbol =
+                    allSymbols.find(
+                        candidate =>
+                            candidate.name === symbolName
+                    );
+
+
+                if (symbol) {
+
+                    visible.set(
+                        symbol.name,
+                        symbol
+                    );
+                }
+            }
+        }
+
+
+        function visit(
+            scope: ExorcismScope
+        ): boolean {
+
+            if (
+                !positionInScope(
+                    position,
+                    scope
+                )
+            ) {
+                return false;
+            }
+
+
+            // Parent symbols are added first.
+            addScopeSymbols(
+                scope
+            );
+
+
+            // Then descend into the scope containing
+            // the cursor.
+            for (
+                const child of scope.children ?? []
+            ) {
+
+                if (
+                    visit(child)
+                ) {
+                    break;
+                }
+            }
+
+
+            return true;
+        }
+
+
+        visit(root);
+
+
+        return Array.from(
+            visible.values()
         );
     }
 
@@ -1406,21 +1719,22 @@ export function activate(
                 // -------------------------------------------
                 // Diagnostics
                 // -------------------------------------------
+                //
+                // Debounced.
+                //
+                // Do NOT execute analyzeDocument()
+                // directly on every keystroke.
+                //
 
-                analyzeDocument(
+                scheduleDiagnosticAnalysis(
                     document
                 );
 
-
-                // -------------------------------------------
-                // IMPORTANT:
                 //
                 // Do NOT run `exrc symbols` here.
                 //
-                // The document may be changing rapidly.
+                // Symbols are refreshed on save/open.
                 //
-                // Symbols will be refreshed after save.
-                // -------------------------------------------
             }
         );
 
@@ -1432,6 +1746,14 @@ export function activate(
     const openSubscription =
         vscode.workspace.onDidOpenTextDocument(
             document => {
+
+                if (
+                    document.languageId !==
+                    LANGUAGE_ID
+                ) {
+                    return;
+                }
+
 
                 analyzeDocument(
                     document
@@ -1457,22 +1779,69 @@ export function activate(
     // ========================================================
 
     const saveSubscription =
-        vscode.workspace.onDidSaveTextDocument(
-            document => {
+    vscode.workspace.onDidSaveTextDocument(
+        document => {
 
-                if (
-                    document.languageId !==
-                    LANGUAGE_ID
-                ) {
-                    return;
-                }
-
-
-                refreshSymbols(
-                    document
-                );
+            if (
+                document.languageId !==
+                LANGUAGE_ID
+            ) {
+                return;
             }
+
+            scheduleSymbolRefresh(
+                document
+            );
+        }
+    );
+
+    
+    // Schedule the symbol refresh 
+
+    function scheduleSymbolRefresh(
+        document: vscode.TextDocument
+    ) {
+
+        const documentKey =
+            document.uri.toString();
+
+
+        const existingTimer =
+            symbolTimers.get(
+                documentKey
+            );
+
+
+        if (existingTimer) {
+
+            clearTimeout(
+                existingTimer
+            );
+        }
+
+
+        const timer =
+            setTimeout(
+                () => {
+
+                    symbolTimers.delete(
+                        documentKey
+                    );
+
+                    refreshSymbols(
+                        document
+                    );
+
+                },
+                300
+            );
+
+
+        symbolTimers.set(
+            documentKey,
+            timer
         );
+    }
 
 
     // ========================================================
