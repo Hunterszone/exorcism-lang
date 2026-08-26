@@ -695,7 +695,7 @@ class SemanticAnalyzer:
 
                 raise SemanticError(
                     "Option condition must be boolean",
-                    node=node.line
+                    node=option_condition
                 )
 
 
