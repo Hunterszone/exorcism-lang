@@ -577,6 +577,139 @@ export function activate(
 
 
     // ========================================================
+    // Go to Definition
+    // ========================================================
+
+    const definitionProvider =
+        vscode.languages.registerDefinitionProvider(
+            LANGUAGE_ID,
+
+            {
+
+                provideDefinition(
+                    document,
+                    position,
+                    token
+                ) {
+
+                    if (
+                        token.isCancellationRequested
+                    ) {
+                        return undefined;
+                    }
+
+
+                    // -----------------------------------------
+                    // Get word under cursor
+                    // -----------------------------------------
+
+                    const wordRange =
+                        document.getWordRangeAtPosition(
+                            position
+                        );
+
+
+                    if (!wordRange) {
+                        return undefined;
+                    }
+
+
+                    const word =
+                        document.getText(
+                            wordRange
+                        );
+
+
+                    if (!word) {
+                        return undefined;
+                    }
+
+
+                    // -----------------------------------------
+                    // Get cached symbols
+                    // -----------------------------------------
+
+                    const documentKey =
+                        document.uri.toString();
+
+
+                    const cache =
+                        symbolCache.get(
+                            documentKey
+                        );
+
+
+                    if (!cache) {
+                        return undefined;
+                    }
+
+
+                    // -----------------------------------------
+                    // Find matching function
+                    // -----------------------------------------
+
+                    const functionSymbol =
+                        cache.symbols.find(
+                            symbol =>
+                                symbol.kind === "function" &&
+                                symbol.name === word
+                        );
+
+
+                    if (!functionSymbol) {
+                        return undefined;
+                    }
+
+
+                    // -----------------------------------------
+                    // Convert compiler position to VS Code
+                    // position.
+                    //
+                    // Compiler uses 1-based lines/columns.
+                    // VS Code uses 0-based lines/columns.
+                    // -----------------------------------------
+
+                    const line =
+                        Math.max(
+                            0,
+                            functionSymbol.line - 1
+                        );
+
+
+                    const column =
+                        Math.max(
+                            0,
+                            functionSymbol.column - 1
+                        );
+
+
+                    const definitionPosition =
+                        new vscode.Position(
+                            line,
+                            column
+                        );
+
+
+                    const definitionRange =
+                        new vscode.Range(
+                            definitionPosition,
+                            new vscode.Position(
+                                line,
+                                column + functionSymbol.name.length
+                            )
+                        );
+
+
+                    return new vscode.Location(
+                        document.uri,
+                        definitionRange
+                    );
+                }
+            }
+        );
+
+
+    // ========================================================
     // Completion provider
     //
     // IMPORTANT:
@@ -781,7 +914,8 @@ export function activate(
 
 
     context.subscriptions.push(
-        completionProvider
+        completionProvider,
+        definitionProvider
     );
 
 
