@@ -2,6 +2,14 @@
 
 All notable changes to the Exorcism VS Code Extension will be documented in this file.
 
+## [1.8.0]
+
+### Added
+
+- Added go-to function definition for the .exrc file editor context.
+
+---
+
 ## [1.7.0]
 
 ### Added
