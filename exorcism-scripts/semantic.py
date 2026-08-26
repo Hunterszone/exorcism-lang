@@ -799,10 +799,12 @@ class SemanticAnalyzer:
                 node.name
             )
 
+
             if symbol is None:
 
                 raise SemanticError(
-                    f"Unknown function '{node.name}'"
+                    f"Unknown function '{node.name}'",
+                    node=node
                 )
 
 
@@ -812,14 +814,13 @@ class SemanticAnalyzer:
             ):
 
                 raise SemanticError(
-                    f"'{node.name}' is not a function"
+                    f"'{node.name}' is not a function",
+                    node=node
                 )
 
 
-            if symbol.return_type is VOID:
-
-                return VOID
-
+            # Check argument count for ALL functions,
+            # including void functions.
 
             if len(node.arguments) != len(
                 symbol.parameters
@@ -827,9 +828,12 @@ class SemanticAnalyzer:
 
                 raise SemanticError(
                     f"Function '{node.name}' expects "
-                    f"{len(symbol.parameters)} arguments"
+                    f"{len(symbol.parameters)} arguments",
+                    node=node
                 )
 
+
+            # Check argument types.
 
             for argument, parameter in zip(
                 node.arguments,
@@ -853,6 +857,13 @@ class SemanticAnalyzer:
                         f"'{node.name}'",
                         node=argument
                     )
+
+
+            # Void functions have no expression value.
+
+            if symbol.return_type is VOID:
+
+                return VOID
 
 
             return symbol.return_type
