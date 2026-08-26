@@ -288,17 +288,31 @@ class Compiler:
 
             else:
 
-                line = getattr(
+                node = getattr(
                     error,
-                    "line",
-                    default_line
+                    "node",
+                    None
                 )
 
-                column = getattr(
-                    error,
-                    "column",
-                    default_column
-                )
+
+                if node is not None:
+
+                    line = node.line
+                    column = node.column
+
+                else:
+
+                    line = getattr(
+                        error,
+                        "line",
+                        default_line
+                    )
+
+                    column = getattr(
+                        error,
+                        "column",
+                        default_column
+                    )
 
 
             diagnostics.error(
@@ -369,11 +383,8 @@ class Compiler:
 
         except Exception as error:
 
-            diagnostics.error(
-                message=str(error),
-                line=1,
-                column=1,
-                length=1,
+            add_error(
+                error
             )
 
 

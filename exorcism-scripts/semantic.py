@@ -48,19 +48,21 @@ from symbols import (
 )
 
 class SemanticError(Exception):
-    """Exception raised for semantic analysis errors."""
+    """Raised when semantic analysis encounters an invalid program construct."""
 
     def __init__(
         self,
         message,
-        token=None
+        token=None,
+        node=None
     ):
-
-        super().__init__(message)
+        super().__init__(
+            message
+        )
 
         self.message = message
-
         self.token = token
+        self.node = node
 
 
 # ============================================================
@@ -595,7 +597,8 @@ class SemanticAnalyzer:
 
                 raise SemanticError(
                     f"Argument type mismatch in "
-                    f"'{node.name}'"
+                    f"'{node.name}'",
+                    node=argument
                 )
 
 
@@ -663,7 +666,8 @@ class SemanticAnalyzer:
         if condition_type != BOOL:
 
             raise SemanticError(
-                "If condition must be boolean"
+                "If condition must be boolean",
+                node=node.condition
             )
 
 
@@ -690,7 +694,8 @@ class SemanticAnalyzer:
             if option_type != BOOL:
 
                 raise SemanticError(
-                    "Option condition must be boolean"
+                    "Option condition must be boolean",
+                    node=node.line
                 )
 
 
@@ -845,7 +850,8 @@ class SemanticAnalyzer:
 
                     raise SemanticError(
                         f"Argument type mismatch in "
-                        f"'{node.name}'"
+                        f"'{node.name}'",
+                        node=argument
                     )
 
 
@@ -968,7 +974,8 @@ class SemanticAnalyzer:
                 ):
 
                     raise SemanticError(
-                        "Left side must be numeric"
+                        "Left side must be numeric",
+                        node=node.left
                     )
 
 
@@ -977,7 +984,8 @@ class SemanticAnalyzer:
                 ):
 
                     raise SemanticError(
-                        "Right side must be numeric"
+                        "Right side must be numeric",
+                        node=node.right
                     )
 
 

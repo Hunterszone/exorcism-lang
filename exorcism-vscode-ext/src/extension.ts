@@ -135,7 +135,57 @@ export function activate(
             }
         >();
 
+
     
+    // ---------------------------------------------
+    // Cancel stale symbol processes
+    // ---------------------------------------------    
+    
+    function cancelSymbolProcess(
+        documentKey: string
+    ) {
+
+        const entry =
+            symbolProcesses.get(
+                documentKey
+            );
+
+
+        if (
+            !entry ||
+            entry.cancelled
+        ) {
+            return;
+        }
+
+
+        // Mark as cancelled BEFORE killing.
+        //
+        // This is important because kill() can cause
+        // the callback to execute asynchronously.
+
+        entry.cancelled = true;
+
+
+        try {
+
+            if (
+                !entry.process.killed
+            ) {
+
+                entry.process.kill();
+            }
+
+        } catch {
+            // Process may already have exited.
+        }
+
+
+        symbolProcesses.delete(
+            documentKey
+        );
+    }
+
     // ---------------------------------------------
     // Schedule diagnostic analysis
     // ---------------------------------------------    
@@ -1172,60 +1222,21 @@ export function activate(
         documentKey: string
     ): Promise<SymbolResponse | undefined> {
 
-        console.log(
-            "GET SYMBOLS CALLED:",
-            filePath,
-            "key:",
-            documentKey
-        );
-
         return new Promise(
             resolve => {
 
                 // -----------------------------------------
-                // Kill previous symbol process
+                // Cancel previous process
                 // -----------------------------------------
 
-                const existingEntry =
-                    symbolProcesses.get(
-                        documentKey
-                    );
-
-
-                if (existingEntry) {
-
-                    // Mark as intentionally cancelled
-                    // BEFORE killing the process.
-                    existingEntry.cancelled = true;
-
-
-                    try {
-
-                        if (
-                            !existingEntry.process.killed
-                        ) {
-                            existingEntry.process.kill();
-                        }
-
-                    } catch {
-                        // Process may already have exited.
-                    }
-
-
-                    symbolProcesses.delete(
-                        documentKey
-                    );
-                }
-
-
-                // -----------------------------------------
-                // Start symbol process
-                // -----------------------------------------
-
-                console.log(
-                    "STARTING EXRC SYMBOL PROCESS:",
-                    filePath
+                cancelSymbolProcess(
+                    documentKey
                 );
+
+
+                // -----------------------------------------
+                // Start new process
+                // -----------------------------------------
 
                 const child =
                     execFile(
@@ -1244,10 +1255,6 @@ export function activate(
                             stderr
                         ) => {
 
-                            // ---------------------------------
-                            // Get the current process entry
-                            // ---------------------------------
-
                             const entry =
                                 symbolProcesses.get(
                                     documentKey
@@ -1255,7 +1262,9 @@ export function activate(
 
 
                             // ---------------------------------
-                            // Process was cancelled or replaced
+                            // Ignore callbacks from a process
+                            // that has already been replaced
+                            // or cancelled.
                             // ---------------------------------
 
                             if (
@@ -1268,17 +1277,13 @@ export function activate(
 
 
                             // ---------------------------------
-                            // Process completed normally
+                            // Remove current process
                             // ---------------------------------
 
                             symbolProcesses.delete(
                                 documentKey
                             );
 
-
-                            // ---------------------------------
-                            // Real process error
-                            // ---------------------------------
 
                             if (error) {
 
@@ -1296,15 +1301,14 @@ export function activate(
                                     );
                                 }
 
-                                resolve(undefined);
+
+                                resolve(
+                                    undefined
+                                );
 
                                 return;
                             }
 
-
-                            // ---------------------------------
-                            // Parse JSON
-                            // ---------------------------------
 
                             try {
 
@@ -1314,19 +1318,9 @@ export function activate(
                                     ) as SymbolResponse;
 
 
-                                const symbols =
-                                    result.symbols ??
-                                    [];
-
-                                
-                                const scopes =
-                                    result.scopes ?? 
-                                    [];    
-
-
                                 console.log(
                                     "EXORCISM SYMBOLS:",
-                                    symbols.length
+                                    result.symbols?.length ?? 0
                                 );
 
 
@@ -1344,14 +1338,16 @@ export function activate(
                                 );
 
 
-                                resolve(undefined);
+                                resolve(
+                                    undefined
+                                );
                             }
                         }
                     );
 
 
                 // -----------------------------------------
-                // Store process
+                // Register process
                 // -----------------------------------------
 
                 symbolProcesses.set(
@@ -1375,7 +1371,7 @@ export function activate(
 
     function refreshSymbols(
         document: vscode.TextDocument
-    ) {        
+    ) {
 
         if (
             document.languageId !==
@@ -1386,7 +1382,8 @@ export function activate(
 
 
         if (
-            document.isUntitled
+            document.isUntitled ||
+            document.isClosed
         ) {
             return;
         }
@@ -1400,21 +1397,13 @@ export function activate(
             return;
         }
 
-        
-        console.log(
-            "REFRESH SYMBOLS CALLED:",
-            document.uri.fsPath,
-            "version:",
-            document.version
-        );
-
 
         const documentKey =
             document.uri.toString();
 
 
         // -----------------------------------------------
-        // Cancel existing timer
+        // Cancel pending timer
         // -----------------------------------------------
 
         const existingTimer =
@@ -1422,17 +1411,29 @@ export function activate(
                 documentKey
             );
 
-
         if (existingTimer) {
 
             clearTimeout(
                 existingTimer
             );
+
+            symbolTimers.delete(
+                documentKey
+            );
         }
 
 
         // -----------------------------------------------
-        // Debounce symbol extraction
+        // Cancel running symbol process
+        // -----------------------------------------------
+
+        cancelSymbolProcess(
+            documentKey
+        );
+
+
+        // -----------------------------------------------
+        // Start debounced refresh
         // -----------------------------------------------
 
         const timer =
@@ -1444,35 +1445,43 @@ export function activate(
                     );
 
 
-                    if (document.isClosed) {
+                    if (
+                        document.isClosed
+                    ) {
                         return;
                     }
+
 
                     const result =
                         await getSymbols(
                             document.uri.fsPath,
                             documentKey
                         );
-                       
-                    if (!result || document.isClosed) {
+
+
+                    if (
+                        !result ||
+                        document.isClosed
+                    ) {
                         return;
                     }
-                    
+
+
                     const symbols =
                         result.symbols ?? [];
-    
+
+
                     symbolCache.set(
                         documentKey,
                         {
                             symbols,
-
                             scopes:
                                 result.scopes ?? [],
-
                             documentVersion:
                                 document.version
                         }
                     );
+
 
                     console.log(
                         "SYMBOL CACHE UPDATED:",
@@ -1759,7 +1768,6 @@ export function activate(
                     document
                 );
 
-
                 if (
                     !document.isUntitled
                 ) {
@@ -1779,69 +1787,21 @@ export function activate(
     // ========================================================
 
     const saveSubscription =
-    vscode.workspace.onDidSaveTextDocument(
-        document => {
+        vscode.workspace.onDidSaveTextDocument(
+            document => {
 
-            if (
-                document.languageId !==
-                LANGUAGE_ID
-            ) {
-                return;
+                if (
+                    document.languageId !==
+                    LANGUAGE_ID
+                ) {
+                    return;
+                }
+
+                refreshSymbols(
+                    document
+                );
             }
-
-            scheduleSymbolRefresh(
-                document
-            );
-        }
-    );
-
-    
-    // Schedule the symbol refresh 
-
-    function scheduleSymbolRefresh(
-        document: vscode.TextDocument
-    ) {
-
-        const documentKey =
-            document.uri.toString();
-
-
-        const existingTimer =
-            symbolTimers.get(
-                documentKey
-            );
-
-
-        if (existingTimer) {
-
-            clearTimeout(
-                existingTimer
-            );
-        }
-
-
-        const timer =
-            setTimeout(
-                () => {
-
-                    symbolTimers.delete(
-                        documentKey
-                    );
-
-                    refreshSymbols(
-                        document
-                    );
-
-                },
-                300
-            );
-
-
-        symbolTimers.set(
-            documentKey,
-            timer
         );
-    }
 
 
     // ========================================================
