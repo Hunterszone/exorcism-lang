@@ -576,6 +576,255 @@ export function activate(
     }
 
 
+
+    // -----------------------------------------
+    // Find symbol in this scope chain
+    // -----------------------------------------
+
+    function createDefinitionLocation(
+        document: vscode.TextDocument,
+        symbol: ExorcismSymbol
+    ): vscode.Location {
+
+        const line =
+            Math.max(
+                0,
+                symbol.line - 1
+            );
+
+
+        const column =
+            Math.max(
+                0,
+                symbol.column - 1
+            );
+
+
+        const start =
+            new vscode.Position(
+                line,
+                column
+            );
+
+
+        const end =
+            new vscode.Position(
+                line,
+                column +
+                    symbol.name.length
+            );
+
+
+        return new vscode.Location(
+            document.uri,
+            new vscode.Range(
+                start,
+                end
+            )
+        );
+    }
+
+
+    // findParentScope
+
+    function findParentScope(
+        target: ExorcismScope,
+        root: ExorcismScope
+    ): ExorcismScope | undefined {
+
+        for (
+            const child of root.children ?? []
+        ) {
+
+            if (
+                child === target
+            ) {
+                return root;
+            }
+
+
+            const parent =
+                findParentScope(
+                    target,
+                    child
+                );
+
+
+            if (parent) {
+                return parent;
+            }
+        }
+
+
+        return undefined;
+    }
+
+
+    // isSymbolInScope
+
+    function isSymbolInScope(
+        symbol: ExorcismSymbol,
+        scope: ExorcismScope
+    ): boolean {
+
+        const line =
+            symbol.line;
+
+
+        const column =
+            symbol.column;
+
+
+        const startLine =
+            scope.startLine;
+
+
+        const startColumn =
+            scope.startColumn;
+
+
+        const endLine =
+            scope.endLine;
+
+
+        const endColumn =
+            scope.endColumn;
+
+
+        // -----------------------------------------
+        // Global scope
+        // -----------------------------------------
+
+        if (
+            scope.kind === "global"
+        ) {
+            return true;
+        }
+
+
+        // -----------------------------------------
+        // Before scope
+        // -----------------------------------------
+
+        if (
+            line < startLine
+        ) {
+            return false;
+        }
+
+
+        if (
+            line === startLine &&
+            column < startColumn
+        ) {
+            return false;
+        }
+
+
+        // -----------------------------------------
+        // After scope
+        // -----------------------------------------
+
+        if (
+            endLine !== null &&
+            endLine !== undefined
+        ) {
+
+            if (
+                line > endLine
+            ) {
+                return false;
+            }
+
+
+            if (
+                line === endLine &&
+                endColumn !== null &&
+                endColumn !== undefined &&
+                column > endColumn
+            ) {
+                return false;
+            }
+        }
+
+
+        return true;
+    }
+
+
+    // findSymbolInScopeChain
+
+    function findSymbolInScopeChain(
+        symbolName: string,
+        scope: ExorcismScope,
+        root: ExorcismScope,
+        allSymbols: ExorcismSymbol[]
+    ): ExorcismSymbol | undefined {
+
+        let current:
+            ExorcismScope | undefined =
+                scope;
+
+
+        while (current !== undefined) {
+
+            // -----------------------------------------
+            // Store the narrowed scope.
+            // -----------------------------------------
+
+            const currentScope =
+                current;
+
+
+            // -----------------------------------------
+            // Look for symbol in this scope
+            // -----------------------------------------
+
+            const symbolNames =
+                currentScope.symbols ?? [];
+
+
+            if (
+                symbolNames.includes(
+                    symbolName
+                )
+            ) {
+
+                const symbol =
+                    allSymbols.find(
+                        candidate =>
+                            candidate.name ===
+                            symbolName &&
+                            isSymbolInScope(
+                                candidate,
+                                currentScope
+                            )
+                    );
+
+
+                if (symbol) {
+                    return symbol;
+                }
+            }
+
+
+            // -----------------------------------------
+            // Move toward parent scope
+            // -----------------------------------------
+
+            current =
+                findParentScope(
+                    currentScope,
+                    root
+                );
+        }
+
+
+        return undefined;
+    }
+
+
+
     // ========================================================
     // Go to Definition
     // ========================================================
@@ -591,6 +840,10 @@ export function activate(
                     position,
                     token
                 ) {
+
+                    // -----------------------------------------
+                    // Cancellation
+                    // -----------------------------------------
 
                     if (
                         token.isCancellationRequested
@@ -614,19 +867,19 @@ export function activate(
                     }
 
 
-                    const word =
+                    const symbolName =
                         document.getText(
                             wordRange
                         );
 
 
-                    if (!word) {
+                    if (!symbolName) {
                         return undefined;
                     }
 
 
                     // -----------------------------------------
-                    // Get cached symbols
+                    // Get symbol cache
                     // -----------------------------------------
 
                     const documentKey =
@@ -645,64 +898,84 @@ export function activate(
 
 
                     // -----------------------------------------
-                    // Find matching function
+                    // Get root scope
                     // -----------------------------------------
 
-                    const functionSymbol =
-                        cache.symbols.find(
-                            symbol =>
-                                symbol.kind === "function" &&
-                                symbol.name === word
+                    const rootScope =
+                        cache.scopes.find(
+                            scope =>
+                                scope.kind === "global"
                         );
 
 
-                    if (!functionSymbol) {
+                    if (!rootScope) {
+
+                        // Fallback for older symbol data
+                        // without scope information.
+
+                        const symbol =
+                            cache.symbols.find(
+                                candidate =>
+                                    candidate.name ===
+                                    symbolName
+                            );
+
+
+                        if (!symbol) {
+                            return undefined;
+                        }
+
+
+                        return createDefinitionLocation(
+                            document,
+                            symbol
+                        );
+                    }
+
+
+                    // -----------------------------------------
+                    // Find innermost scope
+                    // -----------------------------------------
+
+                    const currentScope =
+                        findInnermostScope(
+                            position,
+                            rootScope
+                        );
+
+
+                    if (!currentScope) {
                         return undefined;
                     }
 
 
                     // -----------------------------------------
-                    // Convert compiler position to VS Code
-                    // position.
-                    //
-                    // Compiler uses 1-based lines/columns.
-                    // VS Code uses 0-based lines/columns.
+                    // Resolve symbol from current scope
+                    // and then walk outward.
                     // -----------------------------------------
 
-                    const line =
-                        Math.max(
-                            0,
-                            functionSymbol.line - 1
+                    const symbol =
+                        findSymbolInScopeChain(
+                            symbolName,
+                            currentScope,
+                            rootScope,
+                            cache.symbols
                         );
 
 
-                    const column =
-                        Math.max(
-                            0,
-                            functionSymbol.column - 1
-                        );
+                    if (!symbol) {
+                        return undefined;
+                    }
 
 
-                    const definitionPosition =
-                        new vscode.Position(
-                            line,
-                            column
-                        );
+                    // -----------------------------------------
+                    // Create VS Code definition
+                    // location.
+                    // -----------------------------------------
 
-
-                    const definitionRange =
-                        new vscode.Range(
-                            definitionPosition,
-                            new vscode.Position(
-                                line,
-                                column + functionSymbol.name.length
-                            )
-                        );
-
-
-                    return new vscode.Location(
-                        document.uri,
-                        definitionRange
+                    return createDefinitionLocation(
+                        document,
+                        symbol
                     );
                 }
             }
@@ -723,193 +996,193 @@ export function activate(
     // ========================================================
 
     const completionProvider =
-    vscode.languages.registerCompletionItemProvider(
-        LANGUAGE_ID,
+        vscode.languages.registerCompletionItemProvider(
+            LANGUAGE_ID,
 
-        {
+            {
 
-            provideCompletionItems(
-                document,
-                _position,
-                token,
-                _context
-            ) {
-
-                const items:
-                    vscode.CompletionItem[] = [];
-
-
-                // -----------------------------------------
-                // Keywords
-                // -----------------------------------------
-
-                for (
-                    const keyword of keywords
+                provideCompletionItems(
+                    document,
+                    _position,
+                    token,
+                    _context
                 ) {
 
-                    if (
-                        token.isCancellationRequested
+                    const items:
+                        vscode.CompletionItem[] = [];
+
+
+                    // -----------------------------------------
+                    // Keywords
+                    // -----------------------------------------
+
+                    for (
+                        const keyword of keywords
                     ) {
+
+                        if (
+                            token.isCancellationRequested
+                        ) {
+                            return items;
+                        }
+
+                        items.push(
+                            createKeywordCompletion(
+                                keyword
+                            )
+                        );
+                    }
+
+
+                    // -----------------------------------------
+                    // Semicolon
+                    // -----------------------------------------
+
+                    const semicolon =
+                        createSemicolonCompletion(
+                            document,
+                            _position
+                        );
+
+                    if (semicolon) {
+                        items.push(semicolon);
+                    }
+
+
+                    // -----------------------------------------
+                    // Punctuation
+                    // -----------------------------------------
+
+                    const line =
+                        document.lineAt(
+                            _position.line
+                        ).text;
+
+                    const textBeforeCursor =
+                        line.substring(
+                            0,
+                            _position.character
+                        );
+
+
+                    // -----------------------------------------
+                    // Closing parenthesis
+                    // -----------------------------------------
+
+                    if (
+                        shouldSuggestClosingParenthesis(
+                            document,
+                            _position,
+                            textBeforeCursor
+                        )
+                    ) {
+
+                        items.push(
+                            createPunctuationCompletion(
+                                ")",
+                                "Close parenthesis"
+                            )
+                        );
+                    }
+
+
+                    // -----------------------------------------
+                    // Cached symbols
+                    // -----------------------------------------
+
+                    const cache =
+                        symbolCache.get(
+                            document.uri.toString()
+                        );
+
+
+                    if (!cache) {
+
+                        console.log(
+                            "COMPLETION: no symbol cache"
+                        );
+
                         return items;
                     }
 
-                    items.push(
-                        createKeywordCompletion(
-                            keyword
-                        )
-                    );
-                }
 
-
-                // -----------------------------------------
-                // Semicolon
-                // -----------------------------------------
-
-                const semicolon =
-                    createSemicolonCompletion(
-                        document,
-                        _position
-                    );
-
-                if (semicolon) {
-                    items.push(semicolon);
-                }
-
-
-                // -----------------------------------------
-                // Punctuation
-                // -----------------------------------------
-
-                const line =
-                    document.lineAt(
-                        _position.line
-                    ).text;
-
-                const textBeforeCursor =
-                    line.substring(
-                        0,
-                        _position.character
-                    );
-
-
-                // -----------------------------------------
-                // Closing parenthesis
-                // -----------------------------------------
-
-                if (
-                    shouldSuggestClosingParenthesis(
-                        document,
-                        _position,
-                        textBeforeCursor
-                    )
-                ) {
-
-                    items.push(
-                        createPunctuationCompletion(
-                            ")",
-                            "Close parenthesis"
-                        )
-                    );
-                }
-
-
-                // -----------------------------------------
-                // Cached symbols
-                // -----------------------------------------
-
-                const cache =
-                    symbolCache.get(
-                        document.uri.toString()
-                    );
-
-
-                if (!cache) {
-
-                    console.log(
-                        "COMPLETION: no symbol cache"
-                    );
-
-                    return items;
-                }
-
-
-                // -----------------------------------------
-                // Root scope
-                // -----------------------------------------
-
-                if (
-                    cache.scopes.length === 0
-                ) {
-
-                    console.log(
-                        "COMPLETION: no scopes"
-                    );
-
-                    return items;
-                }
-
-
-                const root =
-                    cache.scopes[0];
-
-
-                // -----------------------------------------
-                // Find innermost scope
-                // -----------------------------------------
-
-                const scope =
-                    findInnermostScope(
-                        _position,
-                        root
-                    );
-
-
-                // -----------------------------------------
-                // Get visible symbols
-                // -----------------------------------------
-
-                const visibleSymbols =
-                    getVisibleSymbols(
-                        _position,
-                        scope ?? root,
-                        cache.symbols
-                    );
-
-
-                // -----------------------------------------
-                // Add visible symbols
-                // -----------------------------------------
-
-                for (
-                    const symbol of visibleSymbols
-                ) {
+                    // -----------------------------------------
+                    // Root scope
+                    // -----------------------------------------
 
                     if (
-                        token.isCancellationRequested
+                        cache.scopes.length === 0
                     ) {
+
+                        console.log(
+                            "COMPLETION: no scopes"
+                        );
+
                         return items;
                     }
 
-                    items.push(
-                        createSymbolCompletion(
-                            symbol
-                        )
+
+                    const root =
+                        cache.scopes[0];
+
+
+                    // -----------------------------------------
+                    // Find innermost scope
+                    // -----------------------------------------
+
+                    const scope =
+                        findInnermostScope(
+                            _position,
+                            root
+                        );
+
+
+                    // -----------------------------------------
+                    // Get visible symbols
+                    // -----------------------------------------
+
+                    const visibleSymbols =
+                        getVisibleSymbols(
+                            _position,
+                            scope ?? root,
+                            cache.symbols
+                        );
+
+
+                    // -----------------------------------------
+                    // Add visible symbols
+                    // -----------------------------------------
+
+                    for (
+                        const symbol of visibleSymbols
+                    ) {
+
+                        if (
+                            token.isCancellationRequested
+                        ) {
+                            return items;
+                        }
+
+                        items.push(
+                            createSymbolCompletion(
+                                symbol
+                            )
+                        );
+                    }
+
+
+                    console.log(
+                        "COMPLETION:",
+                        items.length,
+                        "items",
+                        "visible symbols:",
+                        visibleSymbols.length
                     );
+
+
+                    return items;
                 }
-
-
-                console.log(
-                    "COMPLETION:",
-                    items.length,
-                    "items",
-                    "visible symbols:",
-                    visibleSymbols.length
-                );
-
-
-                return items;
             }
-        }
     );
 
 
