@@ -2,7 +2,7 @@
   "name": "exorcism-lang",
   "displayName": "Exorcism Language Support",
   "description": "Official syntax support for the Exorcism programming language.",
-  "version": "1.8.4",
+  "version": "1.8.5",
   "publisher": "exorcism-dev",
   "icon": "logo.png",
   "engines": {
