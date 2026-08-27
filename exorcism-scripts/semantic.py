@@ -88,25 +88,56 @@ class SemanticAnalyzer:
         self,
         type_name
     ):
-        """Resolves a type name to its corresponding type, handling nullable types."""
+        """Resolve a type name to its corresponding Type."""
+
+        # ---------------------------------
+        # Validate input
+        # ---------------------------------
+
+        if type_name is None:
+
+            raise SemanticError(
+                "Cannot resolve a missing type"
+            )
+
 
         # ---------------------------------
         # Extract nullable information
         # ---------------------------------
 
-        if isinstance(type_name, TypeName):
+        if isinstance(
+            type_name,
+            TypeName
+        ):
 
-            is_nullable = type_name.nullable
+            is_nullable = (
+                type_name.nullable
+            )
 
-            type_name = type_name.name.value
+            type_name = (
+                type_name.name.value
+            )
 
-        else:
+        elif isinstance(
+            type_name,
+            str
+        ):
 
-            is_nullable = type_name.endswith("?")
+            is_nullable = (
+                type_name.endswith("?")
+            )
 
             if is_nullable:
 
-                type_name = type_name[:-1]
+                type_name = (
+                    type_name[:-1]
+                )
+
+        else:
+
+            raise SemanticError(
+                f"Invalid type name: {type(type_name).__name__}"
+            )
 
 
         # ---------------------------------
@@ -122,7 +153,7 @@ class SemanticAnalyzer:
             resolved_type = FLOAT
 
         elif type_name == "double":
-        
+
             resolved_type = DOUBLE
 
         elif type_name == "bool":
@@ -171,6 +202,7 @@ class SemanticAnalyzer:
     # ========================================================
 
     def analyze(self, program: Program):
+        """Analyze the program and perform semantic validation."""
 
         self.visit(program)
 
@@ -407,7 +439,7 @@ class SemanticAnalyzer:
         else:
 
             final_type = self.resolve_type(
-                node.declared_type.name.value
+                node.declared_type
             )
             
 
@@ -1236,14 +1268,47 @@ class SemanticAnalyzer:
 
         if isinstance(node, VariableDeclaration):
 
-            symbol = Symbol(
-                name=str(node.identifier.value),
-                token=node.identifier,
-                type_properties=self.resolve_type(
+            # ---------------------------------------------
+            # Resolve declared type or infer from initializer
+            # ---------------------------------------------
+
+            if node.declared_type is None:
+
+                if node.initializer is None:
+
+                    raise SemanticError(
+                        f"Variable '{node.identifier.value}' "
+                        "requires a type or initializer",
+                        token=node.identifier
+                    )
+
+                variable_type = self.evaluate_expression(
+                    node.initializer
+                )
+
+            else:
+
+                variable_type = self.resolve_type(
                     node.declared_type
+                )
+
+
+            # ---------------------------------------------
+            # Create symbol
+            # ---------------------------------------------
+
+            symbol = Symbol(
+                name=str(
+                    node.identifier.value
                 ),
+
+                token=node.identifier,
+
+                type_properties=variable_type,
+
                 initialized=node.initializer is not None,
             )
+
 
             self.symbols.current_scope.define(
                 symbol
@@ -1254,22 +1319,73 @@ class SemanticAnalyzer:
 
         # Is FunctionDeclaration instance
 
-        if isinstance(node, FunctionDeclaration):
+        if isinstance(
+            node,
+            FunctionDeclaration
+        ):
+
+            # ---------------------------------------------
+            # Resolve return type
+            # ---------------------------------------------
 
             return_type = self.resolve_type(
                 node.return_type
             )
 
+
+            # ---------------------------------------------
+            # Resolve parameters
+            # ---------------------------------------------
+
+            parameter_symbols = []
+
+
+            for parameter in node.parameters:
+
+                parameter_type = self.resolve_type(
+                    parameter.parameter_type
+                )
+
+
+                parameter_symbol = Symbol(
+                    name=parameter.name,
+
+                    token=parameter.token,
+
+                    type_properties=parameter_type,
+
+                    initialized=True,
+                )
+
+
+                parameter_symbols.append(
+                    parameter_symbol
+                )
+
+
+            # ---------------------------------------------
+            # Create complete function symbol
+            # ---------------------------------------------
+
             function_symbol = FunctionSymbol(
                 name=node.name,
+
                 token=node.token,
+
                 type_properties=return_type,
+
                 return_type=return_type,
+
+                parameters=parameter_symbols,
+
+                initialized=True,
             )
+
 
             self.symbols.current_scope.define(
                 function_symbol
             )
+
 
             # ---------------------------------------------
             # Enter function scope
@@ -1280,32 +1396,26 @@ class SemanticAnalyzer:
                 start_column=node.token.column,
             )
 
+
             # ---------------------------------------------
-            # Parameters
+            # Define parameters inside function scope
             # ---------------------------------------------
 
-            for parameter in node.parameters:
-
-                parameter_symbol = Symbol(
-                    name=parameter.name,
-                    token=parameter.token,
-                    type_properties=self.resolve_type(
-                        parameter.parameter_type
-                    ),
-                    initialized=True,
-                )
+            for parameter_symbol in parameter_symbols:
 
                 self.symbols.current_scope.define(
                     parameter_symbol
                 )
 
+
             # ---------------------------------------------
-            # Function body
+            # Collect function body
             # ---------------------------------------------
 
             self._collect_symbols(
                 node.body
             )
+
 
             # ---------------------------------------------
             # Leave function scope
@@ -1321,5 +1431,6 @@ class SemanticAnalyzer:
             else:
 
                 self.symbols.exit_scope()
+
 
             return
