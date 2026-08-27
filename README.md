@@ -562,7 +562,7 @@ https://marketplace.visualstudio.com/items?itemName=exorcism-dev.exorcism-lang
 - ✅ Native support for `.exrc` files
 - ✅ Real-time syntax validation
 - ✅ Code auto-completion
-- ✅ GOTO functions & Variables definition
+- ✅ GOTO functions & variables definition
 - ✅ Editor command menu for `.exrc` context
 - ✅ Keywords documentation support
 - ✅ Exorcism language icon and file association
