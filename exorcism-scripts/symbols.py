@@ -93,20 +93,55 @@ class Scope:
     # Define
     # --------------------------------------------------------
 
-    def define(self, symbol: Symbol):
+    def define(
+        self,
+        symbol: Symbol
+    ):
         """Define a symbol in the current scope."""
 
         if symbol.name in self.symbols:
 
-            existing = self.symbols[symbol.name]
+            existing = self.symbols[
+                symbol.name
+            ]
+
+
+            # ---------------------------------------------
+            # Determine symbol kinds
+            # ---------------------------------------------
+
+            if isinstance(
+                symbol,
+                FunctionSymbol
+            ):
+
+                symbol_kind = "Function"
+
+            else:
+
+                symbol_kind = "Variable"
+
+
+            # ---------------------------------------------
+            # Duplicate declaration
+            # ---------------------------------------------
 
             raise SymbolError(
-                f"Variable '{symbol.name}' already defined",
+
+                f"{symbol_kind} "
+                f"'{symbol.name}' "
+                f"already defined",
+
                 token=symbol.token,
+
                 related_token=existing.token
             )
 
-        self.symbols[symbol.name] = symbol
+
+        self.symbols[
+            symbol.name
+        ] = symbol
+
 
 
     # --------------------------------------------------------
