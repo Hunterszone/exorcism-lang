@@ -357,7 +357,7 @@ export function activate(
         "void",
         "if",
         "else",
-        "option",
+        "alt",
         "while",
         "for",
         "return",

@@ -38,7 +38,7 @@
       "patterns": [
 
         {
-          "match": "\\b(if|else|option|while|for|return|break|continue|function)\\b",
+          "match": "\\b(if|else|alt|while|for|return|break|continue|function)\\b",
           "name": "keyword.control.exorcism"
         }
 

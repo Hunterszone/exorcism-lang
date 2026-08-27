@@ -682,7 +682,7 @@ class SemanticAnalyzer:
         self,
         node: IfStatement
     ):
-        """Handle if/option/else conditional chains."""
+        """Handle if/alt/else conditional chains."""
 
         # ---------------------------------
         # IF condition
@@ -709,30 +709,30 @@ class SemanticAnalyzer:
 
 
         # ---------------------------------
-        # OPTION conditions
+        # ALT conditions
         # ---------------------------------
 
-        for option_condition, option_block in (
+        for alt_condition, alt_block in (
             node.alternatives
         ):
 
-            option_type = (
+            alt_type = (
                 self.evaluate_expression(
-                    option_condition
+                    alt_condition
                 )
             )
 
 
-            if option_type != BOOL:
+            if alt_type != BOOL:
 
                 raise SemanticError(
-                    "Option condition must be boolean",
-                    node=option_condition
+                    "Alt condition must be boolean",
+                    node=alt_condition
                 )
 
 
             self.visit(
-                option_block
+                alt_block
             )
 
 

@@ -70,7 +70,7 @@ class ControlFlowParserMixin:
     # ========================================================
 
     def parse_if_statement(self):
-        """Parse an if/option/else conditional chain."""
+        """Parse an if/alt/else conditional chain."""
 
         if_token = self.expect(
             TokenType.IF
@@ -104,38 +104,38 @@ class ControlFlowParserMixin:
 
 
         # ---------------------------------
-        # OPTION branches
+        # ALT branches
         # ---------------------------------
 
         alternatives = []
 
 
-        while self.match(TokenType.OPTION):
+        while self.match(TokenType.ALT):
 
             self.expect(
                 TokenType.LPAREN,
-                "Expected '(' after option"
+                "Expected '(' after alt"
             )
 
 
-            option_condition = (
+            alt_condition = (
                 self.parse_expression()
             )
 
 
             self.expect(
                 TokenType.RPAREN,
-                "Expected ')' after option condition"
+                "Expected ')' after alt condition"
             )
 
 
-            option_block = self.parse_block()
+            alt_block = self.parse_block()
 
 
             alternatives.append(
                 (
-                    option_condition,
-                    option_block
+                    alt_condition,
+                    alt_block
                 )
             )
 

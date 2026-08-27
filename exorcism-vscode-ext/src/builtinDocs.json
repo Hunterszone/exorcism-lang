@@ -57,10 +57,10 @@
             "description": "Begins a conditional statement. Its block executes when the condition evaluates to true."
         },
         "else": {
-            "description": "Defines the block executed when the preceding if and all option conditions evaluate to false."
+            "description": "Defines the block executed when the preceding if and all alt conditions evaluate to false."
         },
-        "option": {
-            "description": "Defines an additional conditional branch of an if statement. Options are evaluated in order after the initial if condition fails."
+        "alt": {
+            "description": "Defines an additional conditional branch of an if statement. Alternatives are evaluated in order after the initial if condition fails."
         },
         "while": {
             "description": "Begins a loop that repeatedly executes its block while the condition evaluates to true."

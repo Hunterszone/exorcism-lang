@@ -785,14 +785,14 @@ class LLVMCodeGenerator:
 
 
     # ========================================================
-    # If / Option / Else
+    # If / Alt / Else
     # ========================================================
 
     def visit_if(
         self,
         node
     ):
-        """Generate LLVM IR for an if/option/else conditional chain."""
+        """Generate LLVM IR for an if/alt/else conditional chain."""
 
         # =====================================================
         # MERGE
@@ -817,19 +817,19 @@ class LLVMCodeGenerator:
 
 
         # =====================================================
-        # OPTION CONDITION BLOCKS
+        # ALT CONDITION BLOCKS
         # =====================================================
 
-        option_condition_blocks = []
+        alt_condition_blocks = []
 
 
         for index in range(
             len(node.alternatives)
         ):
 
-            option_condition_blocks.append(
+            alt_condition_blocks.append(
                 self.function.append_basic_block(
-                    f"option_{index}"
+                    f"alt_{index}"
                 )
             )
 
@@ -864,7 +864,7 @@ class LLVMCodeGenerator:
         if node.alternatives:
 
             false_block = (
-                option_condition_blocks[0]
+                alt_condition_blocks[0]
             )
 
         elif else_block:
@@ -905,24 +905,24 @@ class LLVMCodeGenerator:
 
 
         # =====================================================
-        # OPTIONS
+        # ALTERNATIVES
         # =====================================================
 
         for index, (
-            option_condition,
-            option_body
+            alt_condition,
+            alt_body
         ) in enumerate(
             node.alternatives
         ):
 
-            option_condition_block = (
-                option_condition_blocks[index]
+            alt_condition_block = (
+                alt_condition_blocks[index]
             )
 
 
-            option_then_block = (
+            alt_then_block = (
                 self.function.append_basic_block(
-                    f"option_{index}_then"
+                    f"alt_{index}_then"
                 )
             )
 
@@ -932,11 +932,11 @@ class LLVMCodeGenerator:
             # ---------------------------------------------
 
             if index + 1 < len(
-                option_condition_blocks
+                alt_condition_blocks
             ):
 
                 next_false_block = (
-                    option_condition_blocks[
+                    alt_condition_blocks[
                         index + 1
                     ]
                 )
@@ -955,39 +955,39 @@ class LLVMCodeGenerator:
 
 
             # ---------------------------------------------
-            # OPTION CONDITION
+            # ALT CONDITION
             # ---------------------------------------------
 
             self.builder.position_at_end(
-                option_condition_block
+                alt_condition_block
             )
 
 
-            option_value = (
+            alt_value = (
                 self.generate_expression(
-                    option_condition
+                    alt_condition
                 )
             )
 
 
             self.builder.cbranch(
-                option_value,
-                option_then_block,
+                alt_value,
+                alt_then_block,
                 next_false_block
             )
 
 
             # ---------------------------------------------
-            # OPTION BODY
+            # ALT BODY
             # ---------------------------------------------
 
             self.builder.position_at_end(
-                option_then_block
+                alt_then_block
             )
 
 
             self.visit(
-                option_body
+                alt_body
             )
 
 
