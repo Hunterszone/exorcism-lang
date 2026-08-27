@@ -38,7 +38,7 @@
       "patterns": [
 
         {
-          "match": "\\b(if|else|alt|while|for|return|break|continue|function)\\b",
+          "match": "\\b(if|else|alt|print|while|for|return|break|continue|function)\\b",
           "name": "keyword.control.exorcism"
         }
 
@@ -52,7 +52,7 @@
       "patterns": [
 
         {
-          "match": "\\b(int|float|double|char|string|bool|void|var)\\b",
+          "match": "\\b(int|float|double|char|String|bool|void|struct|var)\\b",
           "name": "storage.type.exorcism"
         }
 
