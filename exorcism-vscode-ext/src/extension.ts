@@ -317,10 +317,14 @@ export function activate(
                 runExorcismCommand("build")
         );
 
+    
+    // TODO: Impl const for exrc doctor cmd, also extend package.json "editor/context" menu
+
 
     context.subscriptions.push(
         runCommand,
-        buildCommand
+        buildCommand,
+        // TODO: Push exrc doctor cmd
     );
 
 

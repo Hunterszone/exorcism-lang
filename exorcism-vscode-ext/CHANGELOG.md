@@ -6,7 +6,7 @@ All notable changes to the Exorcism VS Code Extension will be documented in this
 
 ### Added
 
-- Added go-to function definition for the .exrc file editor context.
+- Added GOTO functions & variables definition for the .exrc file editor context.
 
 ---
 

@@ -560,11 +560,12 @@ https://marketplace.visualstudio.com/items?itemName=exorcism-dev.exorcism-lang
 
 - ✅ Syntax highlighting
 - ✅ Native support for `.exrc` files
-- ✅ Exorcism language icon and file association
 - ✅ Real-time syntax validation
-- ✅ Keywords documentation support
-- ✅ Editor command menu for `.exrc` context
 - ✅ Code auto-completion
+- ✅ GOTO functions & Variables definition
+- ✅ Editor command menu for `.exrc` context
+- ✅ Keywords documentation support
+- ✅ Exorcism language icon and file association
 - 🛠️ Automatic code corrections - WIP
 - 🛠️ Smart code suggestions - WIP
 - 🛠️ Language Server (IntelliSense) - WIP
