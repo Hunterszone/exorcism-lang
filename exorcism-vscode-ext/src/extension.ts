@@ -7,6 +7,7 @@ import {
 
 const LANGUAGE_ID = "exorcism";
 const DIAGNOSTIC_SOURCE = "exorcism";
+let exorcismTerminal: vscode.Terminal | undefined;
 
 
 // ============================================================
@@ -247,6 +248,27 @@ export function activate(
     // Run / Build Exorcism command
     // ========================================================
 
+    function getExorcismTerminal(): vscode.Terminal {
+
+        if (
+            exorcismTerminal &&
+            exorcismTerminal.exitStatus === undefined
+        ) {
+
+            return exorcismTerminal;
+        }
+
+
+        exorcismTerminal =
+            vscode.window.createTerminal(
+                "Exorcism"
+            );
+
+
+        return exorcismTerminal;
+    }
+
+
     async function runExorcismCommand(
         command: string
     ) {
@@ -284,9 +306,7 @@ export function activate(
 
 
         const terminal =
-            vscode.window.createTerminal(
-                "Exorcism"
-            );
+            getExorcismTerminal();
 
 
         terminal.show();
@@ -299,7 +319,26 @@ export function activate(
 
 
     // ========================================================
-    // Commands
+    // Doctor Exorcism command
+    // ========================================================
+
+    async function runExorcismDoctor() {
+
+        const terminal =
+            getExorcismTerminal();
+
+
+        terminal.show();
+
+
+        terminal.sendText(
+            "exrc doctor"
+        );
+    }
+
+
+    // ========================================================
+    // Run/Build Commands
     // ========================================================
 
     const runCommand =
@@ -318,13 +357,18 @@ export function activate(
         );
 
     
-    // TODO: Impl const for exrc doctor cmd, also extend package.json "editor/context" menu
+    const doctorCommand = 
+        vscode.commands.registerCommand(
+            "exorcism.doctor", 
+            () => 
+                runExorcismDoctor()
+        );
 
 
     context.subscriptions.push(
         runCommand,
         buildCommand,
-        // TODO: Push exrc doctor cmd
+        doctorCommand
     );
 
 

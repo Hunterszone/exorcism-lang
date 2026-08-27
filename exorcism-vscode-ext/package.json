@@ -45,6 +45,11 @@
           "command": "exorcism.build",
           "when": "editorLangId == exorcism",
           "group": "exorcism@2"
+        },
+        {
+          "command": "exorcism.doctor",
+          "when": "editorLangId == exorcism",
+          "group": "exorcism@3"
         }
       ]
     },
