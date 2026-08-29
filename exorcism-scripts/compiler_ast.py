@@ -6,6 +6,8 @@ from typing import List, Optional, Type
 
 from tokens import Token, TokenType
 
+from exorcism_types import TypeProperties
+
 # ============================================================
 # Base AST Node
 # ============================================================
@@ -194,8 +196,10 @@ class FunctionDeclaration(ASTNode):
     parameters: list
 
     body: Block
-    
+
     token: Token
+
+    resolved_return_type: TypeProperties | None = None
     
     
 @dataclass

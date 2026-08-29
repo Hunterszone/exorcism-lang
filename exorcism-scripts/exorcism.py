@@ -690,6 +690,12 @@ if __name__ == "__main__":
         )
 
         print(
+            type(e).__name__,
+            repr(e)
+        )
+
+
+        print(
             e
         )
 

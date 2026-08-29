@@ -251,55 +251,15 @@ class LLVMCodeGenerator:
         )
 
 
-
-    def generate(self, program: Program):
+    def generate(
+        self,
+        program: Program
+    ):
         """Generate LLVM IR for the given program AST."""
 
-        # ============================================================
-        # Create program entry point
-        # ============================================================
-
-        function_type = ir.FunctionType(
-            ir.IntType(32),
-            []
+        self.visit(
+            program
         )
-
-
-        self.function = ir.Function(
-            self.module,
-            function_type,
-            name="main"
-        )
-
-
-        entry = self.function.append_basic_block(
-            name="entry"
-        )
-
-
-        self.builder = ir.IRBuilder(entry)
-
-
-        # ============================================================
-        # Generate program
-        # ============================================================
-
-        self.visit(program)
-
-
-        # ============================================================
-        # Default main return
-        # ============================================================
-
-        if not self.builder.block.is_terminated:
-
-            self.builder.ret(
-                ir.Constant(
-                    ir.IntType(32),
-                    0
-                )
-            )
-
 
         return self.module
 
@@ -363,16 +323,20 @@ class LLVMCodeGenerator:
 
 
     # Generates function
-    
-    def generate_function(self, node):
-        """Generate LLVM function from function node."""
+
+    def declare_function(
+        self,
+        node
+    ):
+        """Create the LLVM function declaration."""
 
         return_type = self.get_llvm_type(
-            node.return_type
+            node.resolved_return_type
         )
 
 
         arguments = []
+
 
         for parameter in node.parameters:
 
@@ -395,7 +359,34 @@ class LLVMCodeGenerator:
             name=node.name
         )
 
-        self.functions[node.name] = function
+
+        self.functions[
+            node.name
+        ] = function    
+
+    
+    def generate_function(
+        self,
+        node
+    ):
+        """Generate LLVM function body from a declared function."""
+
+        function = self.functions.get(
+            node.name
+        )
+
+
+        if function is None:
+
+            raise CodeGenerationError(
+                f"LLVM function '{node.name}' "
+                f"was not declared"
+            )
+
+
+        return_type = self.get_llvm_type(
+            node.resolved_return_type
+        )
 
 
         # ---------------------------------
@@ -413,13 +404,16 @@ class LLVMCodeGenerator:
 
         self.function = function
 
+
         block = function.append_basic_block(
             name="entry"
         )
 
+
         self.builder = ir.IRBuilder(
             block
         )
+
 
         self.variables = {}
 
@@ -469,7 +463,7 @@ class LLVMCodeGenerator:
 
         if not self.builder.block.is_terminated:
 
-            if node.return_type == VOID:
+            if node.resolved_return_type == VOID:
 
                 self.builder.ret_void()
 
@@ -572,15 +566,43 @@ class LLVMCodeGenerator:
     # Dispatcher
     # ========================================================
 
+
     def visit(self, node):
         """Dispatch to the appropriate visit method based on the node type."""
 
 
         if isinstance(node, Program):
 
+            # ---------------------------------
+            # Pass 1: declare all functions
+            # ---------------------------------
+
             for statement in node.statements:
 
-                self.visit(statement)
+                if isinstance(
+                    statement,
+                    FunctionDeclaration
+                ):
+
+                    self.declare_function(
+                        statement
+                    )
+
+
+            # ---------------------------------
+            # Pass 2: generate all function bodies
+            # ---------------------------------
+
+            for statement in node.statements:
+
+                if isinstance(
+                    statement,
+                    FunctionDeclaration
+                ):
+
+                    self.generate_function(
+                        statement
+                    )
 
 
 
