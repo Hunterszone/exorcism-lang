@@ -155,8 +155,8 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 - ✅ Void functions
 - ✅ Sequential conditional statements (`if-alt-alt-...else`)
 - ✅ String concatenation
+- ✅ Main entry point for `.exrc` programs
 - 🛠️ User input handling - WIP
-- 🛠️ Main entry point - WIP
 - 🛠️ SWITCH-CASE statements - WIP
 - 🛠️ Loops (`for`, `foreach`, `while`, `do-while`) - WIP
 - 🛠️ Jump statements (`break`, `continue`) - WIP
