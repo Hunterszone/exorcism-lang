@@ -444,6 +444,150 @@ function concatStrings(
 }
 
 
+/*
+ * Convert an integer to a null-terminated string
+ * stored inside WebAssembly memory.
+ *
+ * int_to_string(value) -> pointer
+ */
+
+function intToString(value) {
+
+    const text =
+        String(value);
+
+
+    const encoded =
+        new TextEncoder().encode(text);
+
+
+    const resultPtr =
+        allocate(encoded.length + 1);
+
+
+    let memory =
+        new Uint8Array(
+            instance.exports.memory.buffer
+        );
+
+
+    for (
+        let i = 0;
+        i < encoded.length;
+        i++
+    ) {
+
+        memory[
+            resultPtr + i
+        ] = encoded[i];
+    }
+
+
+    memory[
+        resultPtr + encoded.length
+    ] = 0;
+
+
+    return resultPtr;
+}
+
+
+/*
+ * Convert a float to a null-terminated string
+ * stored inside WebAssembly memory.
+ *
+ * float_to_string(value) -> pointer
+ */
+
+function floatToString(value) {
+
+    const text =
+        String(value);
+
+
+    const encoded =
+        new TextEncoder().encode(text);
+
+
+    const resultPtr =
+        allocate(encoded.length + 1);
+
+
+    let memory =
+        new Uint8Array(
+            instance.exports.memory.buffer
+        );
+
+
+    for (
+        let i = 0;
+        i < encoded.length;
+        i++
+    ) {
+
+        memory[
+            resultPtr + i
+        ] = encoded[i];
+    }
+
+
+    memory[
+        resultPtr + encoded.length
+    ] = 0;
+
+
+    return resultPtr;
+}
+
+
+/*
+ * Convert a double to a null-terminated string
+ * stored inside WebAssembly memory.
+ *
+ * double_to_string(value) -> pointer
+ */
+
+function doubleToString(value) {
+
+    const text =
+        String(value);
+
+
+    const encoded =
+        new TextEncoder().encode(text);
+
+
+    const resultPtr =
+        allocate(encoded.length + 1);
+
+
+    let memory =
+        new Uint8Array(
+            instance.exports.memory.buffer
+        );
+
+
+    for (
+        let i = 0;
+        i < encoded.length;
+        i++
+    ) {
+
+        memory[
+            resultPtr + i
+        ] = encoded[i];
+    }
+
+
+    memory[
+        resultPtr + encoded.length
+    ] = 0;
+
+
+    return resultPtr;
+}
+
+
 WebAssembly.instantiate(
     wasmBuffer,
     {
@@ -493,6 +637,24 @@ WebAssembly.instantiate(
                     leftPtr,
                     rightPtr
                 );
+            },
+
+
+            int_to_string: (value) => {
+
+                return intToString(value);
+            },
+
+
+            float_to_string: (value) => {
+
+                return floatToString(value);
+            },
+
+
+            double_to_string: (value) => {
+
+                return doubleToString(value);
             }
         }
 

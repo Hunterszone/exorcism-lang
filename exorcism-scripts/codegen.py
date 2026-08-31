@@ -111,6 +111,46 @@ class LLVMCodeGenerator:
         )
 
 
+        # ---------------------------------
+        # Numeric → String conversion
+        # ---------------------------------
+
+        self.int_to_string = ir.Function(
+            self.module,
+            ir.FunctionType(
+                ir.IntType(8).as_pointer(),
+                [
+                    ir.IntType(32)
+                ]
+            ),
+            name="int_to_string"
+        )
+
+
+        self.float_to_string = ir.Function(
+            self.module,
+            ir.FunctionType(
+                ir.IntType(8).as_pointer(),
+                [
+                    ir.FloatType()
+                ]
+            ),
+            name="float_to_string"
+        )
+
+
+        self.double_to_string = ir.Function(
+            self.module,
+            ir.FunctionType(
+                ir.IntType(8).as_pointer(),
+                [
+                    ir.DoubleType()
+                ]
+            ),
+            name="double_to_string"
+        )
+
+
         self.function = None
 
         self.builder = None
@@ -1240,36 +1280,41 @@ class LLVMCodeGenerator:
 
 
             # ---------------------------------
-            # String concatenation
+            # Addition / String concatenation
             # ---------------------------------
 
             if op == TokenType.PLUS:
 
+                left_type = self.get_expression_type(
+                    node.left
+                )
+
+                right_type = self.get_expression_type(
+                    node.right
+                )
+
+
+                # ---------------------------------
+                # String concatenation
+                # ---------------------------------
+
                 if (
-                    isinstance(left.type, ir.PointerType)
-                    and
-                    isinstance(right.type, ir.PointerType)
+                    left_type == STRING
+                    or
+                    right_type == STRING
                 ):
 
-                    return self.builder.call(
-                        self.concat_strings,
-                        [
-                            left,
-                            right,
-                        ],
-                        name="concat"
+                    return self.generate_string_concatenation(
+                        left,
+                        right,
+                        left_type,
+                        right_type
                     )
 
-            # ---------------------------------
-            # Numeric promotion
-            # ---------------------------------
 
-            if op in (
-                TokenType.PLUS,
-                TokenType.MINUS,
-                TokenType.STAR,
-                TokenType.SLASH,
-            ):
+                # ---------------------------------
+                # Numeric addition
+                # ---------------------------------
 
                 left, right = (
                     self.promote_numeric_values(
@@ -1277,32 +1322,6 @@ class LLVMCodeGenerator:
                         right
                     )
                 )
-
-
-            # Addition
-
-            if op == TokenType.PLUS:
-
-
-                # String concatenation
-
-                if (
-                    isinstance(left.type, ir.PointerType)
-                    and
-                    isinstance(right.type, ir.PointerType)
-                ):
-
-                    return self.builder.call(
-                        self.concat_strings,
-                        [
-                            left,
-                            right
-                        ],
-                        name="concat"
-                    )
-
-
-                # Numeric addition
 
                 return self.builder.add(
                     left,
@@ -1425,6 +1444,22 @@ class LLVMCodeGenerator:
         )
 
 
+    def get_expression_type(
+        self,
+        node
+    ):
+        """Return the semantic type assigned to an expression."""
+
+        if node.resolved_type is None:
+
+            raise CodeGenerationError(
+                f"Expression '{type(node).__name__}' "
+                "has no resolved semantic type"
+            )
+
+        return node.resolved_type
+
+
     #========================================================
     # Comparisons
     #=======================================================
@@ -1481,6 +1516,189 @@ class LLVMCodeGenerator:
             predicates[operator],
             left,
             right
+        )
+
+
+    # ========================================================
+    # String Operations
+    # ========================================================
+
+    def convert_numeric_to_string(
+        self,
+        value,
+        type_properties
+    ):
+        """Convert a numeric LLVM value to a runtime string."""
+
+        # ---------------------------------
+        # Integer
+        # ---------------------------------
+
+        if type_properties == INT:
+
+            function = self.module.globals.get(
+                "int_to_string"
+            )
+
+            if function is None:
+
+                raise CodeGenerationError(
+                    "Runtime function 'int_to_string' "
+                    "was not declared"
+                )
+
+            return self.builder.call(
+                function,
+                [value],
+                name="int_to_string"
+            )
+
+
+        # ---------------------------------
+        # Float
+        # ---------------------------------
+
+        if type_properties == FLOAT:
+
+            function = self.module.globals.get(
+                "float_to_string"
+            )
+
+            if function is None:
+
+                raise CodeGenerationError(
+                    "Runtime function 'float_to_string' "
+                    "was not declared"
+                )
+
+            return self.builder.call(
+                function,
+                [value],
+                name="float_to_string"
+            )
+
+
+        # ---------------------------------
+        # Double
+        # ---------------------------------
+
+        if type_properties == DOUBLE:
+
+            function = self.module.globals.get(
+                "double_to_string"
+            )
+
+            if function is None:
+
+                raise CodeGenerationError(
+                    "Runtime function 'double_to_string' "
+                    "was not declared"
+                )
+
+            return self.builder.call(
+                function,
+                [value],
+                name="double_to_string"
+            )
+
+
+        raise CodeGenerationError(
+            f"Cannot convert {type_properties} "
+            "to string"
+        )
+
+
+    # ========================================================
+    # String Concatenation
+    # ========================================================
+
+    def generate_string_concatenation(
+        self,
+        left,
+        right,
+        left_type,
+        right_type
+    ):
+        """Generate string concatenation, converting numeric operands."""
+
+        # ---------------------------------
+        # Convert left operand
+        # ---------------------------------
+
+        if left_type != STRING:
+
+            if self.is_numeric_type(left_type):
+
+                left = self.convert_numeric_to_string(
+                    left,
+                    left_type
+                )
+
+            else:
+
+                raise CodeGenerationError(
+                    f"Cannot concatenate {left_type} "
+                    "with a string"
+                )
+
+
+        # ---------------------------------
+        # Convert right operand
+        # ---------------------------------
+
+        if right_type != STRING:
+
+            if self.is_numeric_type(right_type):
+
+                right = self.convert_numeric_to_string(
+                    right,
+                    right_type
+                )
+
+            else:
+
+                raise CodeGenerationError(
+                    f"Cannot concatenate a string "
+                    f"with {right_type}"
+                )
+
+
+        # ---------------------------------
+        # concat_strings
+        # ---------------------------------
+
+        function = self.module.globals.get(
+            "concat_strings"
+        )
+
+        if function is None:
+
+            raise CodeGenerationError(
+                "Runtime function 'concat_strings' "
+                "was not declared"
+            )
+
+
+        return self.builder.call(
+            function,
+            [
+                left,
+                right
+            ],
+            name="concat_strings"
+        )
+
+
+    def is_numeric_type(
+        self,
+        type_properties
+    ):
+        """Return True when the type is numeric."""
+
+        return type_properties in (
+            INT,
+            FLOAT,
+            DOUBLE
         )
 
 

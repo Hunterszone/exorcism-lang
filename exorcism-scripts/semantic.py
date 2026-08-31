@@ -306,66 +306,9 @@ class SemanticAnalyzer:
             self.evaluate_expression(node)
 
 
-    def visit_expression(self, node):
-        """Evaluate the type of an expression node and return its semantic type."""
-        
-        if isinstance(node, IntegerLiteral):
-
-            return INT
-
-
-        if isinstance(node, VariableReference):
-
-            symbol = self.symbols.current_scope.lookup(
-                node.identifier.value
-            )
-
-            if symbol is None:
-
-                raise SemanticError(
-                    f"Undefined variable '{node.identifier.value}'"
-                )
-
-            return symbol.type_properties
-
-
-        # binary operation
-        if isinstance(node, BinaryExpression):
-
-            left_type = self.visit_expression(
-                node.left
-            )
-
-            right_type = self.visit_expression(
-                node.right
-            )
-
-
-            # ---------------------------------
-            # String concatenation
-            # ---------------------------------
-
-            if node.operator.type == TokenType.PLUS:
-
-                if left_type == STRING and right_type == STRING:
-
-                    return STRING
-
-
-            if left_type != right_type:
-
-                raise SemanticError(
-                    "Binary operation type mismatch"
-                )
-
-
-            return left_type
-
-
-        raise SemanticError(
-            f"Unknown expression type: {type(node).__name__}"
-        )
-        
+    # --------------------------------
+    # Visit Return
+    # --------------------------------
     
     def visit_return(self, node):
         """Handle return statements, ensuring they match the current function's return type."""
@@ -836,6 +779,8 @@ class SemanticAnalyzer:
 
         if isinstance(node, IntegerLiteral):
 
+            node.resolved_type = INT
+
             return INT
 
 
@@ -843,10 +788,14 @@ class SemanticAnalyzer:
 
             if node.token_type == TokenType.FLOAT:
 
+                node.resolved_type = FLOAT
+
                 return FLOAT
 
 
             if node.token_type == TokenType.DOUBLE:
+
+                node.resolved_type = DOUBLE
 
                 return DOUBLE
 
@@ -859,10 +808,14 @@ class SemanticAnalyzer:
 
         if isinstance(node, CharLiteral):
 
+            node.resolved_type = CHAR
+
             return CHAR
 
 
         if isinstance(node, StringLiteral):
+
+            node.resolved_type = STRING
 
             return STRING
 
@@ -888,9 +841,11 @@ class SemanticAnalyzer:
                 node.identifier
             )
 
-            return (
+            node.resolved_type = (
                 symbol.type_properties
             )
+
+            return node.resolved_type
 
         
         # -----------------------------
@@ -1039,7 +994,7 @@ class SemanticAnalyzer:
             # arithmetic
 
             # ---------------------------------
-            # Addition
+            # Addition / concatenation
             # ---------------------------------
 
             if operator == TokenType.PLUS:
@@ -1048,11 +1003,51 @@ class SemanticAnalyzer:
 
                 if (
                     left_type == STRING
-                    and
+                    or
                     right_type == STRING
                 ):
 
-                    return STRING
+                    # Only allow strings + strings
+                    # or strings + numeric values.
+
+                    if (
+                        left_type == STRING
+                        and
+                        right_type == STRING
+                    ):
+
+                        node.resolved_type = STRING
+
+                        return STRING
+
+
+                    if (
+                        left_type == STRING
+                        and
+                        self.is_numeric_type(right_type)
+                    ):
+
+                        node.resolved_type = STRING
+
+                        return STRING
+
+
+                    if (
+                        self.is_numeric_type(left_type)
+                        and
+                        right_type == STRING
+                    ):
+
+                        node.resolved_type = STRING
+
+                        return STRING
+
+
+                    raise SemanticError(
+                        "Cannot concatenate "
+                        f"{left_type} and {right_type}",
+                        node=node
+                    )
 
 
                 # Numeric addition
@@ -1063,14 +1058,21 @@ class SemanticAnalyzer:
                     self.is_numeric_type(right_type)
                 ):
 
-                    return self.promote_numeric_types(
-                        left_type,
-                        right_type
+                    result_type = (
+                        self.promote_numeric_types(
+                            left_type,
+                            right_type
+                        )
                     )
+
+                    node.resolved_type = result_type
+
+                    return result_type
 
 
                 raise SemanticError(
-                    "Operands must be numeric or both strings"
+                    "Operands must be numeric or strings",
+                    node=node
                 )
 
 

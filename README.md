@@ -154,8 +154,9 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 - ✅ Function calls in expressions (`var x = add(int a, int b);`)
 - ✅ Void functions
 - ✅ Sequential conditional statements (`if-alt-alt-...else`)
-- ✅ String concatenation
 - ✅ Main entry point for `.exrc` programs
+- ✅ String concatenation
+- 🛠 Parse numeric types to string - WIP
 - 🛠️ User input handling - WIP
 - 🛠️ SWITCH-CASE statements - WIP
 - 🛠️ Loops (`for`, `foreach`, `while`, `do-while`) - WIP

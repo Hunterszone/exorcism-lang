@@ -113,6 +113,8 @@ class BinaryExpression(ASTNode):
 
     right: ASTNode
 
+    resolved_type: TypeProperties | None = None
+
 
 @dataclass(slots=True)
 class UnaryExpression(ASTNode):
@@ -129,6 +131,8 @@ class VariableReference(ASTNode):
 
     identifier: Token
 
+    resolved_type: TypeProperties | None = None
+
 
 # ============================================================
 # Literals
@@ -140,13 +144,18 @@ class IntegerLiteral(ASTNode):
 
     value: int
 
+    resolved_type: TypeProperties | None = None
+
 
 @dataclass(slots=True)
 class FloatLiteral(ASTNode):
     """Represents a float literal."""
 
     value: float
+
     token_type: TokenType
+
+    resolved_type: TypeProperties | None = None
 
 
 @dataclass(slots=True)
@@ -155,6 +164,8 @@ class CharLiteral(ASTNode):
 
     value: str
 
+    resolved_type: TypeProperties | None = None
+
 
 @dataclass(slots=True)
 class StringLiteral(ASTNode):
@@ -162,12 +173,16 @@ class StringLiteral(ASTNode):
 
     value: str
 
+    resolved_type: TypeProperties | None = None
+
 
 @dataclass(slots=True)
 class BooleanLiteral(ASTNode):
     """Represents a boolean literal."""
 
     value: bool
+
+    resolved_type: TypeProperties | None = None
 
 
 @dataclass(slots=True)
