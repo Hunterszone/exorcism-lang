@@ -42,7 +42,7 @@ InfoBeforeFile=C:\Users\kdren\Downloads\EXORCISM_LANG_PROJ\README.md
 ; Uncomment the following line to run in non administrative install mode (install for current user only).
 ;PrivilegesRequired=lowest
 OutputDir=C:\Users\kdren\Downloads\EXORCISM_LANG_PROJ\build
-OutputBaseFilename=Exorcism-0.1.0-Setup
+OutputBaseFilename=exorcism-installer-win64
 SetupIconFile=C:\Users\kdren\Downloads\EXORCISM_LANG_PROJ\exorcism-logo\logo.ico
 SolidCompression=yes
 WizardStyle=modern dynamic
