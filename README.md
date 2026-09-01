@@ -604,6 +604,8 @@ MSYS_NO_PATHCONV=1 docker run --rm -v "//$(pwd):/app" -w "/app" python:3.11-slim
 MSYS_NO_PATHCONV=1 docker run --rm -v "//$(pwd):/src" -w "/src" alanfranz/fpm-within-docker:ubuntu-jammy fpm -s dir -t deb -n exorcism-installer-linux-amd64 -v 0.1.0-beta -C dist-linux/
 ```
 
+<br>
+
 ## How to build the compiler installer for MacOS
 
 1. Create dist folder with the required structure:
