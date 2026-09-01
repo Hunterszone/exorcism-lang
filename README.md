@@ -574,3 +574,74 @@ https://marketplace.visualstudio.com/items?itemName=exorcism-dev.exorcism-lang
 ---
 
 💡The extension significantly improves developer productivity by reducing typing, detecting errors while writing code, and providing contextual suggestions for language keywords, functions, variables, and types.
+
+<br>
+
+# For Developers
+
+## How to build the compiler installer for Linux
+
+Starts the Linux container that compiles the Python scripts using PyInstaller:
+
+```
+MSYS_NO_PATHCONV=1 docker run --rm -v "//$(pwd):/app" -w "/app" python:3.11-slim bash -c "
+  apt-get update && apt-get install -y binutils llvm-dev    # Нужни за LLVM и PyInstaller
+  pip install --upgrade pip
+  pip install pyinstaller llvmlite -r requirements.txt      # Инсталиране на зависимостите
+  
+  // Compiles the 'exrc' file
+  pyinstaller --clean --onefile --console --icon="..\exorcism-logo\logo.ico" exorcism.py
+  
+  // Creates dist folder with the required structure
+  mkdir -p dist-linux/usr/local/bin
+  cp dist/exorcism dist-linux/usr/local/bin/exrc
+"
+```
+
+Generates the Linux .deb package via FPM:
+
+```
+MSYS_NO_PATHCONV=1 docker run --rm -v "//$(pwd):/src" -w "/src" alanfranz/fpm-within-docker:ubuntu-jammy fpm -s dir -t deb -n exorcism-installer-linux-amd64 -v 0.1.0-beta -C dist-linux/
+```
+
+## How to build the compiler installer for MacOS
+
+Creates dist folder with the required structure:
+
+```
+mkdir -p dist-mac/usr/local/share/exorcism
+mkdir -p dist-mac/usr/local/bin
+```
+
+Copies compilers source to dist folder:
+
+```
+cp -r *.py requirements.txt dist-mac/usr/local/share/exorcism/
+```
+
+Creates executable script (wrapper), that is called via the `exrc` command:
+
+```
+cat << 'EOF' > dist-mac/usr/local/bin/exrc
+#!/bin/bash
+if [ ! -d "$HOME/.exorcism-env" ]; then
+    python3 -m venv "$HOME/.exorcism-env"
+    source "$HOME/.exorcism-env/bin/activate"
+    pip install -r /usr/local/share/exorcism/requirements.txt
+fi
+source "$HOME/.exorcism-env/bin/activate"
+python3 /usr/local/share/exorcism/exorcism.py "$@"
+EOF
+```
+
+Assigns permissions to dist folder for executing the script:
+
+```
+chmod +x dist-mac/usr/local/bin/exrc
+```
+
+Generates the macOS .tar archive via FPM:
+
+```
+MSYS_NO_PATHCONV=1 docker run --rm -v "//$(pwd):/src" -w "/src" alanfranz/fpm-within-docker:ubuntu-jammy fpm -s dir -t tar -n exorcism-installer-macos-arm64 -v 0.1.0-beta -C dist-mac/
+```
