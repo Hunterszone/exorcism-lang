@@ -2,8 +2,10 @@ name: Build Linux and macOS Installers
 
 on:
   push:
+    branches:
+      - main     # Triggers immediately on a regular push to the main branch
     tags:
-      - 'v*' # Triggers automatically when you push a version tag like v0.1.0-beta
+      - 'v*'     # Still triggers when you create an official release tag
 
 jobs:
   # --- JOB 1: LINUX INSTALLER BUILD ---
