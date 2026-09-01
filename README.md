@@ -581,7 +581,7 @@ https://marketplace.visualstudio.com/items?itemName=exorcism-dev.exorcism-lang
 
 ## How to build the compiler installer for Linux
 
-Starts the Linux container that compiles the Python scripts using PyInstaller:
+1. Start the Linux container that compiles the Python scripts using PyInstaller:
 
 ```
 MSYS_NO_PATHCONV=1 docker run --rm -v "//$(pwd):/app" -w "/app" python:3.11-slim bash -c "
@@ -598,7 +598,7 @@ MSYS_NO_PATHCONV=1 docker run --rm -v "//$(pwd):/app" -w "/app" python:3.11-slim
 "
 ```
 
-Generates the Linux .deb package via FPM:
+2. Generate the Linux .deb package via FPM:
 
 ```
 MSYS_NO_PATHCONV=1 docker run --rm -v "//$(pwd):/src" -w "/src" alanfranz/fpm-within-docker:ubuntu-jammy fpm -s dir -t deb -n exorcism-installer-linux-amd64 -v 0.1.0-beta -C dist-linux/
@@ -606,20 +606,20 @@ MSYS_NO_PATHCONV=1 docker run --rm -v "//$(pwd):/src" -w "/src" alanfranz/fpm-wi
 
 ## How to build the compiler installer for MacOS
 
-Creates dist folder with the required structure:
+1. Create dist folder with the required structure:
 
 ```
 mkdir -p dist-mac/usr/local/share/exorcism
 mkdir -p dist-mac/usr/local/bin
 ```
 
-Copies compilers source to dist folder:
+2. Copy compilers source to dist folder:
 
 ```
 cp -r *.py requirements.txt dist-mac/usr/local/share/exorcism/
 ```
 
-Creates executable script (wrapper), that is called via the `exrc` command:
+3. Create executable script (wrapper), that is called via the `exrc` command:
 
 ```
 cat << 'EOF' > dist-mac/usr/local/bin/exrc
@@ -634,13 +634,13 @@ python3 /usr/local/share/exorcism/exorcism.py "$@"
 EOF
 ```
 
-Assigns permissions to dist folder for executing the script:
+4. Assigns permissions to dist folder for executing the script:
 
 ```
 chmod +x dist-mac/usr/local/bin/exrc
 ```
 
-Generates the macOS .tar archive via FPM:
+5. Generates the macOS .tar archive via FPM:
 
 ```
 MSYS_NO_PATHCONV=1 docker run --rm -v "//$(pwd):/src" -w "/src" alanfranz/fpm-within-docker:ubuntu-jammy fpm -s dir -t tar -n exorcism-installer-macos-arm64 -v 0.1.0-beta -C dist-mac/
