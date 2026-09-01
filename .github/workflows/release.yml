@@ -1,0 +1,73 @@
+name: Build Linux and macOS Installers
+
+on:
+  push:
+    tags:
+      - 'v*' # Triggers automatically when you push a version tag like v0.1.0-beta
+
+jobs:
+  # --- JOB 1: LINUX INSTALLER BUILD ---
+  build-linux:
+    name: Build Linux Packages
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+
+      - name: Install FPM
+        run: gem install fpm
+
+      - name: Compile and Package Linux
+        run: |
+          mkdir -p dist/usr/local/bin
+          # [Insert your Linux compiler compilation command here]
+          # e.g., cargo build --release OR go build
+          
+          # Generate the installers
+          fpm -s dir -t deb -n exorcism-installer-linux-amd64 -v 0.1.0-beta -C dist/
+          fpm -s dir -t rpm -n exorcism-installer-linux-amd64 -v 0.1.0-beta -C dist/
+
+      - name: Upload Linux Installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-installers
+          path: |
+            *.deb
+            *.rpm
+
+  # --- JOB 2: MACOS INSTALLER BUILD ---
+  build-macos:
+    name: Build macOS Package
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+
+      - name: Install FPM
+        run: gem install fpm
+
+      - name: Compile and Package macOS
+        run: |
+          mkdir -p dist/usr/local/bin
+          # [Insert your macOS compiler compilation command here]
+          
+          # Generate the installer using native Mac backend tools
+          fpm -s dir -t osxpkg -n exorcism-installer-macos-arm64 -v 0.1.0-beta -C dist/
+
+      - name: Upload macOS Installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-installers
+          path: '*.pkg'
