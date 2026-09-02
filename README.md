@@ -169,7 +169,7 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 - 🛠️ Assignment operators (`= += -= *= /= %= &= ^= |= <<= >>= >>>=`) - WIP
 - 🛠️ Bitwise operators (`XOR`, `BITSHIFT`) - WIP
 - 🛠️ Lambda expressions (`() -> doSmth()`) - WIP
-- 🛠️ OOP types (classes, enumerations, structs, interfaces) - `class`, `struct`, `interface`, `enum` - WIP
+- 🛠️ OOP types (`class`, `struct`, `interface`, `enum`) - WIP
 - 🛠️ OOP concepts (abstraction/encapsulation/polymorphism/inheritance) - `abstract` / `virtual`, `static`, `extends` / `:`, `implements` / `:` - WIP
 - 🛠 Immutability support for classes, methods, fields (`final` keyword) - WIP
 - 🛠️ Generics support - WIP
