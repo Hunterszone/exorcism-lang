@@ -150,13 +150,13 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 ## Language Features
 
 - ✅ Statically typed
-- ✅ Function declarations & function calls (```
-					add(int a, int b) { 
-						return a+b; 
-					}
-					
-					print(add(5, 6));
-		```)
+- ✅ Function declarations & function calls: ```
+	add(int a, int b) { 
+		return a+b; 
+	}
+	
+	print(add(5, 6));
+```
 - ✅ Function calls in expressions (`var x = add(int a, int b);`)
 - ✅ Void functions (`void doSmth() {}`)
 - ✅ Sequential conditional statements (`if-alt-alt-...else`)
