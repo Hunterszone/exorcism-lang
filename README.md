@@ -150,30 +150,39 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 ## Language Features
 
 - ✅ Statically typed
-- ✅ Function calls (`add(int a, int b);`)
+- ✅ Function declarations & function calls (```
+					add(int a, int b) { 
+						return a+b; 
+					}
+					
+					print(add(5, 6));
+		```)
 - ✅ Function calls in expressions (`var x = add(int a, int b);`)
-- ✅ Void functions
+- ✅ Void functions (`void doSmth() {}`)
 - ✅ Sequential conditional statements (`if-alt-alt-...else`)
 - ✅ Main entry point for `.exrc` programs
 - ✅ String concatenation
-- ✅ Parse numeric types to string
+- ✅ Numeric types parsing
+- ✅ Logical operators (`AND`, `OR`)
+- 🛠 Constants support (`const` keyword) - WIP
+- 🛠️ Coalesce operator (`isX?.isY`) - WIP
+- 🛠 Annotations support - WIP
 - 🛠️ User input handling - WIP
 - 🛠️ SWITCH-CASE statements - WIP
 - 🛠️ Loops (`for`, `foreach`, `while`, `do-while`) - WIP
 - 🛠️ Jump statements (`break`, `continue`) - WIP
-- 🛠️ Logical operators (`AND`, `OR`) - WIP
-- 🛠️ Coalesce operator (`isX?.isY`) - WIP
 - 🛠️ Relational operator (`memberof`) - WIP
 - 🛠️ Assignment operators (`= += -= *= /= %= &= ^= |= <<= >>= >>>=`) - WIP
 - 🛠️ Bitwise operators (`XOR`, `BITSHIFT`) - WIP
 - 🛠️ Lambda expressions (`() -> doSmth()`) - WIP
-- 🛠️ OOP features (`classes, enumerations, structs, interfaces`) - WIP
-- 🛠️ OOP concepts (`abstraction/polymorphism/inheritance`) - WIP
+- 🛠️ OOP types (classes, enumerations, structs, interfaces) - `class`, `struct`, `interface`, `enum` - WIP
+- 🛠️ OOP concepts (abstraction/encapsulation/polymorphism/inheritance) - `abstract` / `virtual`, `static`, `extends` / `:`, `implements` / `:` - WIP
+- 🛠 Immutability support for classes, methods, fields (`final` keyword) - WIP
 - 🛠️ Generics support - WIP
 - 🛠️ Access modifiers (`public`, `private`, etc.) - WIP
 - 🛠️ Casting & ClassCastException - WIP
 - 🛠️ Exception hierarchy - WIP
-- 🛠️ Exception handling - WIP
+- 🛠️ Exception handling (i.e. `try`, `catch`, `finally`) - WIP
 - 🛠️ Data structures / Collections - WIP
 - 🛠️ Getter/Setter API - WIP
 - 🛠️ Async/Concurrency - WIP
