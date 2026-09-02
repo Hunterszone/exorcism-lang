@@ -150,7 +150,8 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 ## Language Features
 
 - ✅ Statically typed
-- ✅ Function declarations & function calls: ```
+- ✅ Function declarations & function calls: 
+```
 	add(int a, int b) { 
 		return a+b; 
 	}
