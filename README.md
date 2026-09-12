@@ -158,7 +158,7 @@ WebAssembly is a portable binary format, but it needs a host environment to:
 - ✅ String concatenation
 - ✅ Numeric types parsing
 - ✅ Logical operators (`AND`, `OR`)
-- 🛠 Constants support (`const` keyword) - WIP
+- ✅ Constants support (`const` keyword) - WIP
 - 🛠️ Coalesce operator (`isX?.isY`) - WIP
 - 🛠 Annotations support - WIP
 - 🛠️ User input handling - WIP
