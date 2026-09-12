@@ -392,6 +392,7 @@ export function activate(
 
     const keywords = [
         "var",
+        "const",
         "int",
         "float",
         "double",

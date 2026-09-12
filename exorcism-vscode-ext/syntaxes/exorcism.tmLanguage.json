@@ -52,7 +52,7 @@
       "patterns": [
 
         {
-          "match": "\\b(int|float|double|char|String|bool|void|struct|var)\\b",
+          "match": "\\b(int|float|double|char|String|bool|void|struct|var|const)\\b",
           "name": "storage.type.exorcism"
         }
 

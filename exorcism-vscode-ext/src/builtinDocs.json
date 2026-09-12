@@ -32,6 +32,9 @@
         "var": {
             "description": "Declares a variable with its type inferred from the initializer."
         },
+        "const": {
+            "description": "Declares a constant variable with an initial value."
+        },
         "int": {
             "description": "Declares a variable or parameter of type int, a 32-bit signed integer."
         },
