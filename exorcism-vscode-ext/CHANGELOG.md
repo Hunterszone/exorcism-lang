@@ -2,6 +2,14 @@
 
 All notable changes to the Exorcism VS Code Extension will be documented in this file.
 
+## [1.9.0]
+
+### Added
+
+- Added `const` keyword support
+
+---
+
 ## [1.8.0]
 
 ### Added

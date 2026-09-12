@@ -10,7 +10,7 @@ Official Visual Studio Code extension providing syntax support, file association
 - **GOTO functions & variables definition**: Added GOTO functions & variables definition for the .exrc file editor context.
 - **Real-time syntax validation**: Exorcism syntax errors are now reported directly in the VS Code editor.
 - **Editor command menu for .exrc context**: `Build`/`Run` commands are now available in the VS Code editor context menu.
-- **Keywords documentation support**: Adds Exorcism keywords documentation, displayed on-hover.
+- **Keywords highlighting & documentation**: Adds Exorcism keywords highlighting & documentation on-hover.
 - **Custom Iconography**: Integrated high-contrast programming layout icon for the file explorer tree view.
 
 ## Installation
