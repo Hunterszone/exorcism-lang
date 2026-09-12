@@ -674,6 +674,15 @@ class SemanticAnalyzer:
         )
 
 
+        if symbol.is_const:
+
+            raise SemanticError(
+                f"Cannot assign to constant "
+                f"'{symbol.name}'",
+                node=node
+            )
+
+
         if not self.type_system.is_assignable(
             value_type,
             symbol.type_properties
@@ -1453,6 +1462,8 @@ class SemanticAnalyzer:
                 type_properties=variable_type,
 
                 initialized=node.initializer is not None,
+
+                is_const=node.is_const
             )
 
 

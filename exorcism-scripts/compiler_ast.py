@@ -69,6 +69,8 @@ class VariableDeclaration(ASTNode):
 
     initializer: ASTNode
 
+    is_const: bool = False
+
 
 @dataclass(slots=True)
 class Assignment(ASTNode):

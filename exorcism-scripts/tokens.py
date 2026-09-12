@@ -14,6 +14,7 @@ class TokenType(Enum):
     DOUBLE = auto()
     CHAR = auto()
     STRING = auto()
+    CONST = auto()
     NULL = auto()
     TRUE = auto()
     FALSE = auto()
@@ -99,6 +100,7 @@ KEYWORDS = {
     "String": TokenType.TYPE_STRING,
     "bool": TokenType.TYPE_BOOL,
     "void": TokenType.TYPE_VOID,
+    "const": TokenType.CONST,
     "var": TokenType.VAR,
 
     # keywords

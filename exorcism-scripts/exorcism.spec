@@ -35,5 +35,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['..exorcism-logologo.ico'],
+    icon=['..\\exorcism-logo\\logo.ico'],
 )

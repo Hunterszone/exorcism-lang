@@ -595,7 +595,16 @@ WebAssembly.instantiate(
         env: {
 
             print_int: (value) => {
+                console.log(value);
+            },
 
+            
+            print_double: (value) => {
+                console.log(value);
+            },
+
+          
+            print_float: (value) => {
                 console.log(value);
             },
 

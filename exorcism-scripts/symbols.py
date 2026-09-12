@@ -42,6 +42,8 @@ class Symbol:
 
     initialized: bool = False
 
+    is_const: bool = False
+
 
 @dataclass(slots=True)
 class FunctionSymbol(Symbol):

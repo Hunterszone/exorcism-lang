@@ -8,6 +8,8 @@ from compiler_ast import (
     PrintStatement,
 )
 
+from base import ParserError
+
 from tokens import TokenType
 
 
@@ -32,9 +34,9 @@ class StatementParserMixin:
         parser = self.parse_expression_statement
 
         # variable declaration
-        if self.check(TokenType.VAR):
+        if self.check(TokenType.VAR) or self.check(TokenType.CONST):
 
-            parser = self.parse_variable_declaration
+            return self.parse_variable_declaration()
 
         # typed variable declarations
         elif self.check_type_start():
@@ -90,6 +92,7 @@ class StatementParserMixin:
     def parse_variable_declaration(self):
         """Parse a variable declaration statement."""
 
+        is_const = False
         declared_type = None
 
 
@@ -101,6 +104,19 @@ class StatementParserMixin:
 
             declared_type = None
 
+
+        # ---------------------------------
+        # const x = expression;
+        # ---------------------------------
+
+        elif self.match(TokenType.CONST):
+
+            is_const = True
+
+
+        # ---------------------------------
+        # Explicit type
+        # ---------------------------------
 
         else:
 
@@ -117,6 +133,7 @@ class StatementParserMixin:
 
 
             declared_type = TypeName(
+
                 line=type_token.line,
                 column=type_token.column,
 
@@ -133,15 +150,15 @@ class StatementParserMixin:
         identifier = self.consume_identifier()
 
 
+        # ---------------------------------
+        # initializer
+        # ---------------------------------
+
         self.expect(
             TokenType.ASSIGN,
             "Expected '=' after variable name"
         )
 
-
-        # ---------------------------------
-        # initializer
-        # ---------------------------------
 
         initializer = self.parse_expression()
 
@@ -153,6 +170,10 @@ class StatementParserMixin:
         )
 
 
+        # ---------------------------------
+        # AST
+        # ---------------------------------
+
         return VariableDeclaration(
 
             line=identifier.line,
@@ -163,6 +184,8 @@ class StatementParserMixin:
             declared_type=declared_type,
 
             initializer=initializer,
+
+            is_const=is_const
         )
 
 

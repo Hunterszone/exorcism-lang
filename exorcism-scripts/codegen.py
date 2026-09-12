@@ -96,7 +96,7 @@ class LLVMCodeGenerator:
         
 
         #---------------------------------
-        # Print integer function
+        # Print integer/float/double function
         #---------------------------------
 
         self.print_int = ir.Function(
@@ -108,6 +108,26 @@ class LLVMCodeGenerator:
                 ]
             ),
             name="print_int"
+        )
+
+
+        self.print_double = ir.Function(
+            self.module,
+            ir.FunctionType(
+                ir.VoidType(),
+                [ir.DoubleType()]
+            ),
+            name="print_double"
+        )
+
+
+        self.print_float = ir.Function(
+            self.module,
+            ir.FunctionType(
+                ir.VoidType(),
+                [ir.FloatType()]
+            ),
+            name="print_float"
         )
 
 
@@ -710,6 +730,24 @@ class LLVMCodeGenerator:
 
             self.builder.call(
                 self.print_int,
+                [value]
+            )
+
+
+        # ---------------------------------------
+        # Floating-point types
+        # ---------------------------------------
+
+        elif isinstance(value.type, ir.DoubleType):
+            self.builder.call(
+                self.print_double,
+                [value]
+            )
+
+
+        elif isinstance(value.type, ir.FloatType):
+            self.builder.call(
+                self.print_float,
                 [value]
             )
 
