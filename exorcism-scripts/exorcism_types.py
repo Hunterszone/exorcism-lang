@@ -62,6 +62,15 @@ class TypeProperties(ABC):
         return self.name
 
 
+class UnknownType(TypeProperties):
+    """Represents a type that has not been resolved yet."""
+
+    @property
+    def name(self) -> str:
+        return "unknown"
+    
+
+UNKNOWN = UnknownType()
 
 # ============================================================
 # Primitive Types

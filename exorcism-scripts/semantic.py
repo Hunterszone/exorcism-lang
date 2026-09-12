@@ -36,7 +36,8 @@ from exorcism_types import (
     CHAR,
     STRING,
     VOID,
-    NULL
+    NULL,
+    UNKNOWN,
 )
 
 from type_system import TypeSystem
@@ -1403,13 +1404,35 @@ class SemanticAnalyzer:
 
         if isinstance(node, Program):
 
+            # PASS 1 — all function declarations
             for statement in node.statements:
-                self._collect_symbols(statement)
+
+                if isinstance(
+                    statement,
+                    FunctionDeclaration
+                ):
+                    self._collect_function_declaration(
+                        statement
+                    )
+
+            # PASS 2 — function bodies
+            for statement in node.statements:
+
+                if isinstance(
+                    statement,
+                    FunctionDeclaration
+                ):
+                    self._collect_function_body(
+                        statement
+                    )
+
+                else:
+                    self._collect_symbols(
+                        statement
+                    )
 
             return
 
-
-        # Is Block instance
 
         if isinstance(node, Block):
 
@@ -1419,38 +1442,23 @@ class SemanticAnalyzer:
             return
 
 
-        # Is VariableDeclaration instance
+        if isinstance(
+            node,
+            VariableDeclaration
+        ):
 
-        if isinstance(node, VariableDeclaration):
-
-            # ---------------------------------------------
-            # Resolve declared type or infer from initializer
-            # ---------------------------------------------
-
-            if node.declared_type is None:
-
-                if node.initializer is None:
-
-                    raise SemanticError(
-                        f"Variable '{node.identifier.value}' "
-                        "requires a type or initializer",
-                        token=node.identifier
-                    )
-
-                variable_type = self.evaluate_expression(
-                    node.initializer
-                )
-
-            else:
+            if node.declared_type is not None:
 
                 variable_type = self.resolve_type(
                     node.declared_type
                 )
 
+            else:
 
-            # ---------------------------------------------
-            # Create symbol
-            # ---------------------------------------------
+                # Inferred variables are resolved by the
+                # full semantic analyzer, not symbol collection.
+                variable_type = UNKNOWN
+
 
             symbol = Symbol(
                 name=str(
@@ -1461,7 +1469,9 @@ class SemanticAnalyzer:
 
                 type_properties=variable_type,
 
-                initialized=node.initializer is not None,
+                initialized=(
+                    node.initializer is not None
+                ),
 
                 is_const=node.is_const
             )
@@ -1474,120 +1484,137 @@ class SemanticAnalyzer:
             return
 
 
-        # Is FunctionDeclaration instance
+    def _collect_function_declaration(
+        self,
+        node
+    ):
+        """
+        Register a function signature without analyzing
+        its body.
+        """
 
-        if isinstance(
-            node,
-            FunctionDeclaration
-        ):
+        # ------------------------------------------------------------
+        # Resolve return type
+        # ------------------------------------------------------------
 
-            # ---------------------------------------------
-            # Resolve return type
-            # ---------------------------------------------
+        return_type = self.resolve_type(
+            node.return_type
+        )
 
-            return_type = self.resolve_type(
-                node.return_type
+
+        # ------------------------------------------------------------
+        # Resolve parameters
+        # ------------------------------------------------------------
+
+        parameter_symbols = []
+
+
+        for parameter in node.parameters:
+
+            parameter_type = self.resolve_type(
+                parameter.parameter_type
             )
 
 
-            # ---------------------------------------------
-            # Resolve parameters
-            # ---------------------------------------------
+            parameter_symbol = Symbol(
+                name=parameter.name,
 
-            parameter_symbols = []
+                token=parameter.token,
 
-
-            for parameter in node.parameters:
-
-                parameter_type = self.resolve_type(
-                    parameter.parameter_type
-                )
-
-
-                parameter_symbol = Symbol(
-                    name=parameter.name,
-
-                    token=parameter.token,
-
-                    type_properties=parameter_type,
-
-                    initialized=True,
-                )
-
-
-                parameter_symbols.append(
-                    parameter_symbol
-                )
-
-
-            # ---------------------------------------------
-            # Create complete function symbol
-            # ---------------------------------------------
-
-            function_symbol = FunctionSymbol(
-                name=node.name,
-
-                token=node.token,
-
-                type_properties=return_type,
-
-                return_type=return_type,
-
-                parameters=parameter_symbols,
+                type_properties=parameter_type,
 
                 initialized=True,
             )
 
 
-            self.symbols.current_scope.define(
-                function_symbol
+            parameter_symbols.append(
+                parameter_symbol
             )
 
 
-            # ---------------------------------------------
-            # Enter function scope
-            # ---------------------------------------------
+        # ------------------------------------------------------------
+        # Create function symbol
+        # ------------------------------------------------------------
 
-            self.symbols.enter_scope(
-                start_line=node.token.line,
-                start_column=node.token.column,
-            )
+        function_symbol = FunctionSymbol(
+            name=node.name,
+
+            token=node.token,
+
+            type_properties=return_type,
+
+            return_type=return_type,
+
+            parameters=parameter_symbols,
+
+            initialized=True,
+        )
 
 
-            # ---------------------------------------------
-            # Define parameters inside function scope
-            # ---------------------------------------------
+        self.symbols.current_scope.define(
+            function_symbol
+        )
 
-            for parameter_symbol in parameter_symbols:
+
+    def _collect_function_body(
+        self,
+        node
+    ):
+        """
+        Collect parameters and local declarations inside
+        an already-declared function.
+        """
+
+        # ------------------------------------------------------------
+        # Enter function scope
+        # ------------------------------------------------------------
+
+        self.symbols.enter_scope(
+            start_line=node.token.line,
+            start_column=node.token.column,
+        )
+
+
+        # ------------------------------------------------------------
+        # Define parameters
+        # ------------------------------------------------------------
+
+        function_symbol = self.symbols.lookup_name(
+            node.name
+        )
+
+
+        if function_symbol is not None:
+
+            for parameter_symbol in (
+                function_symbol.parameters
+            ):
 
                 self.symbols.current_scope.define(
                     parameter_symbol
                 )
 
 
-            # ---------------------------------------------
-            # Collect function body
-            # ---------------------------------------------
+        # ------------------------------------------------------------
+        # Collect body
+        # ------------------------------------------------------------
 
-            self._collect_symbols(
-                node.body
+        self._collect_symbols(
+            node.body
+        )
+
+
+        # ------------------------------------------------------------
+        # Leave function scope
+        # ------------------------------------------------------------
+
+        if node.body.end_token is not None:
+
+            self.symbols.exit_scope(
+                end_line=node.body.end_token.line,
+                end_column=node.body.end_token.column,
             )
 
+        else:
 
-            # ---------------------------------------------
-            # Leave function scope
-            # ---------------------------------------------
-
-            if node.body.end_token is not None:
-
-                self.symbols.exit_scope(
-                    end_line=node.body.end_token.line,
-                    end_column=node.body.end_token.column,
-                )
-
-            else:
-
-                self.symbols.exit_scope()
-
-
-            return
+            self.symbols.exit_scope()
