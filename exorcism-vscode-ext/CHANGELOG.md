@@ -2,6 +2,22 @@
 
 All notable changes to the Exorcism VS Code Extension will be documented in this file.
 
+## [1.11.0]
+
+### Added
+
+- Enhanced keywords highlighting
+
+---
+
+## [1.10.0]
+
+### Added
+
+- Enhanced GOTO definition
+
+---
+
 ## [1.9.0]
 
 ### Added
