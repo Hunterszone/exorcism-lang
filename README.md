@@ -93,7 +93,7 @@ The LLVM backend provides:
 - Users don't need to install an Exorcism runtime
 
 ### Cross-platform compilation
-The same lang distribution can target Windows, Linux, macOS, WebAssembly, and potentially more architectures through LLVM.
+The same lang distribution can target Windows, Linux, macOS, etc. through LLVM.
 
 **NOTE**: The .js output file is required by the current execution model that uses JavaScript as the WebAssembly host/runtime launcher.
 WebAssembly is a portable binary format, but it needs a host environment to:
